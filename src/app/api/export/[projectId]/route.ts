@@ -2,7 +2,8 @@ import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { renderToBuffer } from "@react-pdf/renderer"
 import { ComparisonReportPDF } from "@/lib/pdf/generator"
-import React from "react"
+import React, { type ReactElement } from "react"
+import type { DocumentProps } from "@react-pdf/renderer"
 
 export async function GET(
   request: Request,
@@ -52,7 +53,7 @@ export async function GET(
         project,
         documents: project.bid_documents,
         results: project.comparison_results,
-      })
+      }) as ReactElement<DocumentProps>
     )
 
     // Return PDF
