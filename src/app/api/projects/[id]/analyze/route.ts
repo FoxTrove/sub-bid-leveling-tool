@@ -65,23 +65,12 @@ export async function POST(
 
     // Call Supabase Edge Function for analysis (has longer timeout)
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-    // Get the user's session token to authenticate with Edge Function
-    const { data: sessionData } = await supabase.auth.getSession()
-    const accessToken = sessionData?.session?.access_token
-
-    if (!accessToken) {
-      return NextResponse.json({ error: "No valid session" }, { status: 401 })
-    }
 
     // Fire off the Edge Function (don't await - let it run in background)
     fetch(`${supabaseUrl}/functions/v1/analyze-bids`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${accessToken}`,
-        "apikey": supabaseAnonKey || "",
       },
       body: JSON.stringify({
         projectId,
