@@ -1,7 +1,7 @@
-import mammoth from "mammoth"
-
 export async function extractTextFromWord(buffer: Buffer): Promise<string> {
   try {
+    // Dynamic import for CommonJS module compatibility with Turbopack
+    const mammoth = (await import("mammoth")).default
     const result = await mammoth.extractRawText({ buffer })
     return result.value
   } catch (error) {
