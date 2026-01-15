@@ -59,7 +59,7 @@ export async function GET(
     // Return PDF
     const filename = `${project.name.replace(/[^a-zA-Z0-9]/g, "_")}_comparison.pdf`
 
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename="${filename}"`,
