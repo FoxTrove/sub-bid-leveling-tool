@@ -22,7 +22,7 @@ export async function POST(
 
     const { data: project } = await supabase
       .from("projects")
-      .select("user_id")
+      .select("user_id, trade_type, bid_documents(id)")
       .eq("id", projectId)
       .single()
 
@@ -57,27 +57,41 @@ export async function POST(
       )
     }
 
+    // Clear any existing extracted items for re-analysis
+    const documentIds = project.bid_documents?.map((d: { id: string }) => d.id) || []
+    if (documentIds.length > 0) {
+      await adminSupabase
+        .from("extracted_items")
+        .delete()
+        .in("bid_document_id", documentIds)
+    }
+
     // Update project status to processing
     await adminSupabase
       .from("projects")
-      .update({ status: "processing" })
+      .update({ status: "processing", error_message: null })
       .eq("id", projectId)
 
-    // Call Supabase Edge Function for analysis (has longer timeout)
+    // Reset document statuses
+    await adminSupabase
+      .from("bid_documents")
+      .update({ upload_status: "uploaded", error_message: null })
+      .eq("project_id", projectId)
+
+    // Fire off the orchestrator Edge Function (don't await - let it run)
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 
-    // Fire off the Edge Function (don't await - let it run in background)
-    fetch(`${supabaseUrl}/functions/v1/analyze-bids`, {
+    fetch(`${supabaseUrl}/functions/v1/orchestrate-analysis`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         projectId,
         openaiApiKey,
+        tradeType: project.trade_type,
+        documentIds,
       }),
     }).catch((error) => {
-      console.error("Edge function call failed:", error)
+      console.error("Orchestrator call failed:", error)
     })
 
     return NextResponse.json({ success: true, message: "Analysis started" })

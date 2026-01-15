@@ -209,7 +209,7 @@ export function ContractorDetailCards({ documents, results }: ContractorDetailCa
                                   </div>
                                 </TableCell>
                                 <TableCell className="text-right">
-                                  {item.total_price ? formatCurrency(item.total_price) : "TBD"}
+                                  {item.total_price != null ? formatCurrency(item.total_price) : "TBD"}
                                 </TableCell>
                               </TableRow>
                             ))}
