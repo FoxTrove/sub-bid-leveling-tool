@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { CreditCard, Loader2, Sparkles, Key, ExternalLink } from "lucide-react"
+import { CreditCard, Loader2, Sparkles, Key, Coins, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -24,6 +24,7 @@ interface BillingSectionProps {
   subscriptionPeriodEnd: string | null
   billingCycle: BillingCycle | null
   comparisonsUsed: number
+  creditBalance: number
   hasApiKey: boolean
   stripeCustomerId: string | null
 }
@@ -34,6 +35,7 @@ export function BillingSection({
   subscriptionPeriodEnd,
   billingCycle,
   comparisonsUsed,
+  creditBalance,
   hasApiKey,
   stripeCustomerId,
 }: BillingSectionProps) {
@@ -62,11 +64,13 @@ export function BillingSection({
   const isActive = subscriptionStatus === "active"
   const isPaidPlan = plan !== "free" && isActive
 
-  // Calculate usage for free tier
+  // Calculate remaining free comparisons
+  const freeRemaining = Math.max(FREE_COMPARISON_LIMIT - comparisonsUsed, 0)
+
+  // Calculate usage for progress bar
   const usagePercent = hasApiKey || isPaidPlan
     ? 0
     : Math.min((comparisonsUsed / FREE_COMPARISON_LIMIT) * 100, 100)
-  const remaining = FREE_COMPARISON_LIMIT - comparisonsUsed
 
   return (
     <Card>
@@ -81,43 +85,84 @@ export function BillingSection({
               <Key className="h-3 w-3" />
               BYOK Active
             </Badge>
-          ) : (
+          ) : isPaidPlan ? (
             <Badge className={getPlanBadgeColor(plan)}>
-              {plan !== "free" && <Sparkles className="mr-1 h-3 w-3" />}
+              <Sparkles className="mr-1 h-3 w-3" />
               {getPlanDisplayName(plan)}
             </Badge>
+          ) : creditBalance > 0 ? (
+            <Badge variant="secondary" className="gap-1 bg-accent/10 text-accent border-accent/20">
+              <Coins className="h-3 w-3" />
+              {creditBalance} credits
+            </Badge>
+          ) : (
+            <Badge variant="secondary">Free</Badge>
           )}
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Usage Stats */}
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Comparisons</span>
-            <span className="font-medium">
-              {hasApiKey || isPaidPlan ? (
-                "Unlimited"
-              ) : (
-                `${comparisonsUsed} / ${FREE_COMPARISON_LIMIT} used`
-              )}
-            </span>
+        {/* Credit Balance - Prominent for credit-based users */}
+        {!hasApiKey && !isPaidPlan && (
+          <div className="rounded-xl border-2 border-accent/20 bg-accent/5 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10">
+                  <Coins className="h-5 w-5 text-accent" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Credit Balance</p>
+                  <p className="text-2xl font-bold text-accent">
+                    {creditBalance} {creditBalance === 1 ? 'credit' : 'credits'}
+                  </p>
+                </div>
+              </div>
+              <Link href="/pricing">
+                <Button variant="outline" size="sm" className="border-accent/30 text-accent hover:bg-accent/10">
+                  Buy More
+                  <ArrowRight className="ml-1 h-3 w-3" />
+                </Button>
+              </Link>
+            </div>
+            {freeRemaining > 0 && (
+              <p className="text-xs text-muted-foreground">
+                Plus {freeRemaining} free comparison{freeRemaining !== 1 ? 's' : ''} remaining
+              </p>
+            )}
           </div>
-          {!hasApiKey && !isPaidPlan && (
+        )}
+
+        {/* Usage Stats for Free Tier */}
+        {!hasApiKey && !isPaidPlan && creditBalance === 0 && (
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Free Comparisons</span>
+              <span className="font-medium">
+                {comparisonsUsed} / {FREE_COMPARISON_LIMIT} used
+              </span>
+            </div>
             <div className="space-y-1">
               <Progress value={usagePercent} className="h-2" />
               <p className="text-xs text-muted-foreground">
-                {remaining > 0
-                  ? `${remaining} comparison${remaining !== 1 ? 's' : ''} remaining`
-                  : "No comparisons remaining - upgrade or add API key"
+                {freeRemaining > 0
+                  ? `${freeRemaining} comparison${freeRemaining !== 1 ? 's' : ''} remaining`
+                  : "No free comparisons remaining"
                 }
               </p>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* Subscription Details */}
+        {/* Subscription Status for Paid Plans */}
         {isPaidPlan && (
           <div className="space-y-2 rounded-lg bg-muted/50 p-3">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Plan</span>
+              <span className="font-medium">{getPlanDisplayName(plan)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Comparisons</span>
+              <span className="font-medium text-primary">Unlimited</span>
+            </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Billing cycle</span>
               <span className="font-medium capitalize">{billingCycle || "Monthly"}</span>
@@ -132,24 +177,41 @@ export function BillingSection({
             )}
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Status</span>
-              <Badge variant="outline" className="text-green-600 border-green-200">
+              <Badge variant="outline" className="text-green-600 border-green-200 dark:text-green-400 dark:border-green-800">
                 Active
               </Badge>
             </div>
           </div>
         )}
 
+        {/* BYOK Status */}
+        {hasApiKey && (
+          <div className="space-y-2 rounded-lg bg-muted/50 p-3">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Access Type</span>
+              <span className="font-medium">Your OpenAI Key</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Comparisons</span>
+              <span className="font-medium text-primary">Unlimited</span>
+            </div>
+            <p className="text-xs text-muted-foreground pt-2 border-t">
+              Using your own API key. API costs are billed directly by OpenAI.
+            </p>
+          </div>
+        )}
+
         {/* Past Due Warning */}
         {subscriptionStatus === "past_due" && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
-            <p className="text-sm text-amber-800">
+          <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-3">
+            <p className="text-sm text-amber-800 dark:text-amber-200">
               Your payment is past due. Please update your payment method to continue using BidLevel.
             </p>
           </div>
         )}
 
         {/* Actions */}
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           {isPaidPlan || stripeCustomerId ? (
             <Button
               variant="outline"
@@ -165,19 +227,31 @@ export function BillingSection({
             </Button>
           ) : (
             !hasApiKey && (
-              <Link href="/pricing">
-                <Button className="w-full">
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Upgrade Plan
-                </Button>
-              </Link>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <Link href="/pricing">
+                  <Button variant="outline" className="w-full gap-2 border-accent/30 text-accent hover:bg-accent/10">
+                    <Coins className="h-4 w-4" />
+                    Buy Credits
+                  </Button>
+                </Link>
+                <Link href="/pricing">
+                  <Button className="w-full gap-2">
+                    <Sparkles className="h-4 w-4" />
+                    Go Unlimited
+                  </Button>
+                </Link>
+              </div>
             )
           )}
 
-          {!hasApiKey && (
-            <p className="text-center text-xs text-muted-foreground">
-              Or bring your own OpenAI API key below for unlimited free access
-            </p>
+          {hasApiKey && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-3">
+              <p className="text-xs text-amber-800 dark:text-amber-200">
+                <strong>Note:</strong> BYOK (Bring Your Own Key) is a legacy feature.
+                New users can purchase credits or subscribe for unlimited access.
+                Your API key will continue to work as long as it&apos;s configured.
+              </p>
+            </div>
           )}
         </div>
       </CardContent>

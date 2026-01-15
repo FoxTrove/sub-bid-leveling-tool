@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Zap, Key, Loader2 } from "lucide-react"
+import { Zap, CreditCard, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -12,23 +12,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { CREDIT_PACKS } from "@/lib/utils/constants"
 import { toast } from "sonner"
 
 interface UpgradePromptProps {
-  comparisonsUsed: number
-  comparisonsLimit: number
-  onApiKeyClick?: () => void
+  creditBalance?: number
 }
 
-export function UpgradePrompt({
-  comparisonsUsed,
-  comparisonsLimit,
-  onApiKeyClick,
-}: UpgradePromptProps) {
-  const [isLoading, setIsLoading] = useState(false)
+export function UpgradePrompt({ creditBalance = 0 }: UpgradePromptProps) {
+  const [isLoading, setIsLoading] = useState<string | null>(null)
 
   const handleUpgrade = async (plan: "pro" | "team", interval: "monthly" | "annual") => {
-    setIsLoading(true)
+    setIsLoading(`${plan}-${interval}`)
     try {
       const response = await fetch("/api/stripe/checkout", {
         method: "POST",
@@ -42,41 +37,100 @@ export function UpgradePrompt({
         throw new Error(data.error || "Failed to start checkout")
       }
 
-      // Redirect to Stripe checkout
       window.location.href = data.url
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to start checkout")
-      setIsLoading(false)
+      setIsLoading(null)
+    }
+  }
+
+  const handleBuyCredits = async (pack: keyof typeof CREDIT_PACKS) => {
+    setIsLoading(`credits-${pack}`)
+    try {
+      const response = await fetch("/api/stripe/credits", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pack }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to start checkout")
+      }
+
+      window.location.href = data.url
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to start checkout")
+      setIsLoading(null)
     }
   }
 
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold">You&apos;ve Hit Your Limit</h2>
+        <h2 className="text-2xl font-bold">You&apos;re Out of Credits</h2>
         <p className="text-muted-foreground mt-2">
-          You&apos;ve used {comparisonsUsed} of {comparisonsLimit} free comparisons.
-          <br />
-          Upgrade to continue leveling bids.
+          {creditBalance === 0
+            ? "Purchase credits or subscribe for unlimited access."
+            : `You have ${creditBalance} credit${creditBalance !== 1 ? "s" : ""} remaining.`}
         </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
+        {/* Buy Credits Option */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Buy Credits
+            </CardTitle>
+            <CardDescription>Pay as you go, no commitment</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">
+              $100<span className="text-lg font-normal text-muted-foreground"> / 15 credits</span>
+            </div>
+            <p className="text-sm text-muted-foreground mt-1">
+              ~$6.67 per comparison
+            </p>
+            <ul className="mt-4 space-y-2 text-sm">
+              <li>15 bid comparisons</li>
+              <li>Never expires</li>
+              <li>Buy more anytime</li>
+            </ul>
+          </CardContent>
+          <CardFooter>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => handleBuyCredits("starter")}
+              disabled={isLoading !== null}
+            >
+              {isLoading === "credits-starter" ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Buy Starter Pack"
+              )}
+            </Button>
+          </CardFooter>
+        </Card>
+
         {/* Pro Plan */}
         <Card className="border-primary">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Zap className="h-5 w-5 text-primary" />
-              Pro Plan
+              Pro Subscription
             </CardTitle>
-            <CardDescription>For busy estimators</CardDescription>
+            <CardDescription>Best value for regular users</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">
               $79<span className="text-lg font-normal text-muted-foreground">/mo</span>
             </div>
             <p className="text-sm text-muted-foreground mt-1">
-              or $790/year (save 2 months)
+              Unlimited comparisons
             </p>
             <ul className="mt-4 space-y-2 text-sm">
               <li>Unlimited comparisons</li>
@@ -84,51 +138,18 @@ export function UpgradePrompt({
               <li>Email support</li>
             </ul>
           </CardContent>
-          <CardFooter className="flex flex-col gap-2">
+          <CardFooter>
             <Button
               className="w-full"
-              onClick={() => handleUpgrade("pro", "annual")}
-              disabled={isLoading}
+              onClick={() => handleUpgrade("pro", "monthly")}
+              disabled={isLoading !== null}
             >
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Upgrade to Pro"}
+              {isLoading === "pro-monthly" ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Subscribe to Pro"
+              )}
             </Button>
-          </CardFooter>
-        </Card>
-
-        {/* BYOK Option */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Key className="h-5 w-5" />
-              Bring Your Own Key
-            </CardTitle>
-            <CardDescription>For the tech-savvy</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">
-              Free<span className="text-lg font-normal text-muted-foreground"> forever</span>
-            </div>
-            <p className="text-sm text-muted-foreground mt-1">
-              Use your own OpenAI API key
-            </p>
-            <ul className="mt-4 space-y-2 text-sm">
-              <li>Unlimited comparisons</li>
-              <li>You pay OpenAI directly</li>
-              <li>~$0.10-0.50 per comparison</li>
-            </ul>
-          </CardContent>
-          <CardFooter>
-            {onApiKeyClick ? (
-              <Button variant="outline" className="w-full" onClick={onApiKeyClick}>
-                Add API Key
-              </Button>
-            ) : (
-              <Link href="/settings" className="w-full">
-                <Button variant="outline" className="w-full">
-                  Add API Key
-                </Button>
-              </Link>
-            )}
           </CardFooter>
         </Card>
       </div>

@@ -69,13 +69,29 @@ export async function POST(
       }
     }
 
-    // Increment comparisons_used (only for users without their own API key and not on unlimited paid plan)
-    if (!usageStatus.hasApiKey && usageStatus.comparisonsLimit !== null) {
-      await adminSupabase
-        .from("profiles")
-        .update({ comparisons_used: (profile.comparisons_used || 0) + 1 })
-        .eq("id", user.id)
+    // Deduct credit if using credit-based access
+    if (usageStatus.accessType === "credits") {
+      const { data: deductResult, error: deductError } = await adminSupabase.rpc("deduct_credits", {
+        p_user_id: user.id,
+        p_amount: 1,
+        p_project_id: projectId,
+        p_description: `Bid comparison for ${project.trade_type || "project"}`,
+      })
+
+      if (deductError || (deductResult && !deductResult.success)) {
+        console.error("Credit deduction failed:", deductError || deductResult)
+        return NextResponse.json(
+          { error: "Failed to deduct credits. Please try again." },
+          { status: 500 }
+        )
+      }
     }
+
+    // Increment comparisons_used for tracking purposes
+    await adminSupabase
+      .from("profiles")
+      .update({ comparisons_used: (profile.comparisons_used || 0) + 1 })
+      .eq("id", user.id)
 
     // Clear any existing extracted items for re-analysis
     const documentIds = project.bid_documents?.map((d: { id: string }) => d.id) || []

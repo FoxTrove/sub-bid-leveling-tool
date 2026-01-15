@@ -71,17 +71,48 @@ async function handleCheckoutCompleted(
   supabase: ReturnType<typeof createAdminClient>,
   session: Stripe.Checkout.Session
 ) {
-  const userId = session.subscription
-    ? (await stripe.subscriptions.retrieve(session.subscription as string)).metadata.supabase_user_id
-    : null
+  // Handle credit pack purchase (one-time payment)
+  if (session.mode === "payment" && session.metadata?.credit_pack) {
+    const userId = session.metadata.supabase_user_id
+    const creditsAmount = parseInt(session.metadata.credits_amount || "0", 10)
+    const packName = session.metadata.credit_pack
 
-  if (!userId) {
-    console.error("No user ID in subscription metadata")
+    if (!userId || !creditsAmount) {
+      console.error("Missing metadata for credit purchase:", session.metadata)
+      return
+    }
+
+    // Use the add_credits function to atomically add credits
+    const { data, error } = await supabase.rpc("add_credits", {
+      p_user_id: userId,
+      p_amount: creditsAmount,
+      p_type: "purchase",
+      p_description: `${packName} credit pack (${creditsAmount} credits)`,
+      p_stripe_session_id: session.id,
+    })
+
+    if (error) {
+      console.error("Failed to add credits:", error)
+      throw error
+    }
+
+    console.log(`Added ${creditsAmount} credits for user ${userId}:`, data)
     return
   }
 
-  // Subscription details will be updated via subscription.updated webhook
-  console.log(`Checkout completed for user ${userId}`)
+  // Handle subscription checkout
+  if (session.subscription) {
+    const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
+    const userId = subscription.metadata.supabase_user_id
+
+    if (!userId) {
+      console.error("No user ID in subscription metadata")
+      return
+    }
+
+    // Subscription details will be updated via subscription.updated webhook
+    console.log(`Subscription checkout completed for user ${userId}`)
+  }
 }
 
 async function handleSubscriptionUpdate(

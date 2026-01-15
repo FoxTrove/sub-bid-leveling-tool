@@ -37,6 +37,7 @@ export const METRIC_TOOLTIPS = {
 
 // Subscription and pricing
 export const FREE_COMPARISON_LIMIT = 5
+export const SIGNUP_BONUS_CREDITS = 3 // Free comparisons on signup
 
 export const PLAN_LIMITS = {
   free: { comparisons: 5, users: 1, brandedReports: false },
@@ -59,3 +60,33 @@ export const PRICING = {
     stripePriceIdAnnual: process.env.NEXT_PUBLIC_STRIPE_TEAM_ANNUAL_PRICE_ID || '',
   },
 } as const
+
+// Credit Packs (pay-as-you-go)
+export const CREDIT_PACKS = {
+  starter: {
+    name: 'Starter',
+    price: 100, // $100
+    credits: 15, // 15 comparisons
+    pricePerCredit: 6.67,
+    bonus: null,
+    stripePriceId: process.env.NEXT_PUBLIC_STRIPE_STARTER_PACK_PRICE_ID || '',
+  },
+  professional: {
+    name: 'Professional',
+    price: 250, // $250
+    credits: 40, // 40 comparisons (6% bonus)
+    pricePerCredit: 6.25,
+    bonus: '6% bonus',
+    stripePriceId: process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PACK_PRICE_ID || '',
+  },
+  enterprise: {
+    name: 'Enterprise',
+    price: 500, // $500
+    credits: 90, // 90 comparisons (17% bonus)
+    pricePerCredit: 5.56,
+    bonus: '17% bonus',
+    stripePriceId: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PACK_PRICE_ID || '',
+  },
+} as const
+
+export type CreditPackKey = keyof typeof CREDIT_PACKS

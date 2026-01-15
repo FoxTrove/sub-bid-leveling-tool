@@ -1,66 +1,72 @@
 import type { Profile, PlanType } from "@/types"
-import { FREE_COMPARISON_LIMIT, PLAN_LIMITS } from "./constants"
+import { SIGNUP_BONUS_CREDITS } from "./constants"
 
 export interface UsageStatus {
   canCreateComparison: boolean
-  comparisonsUsed: number
-  comparisonsLimit: number | null // null = unlimited
-  comparisonsRemaining: number | null // null = unlimited
+  creditBalance: number
   plan: PlanType
-  hasApiKey: boolean
+  hasApiKey: boolean // Grandfathered BYOK users
   isSubscriptionActive: boolean
+  accessType: "subscription" | "credits" | "byok" | "none"
   reason?: string
 }
 
 export function getUsageStatus(profile: Profile): UsageStatus {
   const plan = profile.plan || "free"
-  const hasApiKey = !!profile.openai_api_key_encrypted
-  const comparisonsUsed = profile.comparisons_used || 0
+  const hasApiKey = !!profile.openai_api_key_encrypted // Grandfathered BYOK
+  const creditBalance = profile.credit_balance || 0
   const isSubscriptionActive = profile.subscription_status === "active"
 
-  // Users with their own API key get unlimited access
-  if (hasApiKey) {
-    return {
-      canCreateComparison: true,
-      comparisonsUsed,
-      comparisonsLimit: null,
-      comparisonsRemaining: null,
-      plan,
-      hasApiKey: true,
-      isSubscriptionActive,
-    }
-  }
-
-  // Paid plans with active subscription get unlimited
+  // Priority 1: Active subscription = unlimited
   if (plan !== "free" && isSubscriptionActive) {
     return {
       canCreateComparison: true,
-      comparisonsUsed,
-      comparisonsLimit: null,
-      comparisonsRemaining: null,
+      creditBalance,
       plan,
-      hasApiKey: false,
+      hasApiKey,
       isSubscriptionActive: true,
+      accessType: "subscription",
     }
   }
 
-  // Free plan has limited comparisons
-  const limit = FREE_COMPARISON_LIMIT
-  const remaining = Math.max(0, limit - comparisonsUsed)
-  const canCreate = remaining > 0
+  // Priority 2: Grandfathered BYOK users get unlimited
+  if (hasApiKey) {
+    return {
+      canCreateComparison: true,
+      creditBalance,
+      plan,
+      hasApiKey: true,
+      isSubscriptionActive,
+      accessType: "byok",
+    }
+  }
 
+  // Priority 3: Credit balance - need at least 1 credit
+  if (creditBalance >= 1) {
+    return {
+      canCreateComparison: true,
+      creditBalance,
+      plan,
+      hasApiKey: false,
+      isSubscriptionActive: false,
+      accessType: "credits",
+    }
+  }
+
+  // No access - need to purchase credits or subscribe
   return {
-    canCreateComparison: canCreate,
-    comparisonsUsed,
-    comparisonsLimit: limit,
-    comparisonsRemaining: remaining,
+    canCreateComparison: false,
+    creditBalance,
     plan: "free",
     hasApiKey: false,
     isSubscriptionActive: false,
-    reason: canCreate
-      ? undefined
-      : "You've used all your free comparisons. Upgrade to Pro or add your own API key to continue.",
+    accessType: "none",
+    reason: "You're out of credits. Purchase more credits or subscribe for unlimited access.",
   }
+}
+
+export function formatCredits(credits: number): string {
+  return credits.toLocaleString()
 }
 
 export function getPlanDisplayName(plan: PlanType): string {

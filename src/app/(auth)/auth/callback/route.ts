@@ -23,6 +23,10 @@ export async function GET(request: Request) {
     })
 
     if (!error) {
+      // For password recovery, redirect to settings to set new password
+      if (type === "recovery") {
+        return NextResponse.redirect(`${origin}/settings?reset_password=true`)
+      }
       return NextResponse.redirect(`${origin}/dashboard`)
     }
   }
@@ -32,6 +36,11 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error) {
+      // Check if this is a recovery flow
+      const recoveryType = requestUrl.searchParams.get("type")
+      if (recoveryType === "recovery") {
+        return NextResponse.redirect(`${origin}/settings?reset_password=true`)
+      }
       return NextResponse.redirect(`${origin}/dashboard`)
     }
   }

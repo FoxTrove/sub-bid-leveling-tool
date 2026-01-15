@@ -49,6 +49,7 @@ export default async function SettingsPage() {
             subscriptionPeriodEnd={profile.subscription_period_end}
             billingCycle={profile.billing_cycle as BillingCycle | null}
             comparisonsUsed={profile.comparisons_used || 0}
+            creditBalance={profile.credit_balance || 0}
             hasApiKey={hasApiKey}
             stripeCustomerId={profile.stripe_customer_id}
           />

@@ -26,7 +26,7 @@ import { FileDropzone, UploadedFile } from "@/components/shared/file-dropzone"
 import { UpgradePrompt } from "@/components/shared/upgrade-prompt"
 import { toast } from "sonner"
 import { TRADE_TYPES, type ProjectFolder, type Profile } from "@/types"
-import { MIN_BIDS, MAX_BIDS, FREE_COMPARISON_LIMIT } from "@/lib/utils/constants"
+import { MIN_BIDS, MAX_BIDS } from "@/lib/utils/constants"
 import { getUsageStatus, type UsageStatus } from "@/lib/utils/subscription"
 
 const STEPS = [
@@ -301,14 +301,11 @@ export default function NewComparisonPage() {
     )
   }
 
-  // Show upgrade prompt if user has hit their limit
+  // Show upgrade prompt if user is out of credits
   if (usageStatus && !usageStatus.canCreateComparison) {
     return (
       <div className="mx-auto max-w-2xl py-12">
-        <UpgradePrompt
-          comparisonsUsed={usageStatus.comparisonsUsed}
-          comparisonsLimit={usageStatus.comparisonsLimit || FREE_COMPARISON_LIMIT}
-        />
+        <UpgradePrompt creditBalance={usageStatus.creditBalance} />
       </div>
     )
   }
@@ -320,9 +317,9 @@ export default function NewComparisonPage() {
         <p className="mt-2 text-muted-foreground">
           Upload subcontractor bids to compare them side-by-side
         </p>
-        {usageStatus && usageStatus.comparisonsLimit !== null && (
+        {usageStatus && usageStatus.accessType === "credits" && (
           <p className="mt-1 text-sm text-muted-foreground">
-            {usageStatus.comparisonsRemaining} of {usageStatus.comparisonsLimit} free comparisons remaining
+            {usageStatus.creditBalance} credit{usageStatus.creditBalance !== 1 ? "s" : ""} remaining
           </p>
         )}
       </div>

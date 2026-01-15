@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
-import { Scale, LogOut, Settings, Key, Sparkles } from "lucide-react"
+import { Scale, LogOut, Settings, Key, Sparkles, Coins, CreditCard } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -23,6 +23,7 @@ interface PlanInfo {
   isActive: boolean
   hasApiKey: boolean
   comparisonsUsed: number
+  creditBalance: number
 }
 
 interface DashboardHeaderProps {
@@ -73,29 +74,80 @@ export function DashboardHeader({ userEmail, planInfo }: DashboardHeaderProps) {
       )
     }
 
-    // Free plan - show usage
+    // Credit-based user - show credit balance
+    if (planInfo.creditBalance > 0) {
+      return (
+        <Badge variant="secondary" className="gap-1 bg-accent/10 text-accent border-accent/20">
+          <Coins className="h-3 w-3" />
+          {planInfo.creditBalance} {planInfo.creditBalance === 1 ? 'credit' : 'credits'}
+        </Badge>
+      )
+    }
+
+    // Free plan with no credits - show free usage
     const remaining = FREE_COMPARISON_LIMIT - planInfo.comparisonsUsed
+    if (remaining > 0) {
+      return (
+        <Badge variant="secondary" className="gap-1">
+          {remaining}/{FREE_COMPARISON_LIMIT} free
+        </Badge>
+      )
+    }
+
+    // No credits or free comparisons left
     return (
-      <Badge variant="secondary" className="gap-1">
-        {remaining}/{FREE_COMPARISON_LIMIT} free
+      <Badge variant="outline" className="gap-1 text-muted-foreground">
+        No credits
       </Badge>
     )
   }
 
+  // Check if user needs credits
+  const needsCredits = planInfo &&
+    !planInfo.hasApiKey &&
+    !planInfo.isActive &&
+    planInfo.creditBalance <= 0 &&
+    (FREE_COMPARISON_LIMIT - planInfo.comparisonsUsed) <= 0
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <Scale className="h-6 w-6 text-primary" />
+        <Link href="/dashboard" className="flex items-center gap-2.5 group">
+          <div className="relative">
+            <div className="absolute inset-0 bg-primary/20 rounded-lg blur-md group-hover:blur-lg transition-all" />
+            <div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/80">
+              <Scale className="h-5 w-5 text-primary-foreground" />
+            </div>
+          </div>
           <div className="flex flex-col leading-none">
-            <span className="text-xl font-bold">BidLevel</span>
+            <span className="text-xl font-bold text-gradient">BidLevel</span>
             <span className="text-[10px] text-muted-foreground">by Foxtrove.ai</span>
           </div>
         </Link>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          {/* Credit balance pill - visible when user has credits */}
+          {planInfo && planInfo.creditBalance > 0 && !planInfo.isActive && !planInfo.hasApiKey && (
+            <Link href="/pricing" className="hidden sm:flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1.5 text-sm font-medium text-accent hover:bg-accent/20 transition-colors">
+              <Coins className="h-4 w-4" />
+              <span>{planInfo.creditBalance} credits</span>
+            </Link>
+          )}
+
+          {/* Buy Credits button - visible when low or no credits */}
+          {needsCredits && (
+            <Link href="/pricing">
+              <Button variant="outline" size="sm" className="hidden sm:flex gap-2 border-accent/30 text-accent hover:bg-accent/10 hover:border-accent/50">
+                <CreditCard className="h-4 w-4" />
+                Buy Credits
+              </Button>
+            </Link>
+          )}
+
           <Link href="/compare/new">
-            <Button>New Comparison</Button>
+            <Button className="shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-shadow">
+              New Comparison
+            </Button>
           </Link>
 
           <DropdownMenu>
@@ -114,12 +166,18 @@ export function DashboardHeader({ userEmail, planInfo }: DashboardHeaderProps) {
                 {getPlanBadge()}
               </div>
               <DropdownMenuSeparator />
-              {planInfo && planInfo.plan === "free" && !planInfo.hasApiKey && (
+              {planInfo && !planInfo.isActive && !planInfo.hasApiKey && (
                 <>
                   <DropdownMenuItem asChild>
                     <Link href="/pricing" className="cursor-pointer text-primary">
+                      <Coins className="mr-2 h-4 w-4" />
+                      Buy Credits
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/pricing" className="cursor-pointer text-primary">
                       <Sparkles className="mr-2 h-4 w-4" />
-                      Upgrade Plan
+                      Go Unlimited
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />

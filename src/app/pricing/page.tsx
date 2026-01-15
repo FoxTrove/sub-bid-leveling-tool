@@ -2,35 +2,19 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Check, X, Zap, Users, Building2, ArrowRight } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Check, X, Zap, Users, Building2, ArrowRight, Coins, Scale, Sparkles, Calculator } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { CREDIT_PACKS } from "@/lib/utils/constants"
+import { CreditPackCard } from "@/components/pricing/credit-pack-card"
+import { toast } from "sonner"
 
-const plans = [
-  {
-    name: "Free",
-    description: "Try BidLevel risk-free",
-    monthlyPrice: 0,
-    annualPrice: 0,
-    icon: Zap,
-    features: [
-      { text: "5 bid comparisons", included: true },
-      { text: "PDF & CSV exports", included: true },
-      { text: "AI-powered analysis", included: true },
-      { text: "Scope gap detection", included: true },
-      { text: "Unlimited comparisons", included: false },
-      { text: "Branded reports", included: false },
-      { text: "Team collaboration", included: false },
-      { text: "Priority support", included: false },
-    ],
-    cta: "Get Started Free",
-    ctaLink: "/login",
-    popular: false,
-  },
+const subscriptionPlans = [
   {
     name: "Pro",
     description: "For busy estimators",
@@ -44,8 +28,6 @@ const plans = [
       { text: "Scope gap detection", included: true },
       { text: "Priority processing", included: true },
       { text: "Email support", included: true },
-      { text: "Branded reports", included: false },
-      { text: "Team collaboration", included: false },
     ],
     cta: "Start Pro",
     ctaLink: "/login?plan=pro",
@@ -64,8 +46,6 @@ const plans = [
       { text: "Team collaboration", included: true },
       { text: "Priority support", included: true },
       { text: "Usage analytics", included: true },
-      { text: "Custom integrations", included: false },
-      { text: "Dedicated account manager", included: false },
     ],
     cta: "Start Team",
     ctaLink: "/login?plan=team",
@@ -84,8 +64,6 @@ const plans = [
       { text: "SSO / SAML", included: true },
       { text: "Custom integrations", included: true },
       { text: "Dedicated account manager", included: true },
-      { text: "SLA guarantees", included: true },
-      { text: "On-premise option", included: true },
     ],
     cta: "Contact Sales",
     ctaLink: "mailto:sales@foxtrove.ai?subject=BidLevel Enterprise Inquiry",
@@ -94,25 +72,62 @@ const plans = [
 ]
 
 export default function PricingPage() {
+  const router = useRouter()
   const [isAnnual, setIsAnnual] = useState(true)
+  const [loadingPack, setLoadingPack] = useState<string | null>(null)
+
+  const handlePurchasePack = async (packKey: string) => {
+    setLoadingPack(packKey)
+    try {
+      const response = await fetch("/api/stripe/credits", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ packKey }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        if (response.status === 401) {
+          // User not logged in, redirect to login first
+          sessionStorage.setItem("bidlevel_purchase_pack", packKey)
+          router.push("/login")
+          return
+        }
+        throw new Error(data.error || "Failed to create checkout session")
+      }
+
+      const { url } = await response.json()
+      window.location.href = url
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to start checkout")
+    } finally {
+      setLoadingPack(null)
+    }
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/30">
       {/* Header */}
       <header className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-lg font-bold text-primary-foreground">B</span>
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/20 rounded-lg blur-md group-hover:blur-lg transition-all" />
+              <div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/80">
+                <Scale className="h-5 w-5 text-primary-foreground" />
+              </div>
             </div>
-            <span className="font-semibold text-xl">BidLevel</span>
+            <div className="flex flex-col leading-none">
+              <span className="text-xl font-bold text-gradient">BidLevel</span>
+              <span className="text-[10px] text-muted-foreground">by Foxtrove.ai</span>
+            </div>
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/login">
               <Button variant="ghost">Sign In</Button>
             </Link>
             <Link href="/login">
-              <Button>Get Started</Button>
+              <Button className="shadow-lg shadow-primary/20">Get Started</Button>
             </Link>
           </div>
         </div>
@@ -120,39 +135,194 @@ export default function PricingPage() {
 
       {/* Hero */}
       <section className="container py-16 text-center">
-        <Badge variant="outline" className="mb-4">Pricing</Badge>
+        <Badge variant="outline" className="mb-4 bg-accent/10 text-accent border-accent/30">
+          <Coins className="mr-1 h-3 w-3" />
+          Pricing
+        </Badge>
         <h1 className="text-4xl font-bold tracking-tight sm:text-5xl mb-4">
-          Simple, transparent pricing
+          Pay for what you use
         </h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-          Start free with 5 comparisons. Upgrade when you need unlimited access.
-          <br />
-          <span className="text-primary font-medium">One good bid decision pays for itself.</span>
+        <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-4">
+          Buy credit packs for occasional use, or go unlimited with a subscription.
         </p>
+        <p className="text-lg text-primary font-medium">
+          Start with 3 free comparisons. No credit card required.
+        </p>
+      </section>
 
-        {/* Billing Toggle */}
-        <div className="flex items-center justify-center gap-3 mb-12">
-          <Label htmlFor="billing-toggle" className={cn(!isAnnual && "text-foreground", isAnnual && "text-muted-foreground")}>
-            Monthly
-          </Label>
-          <Switch
-            id="billing-toggle"
-            checked={isAnnual}
-            onCheckedChange={setIsAnnual}
-          />
-          <Label htmlFor="billing-toggle" className={cn(isAnnual && "text-foreground", !isAnnual && "text-muted-foreground")}>
-            Annual
-          </Label>
-          {isAnnual && (
-            <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-              Save 2 months
-            </Badge>
-          )}
+      {/* Credit Packs Section */}
+      <section className="container pb-20">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-4 py-1.5 text-sm font-medium text-accent mb-4">
+            <Coins className="h-4 w-4" />
+            Pay As You Go
+          </div>
+          <h2 className="text-3xl font-bold tracking-tight mb-4">Credit Packs</h2>
+          <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+            Perfect for occasional use. Buy once, use anytime. Credits never expire.
+          </p>
         </div>
 
-        {/* Pricing Cards */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 max-w-7xl mx-auto">
-          {plans.map((plan) => {
+        <div className="grid gap-6 md:grid-cols-3 max-w-4xl mx-auto">
+          <CreditPackCard
+            name={CREDIT_PACKS.starter.name}
+            price={CREDIT_PACKS.starter.price}
+            credits={CREDIT_PACKS.starter.credits}
+            pricePerCredit={CREDIT_PACKS.starter.pricePerCredit}
+            onPurchase={() => handlePurchasePack("starter")}
+            isLoading={loadingPack === "starter"}
+          />
+          <CreditPackCard
+            name={CREDIT_PACKS.professional.name}
+            price={CREDIT_PACKS.professional.price}
+            credits={CREDIT_PACKS.professional.credits}
+            pricePerCredit={CREDIT_PACKS.professional.pricePerCredit}
+            bonus={CREDIT_PACKS.professional.bonus}
+            isPopular
+            onPurchase={() => handlePurchasePack("professional")}
+            isLoading={loadingPack === "professional"}
+          />
+          <CreditPackCard
+            name={CREDIT_PACKS.enterprise.name}
+            price={CREDIT_PACKS.enterprise.price}
+            credits={CREDIT_PACKS.enterprise.credits}
+            pricePerCredit={CREDIT_PACKS.enterprise.pricePerCredit}
+            bonus={CREDIT_PACKS.enterprise.bonus}
+            onPurchase={() => handlePurchasePack("enterprise")}
+            isLoading={loadingPack === "enterprise"}
+          />
+        </div>
+      </section>
+
+      {/* Comparison Helper */}
+      <section className="border-t border-b bg-secondary/30 py-16">
+        <div className="container">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-10">
+              <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary mb-4">
+                <Calculator className="h-4 w-4" />
+                Which option is right for you?
+              </div>
+              <h2 className="text-2xl font-bold tracking-tight">Credits vs. Subscription</h2>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              <Card className="border-2 border-accent/30 bg-accent/5">
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center">
+                      <Coins className="h-5 w-5 text-accent" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">Credit Packs</CardTitle>
+                      <CardDescription>Best for occasional users</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-3 text-sm">
+                    <li className="flex items-start gap-2">
+                      <Check className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                      <span>Fewer than 10-12 comparisons per month</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                      <span>Unpredictable or seasonal workload</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                      <span>No commitment—buy only when needed</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                      <span>Credits never expire</span>
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+
+              <Card className="border-2 border-primary/30 bg-primary/5">
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <Sparkles className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">Unlimited Subscription</CardTitle>
+                      <CardDescription>Best for regular users</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-3 text-sm">
+                    <li className="flex items-start gap-2">
+                      <Check className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                      <span>12+ comparisons per month (break-even point)</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                      <span>Consistent, predictable workflow</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                      <span>Never worry about running out</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                      <span>Priority support included</span>
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="mt-8 p-4 rounded-xl bg-muted/50 border text-center">
+              <p className="text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">Break-even analysis:</span>{" "}
+                At $79/month for unlimited, the subscription pays for itself at ~12 comparisons/month
+                (vs. $6.67/comparison with credit packs).
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Subscription Plans */}
+      <section className="container py-20">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary mb-4">
+            <Sparkles className="h-4 w-4" />
+            Unlimited Plans
+          </div>
+          <h2 className="text-3xl font-bold tracking-tight mb-4">Go Unlimited</h2>
+          <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-8">
+            For teams and heavy users. Unlimited comparisons, priority support, and more.
+          </p>
+
+          {/* Billing Toggle */}
+          <div className="flex items-center justify-center gap-3 mb-12">
+            <Label htmlFor="billing-toggle" className={cn(!isAnnual && "text-foreground", isAnnual && "text-muted-foreground")}>
+              Monthly
+            </Label>
+            <Switch
+              id="billing-toggle"
+              checked={isAnnual}
+              onCheckedChange={setIsAnnual}
+            />
+            <Label htmlFor="billing-toggle" className={cn(isAnnual && "text-foreground", !isAnnual && "text-muted-foreground")}>
+              Annual
+            </Label>
+            {isAnnual && (
+              <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-100">
+                Save 2 months
+              </Badge>
+            )}
+          </div>
+        </div>
+
+        {/* Subscription Cards */}
+        <div className="grid gap-6 md:grid-cols-3 max-w-5xl mx-auto">
+          {subscriptionPlans.map((plan) => {
             const price = isAnnual ? plan.annualPrice : plan.monthlyPrice
             const Icon = plan.icon
 
@@ -160,19 +330,21 @@ export default function PricingPage() {
               <Card
                 key={plan.name}
                 className={cn(
-                  "relative flex flex-col",
-                  plan.popular && "border-primary shadow-lg scale-105 z-10"
+                  "relative flex flex-col border-2 transition-all",
+                  plan.popular
+                    ? "border-primary shadow-lg shadow-primary/10 scale-105 z-10"
+                    : "border-border/50 hover:border-primary/50"
                 )}
               >
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge className="bg-primary">Most Popular</Badge>
+                    <Badge className="bg-primary shadow-lg">Most Popular</Badge>
                   </div>
                 )}
 
-                <CardHeader className="text-center pb-2">
-                  <div className="mx-auto mb-2 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Icon className="h-6 w-6 text-primary" />
+                <CardHeader className="text-center pb-2 pt-6">
+                  <div className="mx-auto mb-3 h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+                    <Icon className="h-7 w-7 text-primary" />
                   </div>
                   <CardTitle className="text-xl">{plan.name}</CardTitle>
                   <CardDescription>{plan.description}</CardDescription>
@@ -214,7 +386,10 @@ export default function PricingPage() {
                 <CardFooter>
                   <Link href={plan.ctaLink} className="w-full">
                     <Button
-                      className="w-full"
+                      className={cn(
+                        "w-full",
+                        plan.popular && "shadow-lg shadow-primary/20"
+                      )}
                       variant={plan.popular ? "default" : "outline"}
                     >
                       {plan.cta}
@@ -240,53 +415,65 @@ export default function PricingPage() {
             </p>
           </div>
           <div className="space-y-2">
-            <h3 className="font-semibold">Can I use my own OpenAI API key?</h3>
+            <h3 className="font-semibold">Do credits expire?</h3>
             <p className="text-muted-foreground">
-              Yes! Free users can bring their own API key for unlimited comparisons.
-              Paid plans include all API costs so you don&apos;t have to manage keys.
+              No! Your credit balance never expires. Use them at your own pace.
             </p>
           </div>
           <div className="space-y-2">
-            <h3 className="font-semibold">What happens when I hit my free limit?</h3>
+            <h3 className="font-semibold">Can I mix credits and subscription?</h3>
             <p className="text-muted-foreground">
-              You can either upgrade to a paid plan or add your own OpenAI API key to continue
-              using BidLevel for free.
+              Subscribers have unlimited comparisons, so credits aren&apos;t needed.
+              If you cancel your subscription, any remaining credits will still be available.
             </p>
           </div>
           <div className="space-y-2">
-            <h3 className="font-semibold">Can I cancel anytime?</h3>
+            <h3 className="font-semibold">What happens to my 3 free comparisons?</h3>
             <p className="text-muted-foreground">
-              Yes, you can cancel your subscription at any time. You&apos;ll continue to have access
+              Free comparisons are used first before your purchased credits.
+              Once you&apos;ve used your free comparisons, credits will be deducted.
+            </p>
+          </div>
+          <div className="space-y-2">
+            <h3 className="font-semibold">Can I cancel my subscription anytime?</h3>
+            <p className="text-muted-foreground">
+              Yes, you can cancel at any time. You&apos;ll continue to have unlimited access
               until the end of your billing period.
             </p>
           </div>
           <div className="space-y-2">
             <h3 className="font-semibold">Do you offer refunds?</h3>
             <p className="text-muted-foreground">
-              We offer a 14-day money-back guarantee. If you&apos;re not satisfied, contact us for a full refund.
+              We offer a 14-day money-back guarantee on subscriptions. Credit pack purchases
+              are non-refundable but never expire.
             </p>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="container py-16 border-t">
-        <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-2xl font-bold mb-4">Ready to level your bids?</h2>
-          <p className="text-muted-foreground mb-6">
-            Join hundreds of GCs who save hours on every bid comparison.
-          </p>
-          <Link href="/login">
-            <Button size="lg">
-              Start Free - No Credit Card Required
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </Link>
+      <section className="relative border-t overflow-hidden">
+        <div className="absolute inset-0 gradient-cta" />
+        <div className="absolute inset-0 pattern-grid opacity-10" />
+
+        <div className="container relative py-20">
+          <div className="max-w-2xl mx-auto text-center">
+            <h2 className="text-3xl font-bold mb-4 text-white">Ready to level your bids?</h2>
+            <p className="text-white/80 mb-8">
+              Start with 3 free comparisons. No credit card required.
+            </p>
+            <Link href="/login">
+              <Button size="lg" variant="secondary" className="shadow-xl">
+                Get Started Free
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t py-8">
+      <footer className="border-t py-8 bg-background">
         <div className="container text-center text-sm text-muted-foreground">
           <p>&copy; {new Date().getFullYear()} Foxtrove.ai. All rights reserved.</p>
         </div>
