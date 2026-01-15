@@ -1,9 +1,9 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
-import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react"
+import { ArrowLeft, ArrowRight, Loader2, FolderPlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -24,7 +24,7 @@ import {
 import { StepIndicator } from "@/components/compare/wizard/step-indicator"
 import { FileDropzone, UploadedFile } from "@/components/shared/file-dropzone"
 import { toast } from "sonner"
-import { TRADE_TYPES } from "@/types"
+import { TRADE_TYPES, type ProjectFolder } from "@/types"
 import { MIN_BIDS, MAX_BIDS } from "@/lib/utils/constants"
 
 const STEPS = [
@@ -43,10 +43,18 @@ interface ContractorInfo {
 
 export default function NewComparisonPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const preselectedFolderId = searchParams.get("folder")
+
   const [currentStep, setCurrentStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [folders, setFolders] = useState<ProjectFolder[]>([])
+  const [isLoadingFolders, setIsLoadingFolders] = useState(true)
+  const [isCreatingFolder, setIsCreatingFolder] = useState(false)
+  const [newFolderName, setNewFolderName] = useState("")
 
   // Form data
+  const [folderId, setFolderId] = useState<string>(preselectedFolderId || "")
   const [projectName, setProjectName] = useState("")
   const [tradeType, setTradeType] = useState("")
   const [location, setLocation] = useState("")
@@ -54,8 +62,71 @@ export default function NewComparisonPage() {
   const [files, setFiles] = useState<UploadedFile[]>([])
   const [contractors, setContractors] = useState<ContractorInfo[]>([])
 
+  // Load folders on mount
+  useEffect(() => {
+    async function loadFolders() {
+      const supabase = createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) return
+
+      const { data } = await supabase
+        .from("project_folders")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("name")
+
+      setFolders(data || [])
+      setIsLoadingFolders(false)
+
+      // Set preselected folder if valid
+      if (preselectedFolderId && data?.some(f => f.id === preselectedFolderId)) {
+        setFolderId(preselectedFolderId)
+      }
+    }
+
+    loadFolders()
+  }, [preselectedFolderId])
+
+  // Create new folder inline
+  const handleCreateFolder = async () => {
+    if (!newFolderName.trim()) return
+
+    setIsCreatingFolder(true)
+    try {
+      const supabase = createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) throw new Error("Not authenticated")
+
+      const { data, error } = await supabase
+        .from("project_folders")
+        .insert({
+          user_id: user.id,
+          name: newFolderName.trim(),
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      setFolders(prev => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)))
+      setFolderId(data.id)
+      setNewFolderName("")
+      toast.success("Folder created")
+    } catch {
+      toast.error("Failed to create folder")
+    } finally {
+      setIsCreatingFolder(false)
+    }
+  }
+
   // Validation
-  const isStep1Valid = projectName.trim().length > 0
+  const isStep1Valid = projectName.trim().length > 0 && folderId.length > 0
   const isStep2Valid = tradeType.length > 0
   const isStep3Valid = files.length >= MIN_BIDS && files.length <= MAX_BIDS
   const isStep4Valid = contractors.every((c) => c.contractorName.trim().length > 0)
@@ -109,11 +180,12 @@ export default function NewComparisonPage() {
         return
       }
 
-      // 1. Create the project
+      // 1. Create the project with folder_id
       const { data: project, error: projectError } = await supabase
         .from("projects")
         .insert({
           user_id: user.id,
+          folder_id: folderId,
           name: projectName,
           trade_type: tradeType,
           location: location || null,
@@ -201,6 +273,8 @@ export default function NewComparisonPage() {
     }
   }
 
+  const selectedFolder = folders.find(f => f.id === folderId)
+
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-8">
@@ -218,7 +292,7 @@ export default function NewComparisonPage() {
         <CardHeader>
           <CardTitle>{STEPS[currentStep - 1].name}</CardTitle>
           <CardDescription>
-            {currentStep === 1 && "Enter basic information about your project"}
+            {currentStep === 1 && "Select a project folder and enter comparison details"}
             {currentStep === 2 && "Select the trade or scope type for this comparison"}
             {currentStep === 3 && "Upload the bid documents you want to compare"}
             {currentStep === 4 && "Name each contractor for easy identification"}
@@ -229,13 +303,74 @@ export default function NewComparisonPage() {
           {/* Step 1: Project Details */}
           {currentStep === 1 && (
             <div className="space-y-6">
+              {/* Folder Selection */}
+              <div className="space-y-2">
+                <Label>
+                  Project Folder <span className="text-destructive">*</span>
+                </Label>
+                {isLoadingFolders ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Loading folders...
+                  </div>
+                ) : (
+                  <>
+                    <Select value={folderId} onValueChange={setFolderId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a project folder" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {folders.map((folder) => (
+                          <SelectItem key={folder.id} value={folder.id}>
+                            {folder.name}
+                            {folder.location && ` (${folder.location})`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    {/* Create new folder inline */}
+                    <div className="flex items-center gap-2 pt-2">
+                      <Input
+                        placeholder="Or create new folder..."
+                        value={newFolderName}
+                        onChange={(e) => setNewFolderName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault()
+                            handleCreateFolder()
+                          }
+                        }}
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleCreateFolder}
+                        disabled={!newFolderName.trim() || isCreatingFolder}
+                      >
+                        {isCreatingFolder ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <FolderPlus className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Folders help organize comparisons by construction project
+                    </p>
+                  </>
+                )}
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="projectName">
-                  Project Name <span className="text-destructive">*</span>
+                  Comparison Name <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="projectName"
-                  placeholder="e.g., Main Street Office Building - Electrical"
+                  placeholder="e.g., Phase 1 Electrical Bids"
                   value={projectName}
                   onChange={(e) => setProjectName(e.target.value)}
                 />
@@ -328,7 +463,11 @@ export default function NewComparisonPage() {
                 <h4 className="font-medium">Project Details</h4>
                 <dl className="mt-2 space-y-1 text-sm">
                   <div className="flex justify-between">
-                    <dt className="text-muted-foreground">Name</dt>
+                    <dt className="text-muted-foreground">Folder</dt>
+                    <dd className="font-medium">{selectedFolder?.name || "—"}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-muted-foreground">Comparison Name</dt>
                     <dd className="font-medium">{projectName}</dd>
                   </div>
                   <div className="flex justify-between">

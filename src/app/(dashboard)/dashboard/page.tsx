@@ -1,8 +1,13 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
+import Link from "next/link"
+import { Plus, FolderPlus } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { TrialBanner } from "@/components/dashboard/trial-banner"
 import { EmptyState } from "@/components/dashboard/empty-state"
-import { ProjectCard } from "@/components/dashboard/project-card"
+import { FolderCard } from "@/components/dashboard/folder-card"
+import { CreateFolderDialog } from "@/components/dashboard/create-folder-dialog"
+import type { FolderWithProjects } from "@/types"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -22,32 +27,48 @@ export default async function DashboardPage() {
     .eq("id", user.id)
     .single()
 
-  // Fetch projects with bid counts and comparison results
-  const { data: projects } = await supabase
-    .from("projects")
+  // Fetch folders with nested projects
+  const { data: folders } = await supabase
+    .from("project_folders")
     .select(
       `
       *,
-      bid_documents (id),
-      comparison_results (
-        price_low,
-        price_high,
-        recommendation_json
+      projects (
+        *,
+        bid_documents (id),
+        comparison_results (
+          price_low,
+          price_high,
+          recommendation_json
+        )
       )
     `
     )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
 
-  const hasProjects = projects && projects.length > 0
+  const typedFolders = (folders || []) as FolderWithProjects[]
+  const hasFolders = typedFolders.length > 0
+  const totalProjects = typedFolders.reduce((sum, f) => sum + f.projects.length, 0)
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Your Comparisons</h1>
-        <p className="mt-2 text-muted-foreground">
-          View and manage your bid comparisons
-        </p>
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Your Projects</h1>
+          <p className="mt-2 text-muted-foreground">
+            Organize bid comparisons by project folder
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <CreateFolderDialog />
+          <Link href="/compare/new">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              New Comparison
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {profile && (
@@ -57,13 +78,32 @@ export default async function DashboardPage() {
         />
       )}
 
-      {!hasProjects ? (
+      {!hasFolders ? (
         <EmptyState />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {projects.map((project) => (
-            <ProjectCard key={project.id} project={project} />
+        <div className="space-y-4">
+          {typedFolders.map((folder, index) => (
+            <FolderCard
+              key={folder.id}
+              folder={folder}
+              defaultOpen={index === 0 || folder.projects.some(p => p.status === "processing")}
+            />
           ))}
+        </div>
+      )}
+
+      {hasFolders && totalProjects === 0 && (
+        <div className="mt-8 rounded-lg border border-dashed p-8 text-center">
+          <h3 className="font-semibold">Ready to compare bids?</h3>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Create your first bid comparison to get started with AI-powered analysis.
+          </p>
+          <Link href="/compare/new">
+            <Button className="mt-4">
+              <Plus className="mr-2 h-4 w-4" />
+              New Comparison
+            </Button>
+          </Link>
         </div>
       )}
     </div>

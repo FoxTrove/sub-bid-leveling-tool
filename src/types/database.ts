@@ -12,9 +12,21 @@ export interface Profile {
   updated_at: string
 }
 
+export interface ProjectFolder {
+  id: string
+  user_id: string
+  name: string
+  location: string | null
+  client_name: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
 export interface Project {
   id: string
   user_id: string
+  folder_id: string | null
   name: string
   trade_type: string
   location: string | null
@@ -138,6 +150,20 @@ export interface ProjectWithResults extends Project {
 
 export interface BidDocumentWithItems extends BidDocument {
   extracted_items: ExtractedItem[]
+}
+
+// Folder with nested projects for dashboard display
+export interface ProjectForDashboard extends Project {
+  bid_documents: { id: string }[]
+  comparison_results: {
+    price_low: number | null
+    price_high: number | null
+    recommendation_json: Recommendation | null
+  } | null
+}
+
+export interface FolderWithProjects extends ProjectFolder {
+  projects: ProjectForDashboard[]
 }
 
 // Trade types for the dropdown
