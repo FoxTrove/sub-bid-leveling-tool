@@ -1,0 +1,49 @@
+ABC Electric Inc. - Electrical Bid Proposal
+Project: Riverside Office Building
+Date: January 15, 2026
+Contact: Mike Johnson | mike@abcelectric.com | (555) 123-4567
+
+ITEM,DESCRIPTION,QUANTITY,UNIT,UNIT PRICE,TOTAL
+1,Main Electrical Service - 2000A Switchgear,1,LS,$85000,$85000
+2,Emergency Generator - 500kW Diesel,1,EA,$125000,$125000
+3,Automatic Transfer Switch,1,EA,$18500,$18500
+4,Main Distribution Panels (MDP),4,EA,$12500,$50000
+5,Branch Circuit Panels,24,EA,$2800,$67200
+6,LED Light Fixtures - 2x4 Troffer,450,EA,$285,$128250
+7,LED Light Fixtures - 2x2 Troffer,120,EA,$245,$29400
+8,Emergency/Exit Lighting,85,EA,$325,$27625
+9,Exterior LED Wall Packs,32,EA,$385,$12320
+10,Parking Lot LED Poles - 25ft,18,EA,$2850,$51300
+11,Conduit and Wire - General Power,45000,LF,$8.50,$382500
+12,Conduit and Wire - Lighting Circuits,28000,LF,$6.25,$175000
+13,Fire Alarm System - Complete,1,LS,$95000,$95000
+14,Voice/Data Rough-In (conduit only),320,EA,$125,$40000
+15,Receptacles - Standard Duplex,380,EA,$85,$32300
+16,Receptacles - Dedicated Circuits,45,EA,$225,$10125
+17,Receptacles - Floor Boxes,28,EA,$485,$13580
+18,Mechanical Equipment Connections,35,EA,$650,$22750
+19,Rooftop Unit Disconnects,12,EA,$425,$5100
+20,Variable Frequency Drives,8,EA,$4200,$33600
+21,Lightning Protection System,1,LS,$28000,$28000
+22,Permit and Inspection Fees,1,LS,$8500,$8500
+
+SUBTOTAL,,,,,$1451050
+OVERHEAD & PROFIT (12%),,,,,$174126
+TOTAL BID,,,,,$1625176
+
+EXCLUSIONS:
+- Owner-furnished equipment installation (unless noted)
+- Photovoltaic solar system
+- Security system (by others)
+- Low voltage cabling (Cat6/Fiber by others)
+
+INCLUSIONS:
+- All labor, material, and equipment as specified
+- Shop drawings and submittals
+- As-built drawings
+- 1-year warranty on workmanship
+
+NOTES:
+- Bid based on plans dated 12/15/2025
+- 90-day price validity
+- Prevailing wage rates included

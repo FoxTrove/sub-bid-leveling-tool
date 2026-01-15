@@ -1,0 +1,62 @@
+SPARKS BROTHERS ELECTRIC CO.
+ELECTRICAL BID PROPOSAL
+
+PROJECT: Riverside Office Building
+BID NUMBER: SBE-2026-0892
+DATE: January 13, 2026
+CONTACT: Tom Sparks | tom@sparksbrothers.com | (555) 345-6789
+
+=== BASE BID ITEMS ===
+
+NO,DESCRIPTION,QUANTITY,UNIT,UNIT COST,EXTENDED
+E-001,Main Electrical Service 2000A,1,LS,$88000.00,$88000.00
+E-002,Standby Generator 500kW,1,EA,$118000.00,$118000.00
+E-003,Transfer Switch Automatic,1,EA,$17500.00,$17500.00
+E-004,Main Distribution Panels,4,EA,$13200.00,$52800.00
+E-005,Branch Panelboards,24,EA,$2900.00,$69600.00
+E-006,LED Fixtures 2x4 Lay-In,450,EA,$295.00,$132750.00
+E-007,LED Fixtures 2x2 Lay-In,120,EA,$255.00,$30600.00
+E-008,Emergency Lighting Battery Units,85,EA,$340.00,$28900.00
+E-009,Exterior Wall Pack Fixtures,32,EA,$375.00,$12000.00
+E-010,Site Lighting Poles w/ LED,18,EA,$2750.00,$49500.00
+E-011,Feeders and Branch Wiring,1,LOT,$525000.00,$525000.00
+E-012,Fire Alarm Complete System,1,LS,$98500.00,$98500.00
+E-013,Telecom/Data Pathway Rough-In,320,EA,$118.00,$37760.00
+E-014,Duplex Receptacles,380,EA,$92.00,$34960.00
+E-015,Dedicated Receptacles,45,EA,$235.00,$10575.00
+E-016,Floor Boxes,28,EA,$465.00,$13020.00
+E-017,Mechanical Equipment Hook-Ups,35,EA,$685.00,$23975.00
+E-018,Disconnect Switches - RTU,12,EA,$445.00,$5340.00
+E-019,Variable Frequency Drives,8,EA,$3950.00,$31600.00
+E-020,Lightning Protection,1,LS,$29500.00,$29500.00
+E-021,Building Permits,1,LS,$7800.00,$7800.00
+E-022,Security System Conduit/Boxes,1,LS,$12500.00,$12500.00
+
+BASE BID SUBTOTAL,,,,$1520180.00
+BOND (2%),,,,$30403.60
+TOTAL BASE BID,,,,$1550583.60
+
+=== ITEMS NOT INCLUDED (EXCLUSIONS) ===
+* Emergency generator fuel (by owner)
+* Photovoltaic/solar electric system
+* EV charging stations
+* Data cabling and terminations
+* Security system devices and wiring (conduit only)
+* Testing and commissioning (by commissioning agent)
+* Temporary power during construction
+
+=== ITEMS INCLUDED ===
+* Performance and payment bond
+* Shop drawing preparation
+* Record/as-built drawings
+* Equipment startup assistance
+* Two-year warranty
+
+=== SCHEDULE NOTES ===
+- Require 14 weeks from NTP to substantial completion
+- Long-lead items: Generator (10 wks), Switchgear (8 wks)
+
+=== VALUE ENGINEERING OPTIONS ===
+VE-1: Use standard efficiency transformers - DEDUCT $8,500
+VE-2: Reduce parking poles from 18 to 14 - DEDUCT $11,000
+VE-3: Substitute fire alarm brand - DEDUCT $6,200

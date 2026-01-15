@@ -1,0 +1,50 @@
+PowerPro Electrical Services - Bid Proposal
+Project: Riverside Office Building
+Bid Date: January 14, 2026
+Submitted by: Sarah Chen | sarah@powerpro-elec.com | (555) 234-5678
+
+LINE,SCOPE ITEM,QTY,UNIT,RATE,AMOUNT
+100,2000A Main Switchgear and Service Entrance,1,LUMP,$82500,$82500
+101,500kW Emergency Generator with Sound Enclosure,1,EACH,$132000,$132000
+102,Automatic Transfer Switch - 2000A,1,EACH,$19200,$19200
+103,Main Distribution Panels,4,EACH,$11800,$47200
+104,Lighting and Appliance Panels,24,EACH,$2650,$63600
+105,Recessed LED Troffers 2x4,450,EACH,$275,$123750
+106,Recessed LED Troffers 2x2,120,EACH,$235,$28200
+107,Emergency Egress Lighting,85,EACH,$310,$26350
+108,Exterior Wall-Mount LED Fixtures,32,EACH,$395,$12640
+109,Parking Area Pole Lights 25ft with LED,18,EACH,$2950,$53100
+110,Power Distribution - Conduit/Wire/Fittings,1,LSUM,$545000,$545000
+111,Fire Alarm - Addressable System Complete,1,LSUM,$92000,$92000
+112,Data/Telecom Conduit Infrastructure,320,EACH,$135,$43200
+113,Convenience Receptacles,380,EACH,$78,$29640
+114,Dedicated Circuit Receptacles,45,EACH,$215,$9675
+115,Floor Box Assemblies,28,EACH,$495,$13860
+116,HVAC Equipment Electrical Connections,35,EACH,$625,$21875
+117,Rooftop Unit Disconnect Switches,12,EACH,$395,$4740
+118,VFD Installation and Startup,8,EACH,$4500,$36000
+119,Permits and Inspections,1,ALLOW,$9000,$9000
+120,EV Charging Station Rough-In (4 stations),4,EACH,$2200,$8800
+121,Photovoltaic System Conduit/Panel Prep,1,LSUM,$15000,$15000
+
+SUBTOTAL,,,,$1517330
+GENERAL CONDITIONS (8%),,,,$121386
+TOTAL PROPOSED AMOUNT,,,,$1638716
+
+*** EXCLUSIONS ***
+- Lightning protection system
+- Security/access control system
+- Furniture connections
+- Low voltage cabling and terminations
+- Solar panels and inverters (rough-in only included)
+
+*** CLARIFICATIONS ***
+- Generator includes 500-gallon sub-base fuel tank
+- Fire alarm includes monitoring for 1 year
+- All work per IBC 2021 and NEC 2023
+- Includes certified payroll/prevailing wage
+
+*** ALTERNATES ***
+ALT-1: Add lightning protection system: ADD $26,500
+ALT-2: Delete EV charging rough-in: DEDUCT $8,800
+ALT-3: Upgrade to premium LED fixtures: ADD $18,200
