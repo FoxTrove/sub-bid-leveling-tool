@@ -146,7 +146,7 @@ export default function PricingPage() {
           Two simple options—pick what works best for your workflow.
         </p>
         <p className="text-lg text-primary font-medium">
-          Start with 3 free comparisons. No credit card required.
+          Start with 5 free comparisons. No credit card required.
         </p>
       </section>
 
@@ -530,7 +530,7 @@ export default function PricingPage() {
             </p>
           </div>
           <div className="space-y-2">
-            <h3 className="font-semibold">What happens to my 3 free comparisons?</h3>
+            <h3 className="font-semibold">What happens to my 5 free comparisons?</h3>
             <p className="text-muted-foreground">
               Free comparisons are used first before your purchased credits.
               Once you&apos;ve used your free comparisons, credits will be deducted.
@@ -562,7 +562,7 @@ export default function PricingPage() {
           <div className="max-w-2xl mx-auto text-center">
             <h2 className="text-3xl font-bold mb-4 text-white">Ready to level your bids?</h2>
             <p className="text-white/80 mb-8">
-              Start with 3 free comparisons. No credit card required.
+              Start with 5 free comparisons. No credit card required.
             </p>
             <Link href="/login">
               <Button size="lg" variant="secondary" className="shadow-xl">

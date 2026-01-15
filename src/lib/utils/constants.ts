@@ -37,7 +37,7 @@ export const METRIC_TOOLTIPS = {
 
 // Subscription and pricing
 export const FREE_COMPARISON_LIMIT = 5
-export const SIGNUP_BONUS_CREDITS = 3 // Free comparisons on signup
+export const SIGNUP_BONUS_CREDITS = 5 // Free comparisons on signup
 
 export const PLAN_LIMITS = {
   free: { comparisons: 5, users: 1, brandedReports: false },

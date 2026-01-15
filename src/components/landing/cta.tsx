@@ -6,7 +6,7 @@ import { ArrowRight, Shield, Zap, Clock } from "lucide-react"
 
 const trustPoints = [
   { icon: Shield, text: "No credit card required" },
-  { icon: Zap, text: "3 free comparisons" },
+  { icon: Zap, text: "5 free comparisons" },
   { icon: Clock, text: "Results in minutes" },
 ]
 
@@ -30,7 +30,7 @@ export function CTA() {
           </h2>
           <p className="mt-6 text-lg text-white/80 max-w-xl mx-auto">
             Join construction GCs who are saving hours on every bid comparison.
-            Start with 3 free comparisons—no credit card needed.
+            Start with 5 free comparisons—no credit card needed.
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
