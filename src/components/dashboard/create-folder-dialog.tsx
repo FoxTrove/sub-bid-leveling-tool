@@ -16,7 +16,16 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { toast } from "sonner"
+
+const PROJECT_SIZES = ["Small", "Medium", "Large", "Enterprise"] as const
 
 export function CreateFolderDialog() {
   const router = useRouter()
@@ -25,6 +34,7 @@ export function CreateFolderDialog() {
   const [name, setName] = useState("")
   const [location, setLocation] = useState("")
   const [clientName, setClientName] = useState("")
+  const [projectSize, setProjectSize] = useState("")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -52,6 +62,7 @@ export function CreateFolderDialog() {
         name: name.trim(),
         location: location.trim() || null,
         client_name: clientName.trim() || null,
+        project_size: projectSize || null,
       })
 
       if (error) throw error
@@ -61,6 +72,7 @@ export function CreateFolderDialog() {
       setName("")
       setLocation("")
       setClientName("")
+      setProjectSize("")
       router.refresh()
     } catch (error) {
       toast.error("Failed to create folder")
@@ -119,6 +131,26 @@ export function CreateFolderDialog() {
                 onChange={(e) => setClientName(e.target.value)}
                 disabled={isLoading}
               />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="projectSize">Project Size</Label>
+              <Select
+                value={projectSize}
+                onValueChange={setProjectSize}
+                disabled={isLoading}
+              >
+                <SelectTrigger id="projectSize">
+                  <SelectValue placeholder="Select project size" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PROJECT_SIZES.map((size) => (
+                    <SelectItem key={size} value={size}>
+                      {size}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

@@ -19,6 +19,7 @@ import {
   AlertCircle,
   Clock,
   Loader2,
+  Building2,
 } from "lucide-react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -143,6 +144,12 @@ export function FolderCard({ folder, defaultOpen = false }: FolderCardProps) {
                       <span className="flex items-center gap-1">
                         <Users className="h-3 w-3" />
                         {folder.client_name}
+                      </span>
+                    )}
+                    {folder.project_size && (
+                      <span className="flex items-center gap-1">
+                        <Building2 className="h-3 w-3" />
+                        {folder.project_size}
                       </span>
                     )}
                   </div>

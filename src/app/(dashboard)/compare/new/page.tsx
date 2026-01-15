@@ -23,9 +23,11 @@ import {
 } from "@/components/ui/card"
 import { StepIndicator } from "@/components/compare/wizard/step-indicator"
 import { FileDropzone, UploadedFile } from "@/components/shared/file-dropzone"
+import { UpgradePrompt } from "@/components/shared/upgrade-prompt"
 import { toast } from "sonner"
-import { TRADE_TYPES, type ProjectFolder } from "@/types"
-import { MIN_BIDS, MAX_BIDS } from "@/lib/utils/constants"
+import { TRADE_TYPES, type ProjectFolder, type Profile } from "@/types"
+import { MIN_BIDS, MAX_BIDS, FREE_COMPARISON_LIMIT } from "@/lib/utils/constants"
+import { getUsageStatus, type UsageStatus } from "@/lib/utils/subscription"
 
 const STEPS = [
   { id: 1, name: "Project Details" },
@@ -53,18 +55,20 @@ export default function NewComparisonPage() {
   const [isCreatingFolder, setIsCreatingFolder] = useState(false)
   const [newFolderName, setNewFolderName] = useState("")
 
+  // Usage tracking
+  const [usageStatus, setUsageStatus] = useState<UsageStatus | null>(null)
+  const [isLoadingUsage, setIsLoadingUsage] = useState(true)
+
   // Form data
   const [folderId, setFolderId] = useState<string>(preselectedFolderId || "")
   const [projectName, setProjectName] = useState("")
   const [tradeType, setTradeType] = useState("")
-  const [location, setLocation] = useState("")
-  const [projectSize, setProjectSize] = useState("")
   const [files, setFiles] = useState<UploadedFile[]>([])
   const [contractors, setContractors] = useState<ContractorInfo[]>([])
 
-  // Load folders on mount
+  // Load folders and usage status on mount
   useEffect(() => {
-    async function loadFolders() {
+    async function loadData() {
       const supabase = createClient()
       const {
         data: { user },
@@ -72,22 +76,35 @@ export default function NewComparisonPage() {
 
       if (!user) return
 
-      const { data } = await supabase
+      // Load folders
+      const { data: foldersData } = await supabase
         .from("project_folders")
         .select("*")
         .eq("user_id", user.id)
         .order("name")
 
-      setFolders(data || [])
+      setFolders(foldersData || [])
       setIsLoadingFolders(false)
 
       // Set preselected folder if valid
-      if (preselectedFolderId && data?.some(f => f.id === preselectedFolderId)) {
+      if (preselectedFolderId && foldersData?.some(f => f.id === preselectedFolderId)) {
         setFolderId(preselectedFolderId)
       }
+
+      // Load profile for usage status
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single()
+
+      if (profile) {
+        setUsageStatus(getUsageStatus(profile as Profile))
+      }
+      setIsLoadingUsage(false)
     }
 
-    loadFolders()
+    loadData()
   }, [preselectedFolderId])
 
   // Create new folder inline
@@ -188,8 +205,6 @@ export default function NewComparisonPage() {
           folder_id: folderId,
           name: projectName,
           trade_type: tradeType,
-          location: location || null,
-          project_size: projectSize || null,
           status: "uploading",
         })
         .select()
@@ -275,6 +290,29 @@ export default function NewComparisonPage() {
 
   const selectedFolder = folders.find(f => f.id === folderId)
 
+  // Show loading state while checking usage
+  if (isLoadingUsage) {
+    return (
+      <div className="mx-auto max-w-3xl">
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </div>
+    )
+  }
+
+  // Show upgrade prompt if user has hit their limit
+  if (usageStatus && !usageStatus.canCreateComparison) {
+    return (
+      <div className="mx-auto max-w-2xl py-12">
+        <UpgradePrompt
+          comparisonsUsed={usageStatus.comparisonsUsed}
+          comparisonsLimit={usageStatus.comparisonsLimit || FREE_COMPARISON_LIMIT}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-8">
@@ -282,6 +320,11 @@ export default function NewComparisonPage() {
         <p className="mt-2 text-muted-foreground">
           Upload subcontractor bids to compare them side-by-side
         </p>
+        {usageStatus && usageStatus.comparisonsLimit !== null && (
+          <p className="mt-1 text-sm text-muted-foreground">
+            {usageStatus.comparisonsRemaining} of {usageStatus.comparisonsLimit} free comparisons remaining
+          </p>
+        )}
       </div>
 
       <div className="mb-12">
@@ -376,25 +419,17 @@ export default function NewComparisonPage() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="location">Location (optional)</Label>
-                <Input
-                  id="location"
-                  placeholder="e.g., Austin, TX"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="projectSize">Project Size (optional)</Label>
-                <Input
-                  id="projectSize"
-                  placeholder="e.g., 50,000 SF"
-                  value={projectSize}
-                  onChange={(e) => setProjectSize(e.target.value)}
-                />
-              </div>
+              {/* Show folder details if selected */}
+              {selectedFolder && (selectedFolder.location || selectedFolder.project_size || selectedFolder.client_name) && (
+                <div className="rounded-lg bg-muted/50 p-3 text-sm">
+                  <p className="font-medium text-muted-foreground">Folder Details</p>
+                  <div className="mt-1 space-y-0.5 text-muted-foreground">
+                    {selectedFolder.location && <p>Location: {selectedFolder.location}</p>}
+                    {selectedFolder.project_size && <p>Size: {selectedFolder.project_size}</p>}
+                    {selectedFolder.client_name && <p>Client: {selectedFolder.client_name}</p>}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -474,16 +509,22 @@ export default function NewComparisonPage() {
                     <dt className="text-muted-foreground">Trade</dt>
                     <dd className="font-medium">{tradeType}</dd>
                   </div>
-                  {location && (
+                  {selectedFolder?.location && (
                     <div className="flex justify-between">
                       <dt className="text-muted-foreground">Location</dt>
-                      <dd className="font-medium">{location}</dd>
+                      <dd className="font-medium">{selectedFolder.location}</dd>
                     </div>
                   )}
-                  {projectSize && (
+                  {selectedFolder?.project_size && (
                     <div className="flex justify-between">
                       <dt className="text-muted-foreground">Size</dt>
-                      <dd className="font-medium">{projectSize}</dd>
+                      <dd className="font-medium">{selectedFolder.project_size}</dd>
+                    </div>
+                  )}
+                  {selectedFolder?.client_name && (
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">Client</dt>
+                      <dd className="font-medium">{selectedFolder.client_name}</dd>
                     </div>
                   )}
                 </dl>

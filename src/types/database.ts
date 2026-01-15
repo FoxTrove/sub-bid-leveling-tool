@@ -1,13 +1,27 @@
 export type ProjectStatus = 'draft' | 'uploading' | 'processing' | 'complete' | 'error'
 export type DocumentStatus = 'uploading' | 'uploaded' | 'processing' | 'processed' | 'error'
+export type PlanType = 'free' | 'pro' | 'team' | 'enterprise'
+export type SubscriptionStatus = 'inactive' | 'active' | 'past_due' | 'canceled' | 'trialing'
+export type BillingCycle = 'monthly' | 'annual'
 
 export interface Profile {
   id: string
   email: string
   full_name: string | null
   company_name: string | null
+  gc_name: string | null
   trial_started_at: string
   openai_api_key_encrypted: string | null
+  onboarding_completed: boolean
+  password_set: boolean
+  // Subscription fields
+  plan: PlanType
+  stripe_customer_id: string | null
+  stripe_subscription_id: string | null
+  subscription_status: SubscriptionStatus
+  subscription_period_end: string | null
+  comparisons_used: number
+  billing_cycle: BillingCycle | null
   created_at: string
   updated_at: string
 }
@@ -18,6 +32,7 @@ export interface ProjectFolder {
   name: string
   location: string | null
   client_name: string | null
+  project_size: string | null
   notes: string | null
   created_at: string
   updated_at: string

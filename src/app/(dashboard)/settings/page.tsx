@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { ApiKeyForm } from "@/components/settings/api-key-form"
-import { TrialBanner } from "@/components/dashboard/trial-banner"
+import { PasswordSetupForm } from "@/components/settings/password-setup-form"
+import { BillingSection } from "@/components/settings/billing-section"
 import {
   Card,
   CardContent,
@@ -9,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { getTrialDaysRemaining } from "@/lib/utils/format"
+import type { PlanType, BillingCycle } from "@/types"
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -29,54 +30,29 @@ export default async function SettingsPage() {
     .single()
 
   const hasApiKey = !!profile?.openai_api_key_encrypted
-  const daysRemaining = profile
-    ? getTrialDaysRemaining(profile.trial_started_at)
-    : 0
 
   return (
     <div className="max-w-2xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Settings</h1>
         <p className="mt-2 text-muted-foreground">
-          Manage your account and API settings
+          Manage your account, billing, and API settings
         </p>
       </div>
 
-      {profile && (
-        <TrialBanner
-          trialStartedAt={profile.trial_started_at}
-          hasOwnApiKey={hasApiKey}
-        />
-      )}
-
       <div className="space-y-6">
-        {/* Trial Status Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Trial Status</CardTitle>
-            <CardDescription>Your current subscription status</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Status</span>
-                <span className="font-medium">
-                  {hasApiKey
-                    ? "Using your own API key"
-                    : daysRemaining > 0
-                      ? "Trial active"
-                      : "Trial expired"}
-                </span>
-              </div>
-              {!hasApiKey && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Days remaining</span>
-                  <span className="font-medium">{daysRemaining}</span>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Billing & Plan */}
+        {profile && (
+          <BillingSection
+            plan={(profile.plan || "free") as PlanType}
+            subscriptionStatus={profile.subscription_status}
+            subscriptionPeriodEnd={profile.subscription_period_end}
+            billingCycle={profile.billing_cycle as BillingCycle | null}
+            comparisonsUsed={profile.comparisons_used || 0}
+            hasApiKey={hasApiKey}
+            stripeCustomerId={profile.stripe_customer_id}
+          />
+        )}
 
         {/* API Key Form */}
         <ApiKeyForm hasExistingKey={hasApiKey} />
@@ -93,6 +69,12 @@ export default async function SettingsPage() {
                 <span className="text-muted-foreground">Email</span>
                 <span className="font-medium">{user.email}</span>
               </div>
+              {profile?.company_name && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Company</span>
+                  <span className="font-medium">{profile.company_name}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Member since</span>
                 <span className="font-medium">
@@ -102,6 +84,19 @@ export default async function SettingsPage() {
                 </span>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Security - Password Setup */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Security</CardTitle>
+            <CardDescription>
+              Set up a password for easier future logins
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <PasswordSetupForm hasPassword={profile?.password_set || false} />
           </CardContent>
         </Card>
       </div>

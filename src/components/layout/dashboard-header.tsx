@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
-import { Scale, LogOut, Settings, User } from "lucide-react"
+import { Scale, LogOut, Settings, Key, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -13,12 +13,24 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { FREE_COMPARISON_LIMIT } from "@/lib/utils/constants"
+import { getPlanDisplayName, getPlanBadgeColor } from "@/lib/utils/subscription"
+import type { PlanType } from "@/types"
+
+interface PlanInfo {
+  plan: string
+  isActive: boolean
+  hasApiKey: boolean
+  comparisonsUsed: number
+}
 
 interface DashboardHeaderProps {
   userEmail?: string
+  planInfo?: PlanInfo
 }
 
-export function DashboardHeader({ userEmail }: DashboardHeaderProps) {
+export function DashboardHeader({ userEmail, planInfo }: DashboardHeaderProps) {
   const router = useRouter()
 
   const handleSignOut = async () => {
@@ -38,12 +50,47 @@ export function DashboardHeader({ userEmail }: DashboardHeaderProps) {
         .slice(0, 2)
     : "U"
 
+  // Determine plan display
+  const getPlanBadge = () => {
+    if (!planInfo) return null
+
+    if (planInfo.hasApiKey) {
+      return (
+        <Badge variant="outline" className="gap-1">
+          <Key className="h-3 w-3" />
+          BYOK
+        </Badge>
+      )
+    }
+
+    const plan = planInfo.plan as PlanType
+    if (plan !== "free" && planInfo.isActive) {
+      return (
+        <Badge className={getPlanBadgeColor(plan)}>
+          <Sparkles className="mr-1 h-3 w-3" />
+          {getPlanDisplayName(plan)}
+        </Badge>
+      )
+    }
+
+    // Free plan - show usage
+    const remaining = FREE_COMPARISON_LIMIT - planInfo.comparisonsUsed
+    return (
+      <Badge variant="secondary" className="gap-1">
+        {remaining}/{FREE_COMPARISON_LIMIT} free
+      </Badge>
+    )
+  }
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <Link href="/dashboard" className="flex items-center gap-2">
           <Scale className="h-6 w-6 text-primary" />
-          <span className="text-xl font-bold">BidLevel</span>
+          <div className="flex flex-col leading-none">
+            <span className="text-xl font-bold">BidLevel</span>
+            <span className="text-[10px] text-muted-foreground">by Foxtrove.ai</span>
+          </div>
         </Link>
 
         <div className="flex items-center gap-4">
@@ -60,12 +107,24 @@ export function DashboardHeader({ userEmail }: DashboardHeaderProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <div className="flex items-center gap-2 p-2">
+              <div className="flex items-center justify-between gap-2 p-2">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium">{userEmail}</p>
                 </div>
+                {getPlanBadge()}
               </div>
               <DropdownMenuSeparator />
+              {planInfo && planInfo.plan === "free" && !planInfo.hasApiKey && (
+                <>
+                  <DropdownMenuItem asChild>
+                    <Link href="/pricing" className="cursor-pointer text-primary">
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      Upgrade Plan
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
               <DropdownMenuItem asChild>
                 <Link href="/settings" className="cursor-pointer">
                   <Settings className="mr-2 h-4 w-4" />

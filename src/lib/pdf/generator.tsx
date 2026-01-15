@@ -211,10 +211,25 @@ const styles = StyleSheet.create({
   },
 })
 
+interface ProfileInfo {
+  full_name: string | null
+  company_name: string | null
+  gc_name: string | null
+}
+
+interface FolderInfo {
+  name: string
+  client_name: string | null
+  location: string | null
+  project_size: string | null
+}
+
 interface PDFGeneratorProps {
   project: Project
   documents: BidDocumentWithItems[]
   results: ComparisonResult
+  profile?: ProfileInfo
+  folder?: FolderInfo
 }
 
 function formatCurrency(amount: number | null): string {
@@ -231,22 +246,57 @@ export function ComparisonReportPDF({
   project,
   documents,
   results,
+  profile,
+  folder,
 }: PDFGeneratorProps) {
   const summary = results.summary_json
   const recommendation = results.recommendation_json
 
+  // Determine location from folder or project
+  const location = folder?.location || project.location
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Header */}
+        {/* Header with Company/Project Info */}
         <View style={styles.header}>
+          {/* Company info row */}
+          {(profile?.company_name || profile?.gc_name) && (
+            <View style={{ marginBottom: 8 }}>
+              {profile?.company_name && (
+                <Text style={{ fontSize: 11, fontWeight: "bold", color: "#374151" }}>
+                  {profile.company_name}
+                </Text>
+              )}
+              {profile?.gc_name && (
+                <Text style={{ fontSize: 9, color: "#6b7280" }}>
+                  GC: {profile.gc_name}
+                </Text>
+              )}
+            </View>
+          )}
+
+          {/* Project title */}
           <Text style={styles.title}>{project.name}</Text>
+
+          {/* Project details row */}
           <Text style={styles.subtitle}>
             {project.trade_type}
-            {project.location ? ` | ${project.location}` : ""}
+            {location ? ` | ${location}` : ""}
+            {folder?.project_size ? ` | ${folder.project_size}` : ""}
           </Text>
+
+          {/* Client info */}
+          {folder?.client_name && (
+            <Text style={{ fontSize: 10, color: "#4b5563", marginTop: 2 }}>
+              Client: {folder.client_name}
+            </Text>
+          )}
+
+          {/* Generation date */}
           <Text style={styles.subtitle}>
             Generated: {new Date().toLocaleDateString()}
+            {profile?.full_name ? ` by ${profile.full_name}` : ""}
           </Text>
         </View>
 

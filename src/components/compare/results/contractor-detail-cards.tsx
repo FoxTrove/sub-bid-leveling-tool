@@ -17,8 +17,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { ChevronDown, ChevronRight, CheckCircle2, XCircle, AlertTriangle, Trophy } from "lucide-react"
+import { ChevronDown, ChevronRight, CheckCircle2, XCircle, AlertTriangle, Trophy, Info } from "lucide-react"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { formatCurrency } from "@/lib/utils/format"
+import { METRIC_TOOLTIPS, CONFIDENCE_THRESHOLD_LOW, CONFIDENCE_THRESHOLD_MEDIUM } from "@/lib/utils/constants"
 import type { ComparisonResult, BidDocumentWithItems, ExtractedItem } from "@/types"
 
 interface ContractorDetailCardsProps {
@@ -73,6 +80,11 @@ export function ContractorDetailCards({ documents, results }: ContractorDetailCa
     const baseTotal = inclusions.reduce((sum, i) => sum + (i.total_price || 0), 0)
     const exclusionsTotal = exclusions.reduce((sum, i) => sum + (i.total_price || 0), 0)
 
+    // Calculate confidence breakdown
+    const highConfidenceCount = items.filter(i => i.confidence_score >= CONFIDENCE_THRESHOLD_MEDIUM).length
+    const mediumConfidenceCount = items.filter(i => i.confidence_score >= CONFIDENCE_THRESHOLD_LOW && i.confidence_score < CONFIDENCE_THRESHOLD_MEDIUM).length
+    const lowConfidenceCount = items.filter(i => i.confidence_score < CONFIDENCE_THRESHOLD_LOW).length
+
     return {
       inclusions,
       exclusions,
@@ -81,6 +93,9 @@ export function ContractorDetailCards({ documents, results }: ContractorDetailCa
       exclusionsTotal,
       itemCount: items.length,
       confidence: contractorSummary?.confidence_avg || 0,
+      highConfidenceCount,
+      mediumConfidenceCount,
+      lowConfidenceCount,
       isRecommended: recommendation.recommended_contractor_id === doc.id,
     }
   }
@@ -179,10 +194,35 @@ export function ContractorDetailCards({ documents, results }: ContractorDetailCa
                         <p className="text-xs text-amber-700">Exclusions</p>
                         <p className="text-lg font-semibold text-amber-700">{breakdown.exclusions.length}</p>
                       </div>
-                      <div className="rounded-lg bg-muted/50 p-3">
-                        <p className="text-xs text-muted-foreground">Extraction Confidence</p>
-                        <p className="text-lg font-semibold">{(breakdown.confidence * 100).toFixed(0)}%</p>
-                      </div>
+                      <TooltipProvider>
+                        <div className="rounded-lg bg-muted/50 p-3">
+                          <div className="flex items-center gap-1">
+                            <p className="text-xs text-muted-foreground">Extraction Confidence</p>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="h-3 w-3 text-muted-foreground/60 cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-xs">
+                                <p className="text-sm">{METRIC_TOOLTIPS.confidence}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
+                          <p className="text-lg font-semibold">{(breakdown.confidence * 100).toFixed(0)}%</p>
+                          <div className="mt-1 flex gap-2 text-xs">
+                            <span className="text-green-600" title="High confidence (80%+)">
+                              {breakdown.highConfidenceCount} high
+                            </span>
+                            <span className="text-amber-600" title="Medium confidence (60-80%)">
+                              {breakdown.mediumConfidenceCount} med
+                            </span>
+                            {breakdown.lowConfidenceCount > 0 && (
+                              <span className="text-red-600" title="Low confidence (<60%)">
+                                {breakdown.lowConfidenceCount} low
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </TooltipProvider>
                     </div>
 
                     {/* Exclusions Section - Always show prominently */}

@@ -22,7 +22,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Fetch project with all data including extracted items
+    // Fetch project with all data including extracted items and folder
     const { data: project, error } = await supabase
       .from("projects")
       .select(
@@ -32,7 +32,13 @@ export async function GET(
           *,
           extracted_items (*)
         ),
-        comparison_results (*)
+        comparison_results (*),
+        project_folders (
+          name,
+          client_name,
+          location,
+          project_size
+        )
       `
       )
       .eq("id", projectId)
@@ -50,12 +56,21 @@ export async function GET(
       )
     }
 
+    // Fetch user profile for company info
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name, company_name, gc_name")
+      .eq("id", user.id)
+      .single()
+
     // Generate PDF
     const pdfBuffer = await renderToBuffer(
       React.createElement(ComparisonReportPDF, {
         project,
         documents: project.bid_documents,
         results: project.comparison_results,
+        profile: profile || undefined,
+        folder: project.project_folders || undefined,
       }) as ReactElement<DocumentProps>
     )
 

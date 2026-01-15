@@ -1,7 +1,8 @@
 import { createClient, createAdminClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { decrypt } from "@/lib/utils/encryption"
-import { isTrialExpired } from "@/lib/utils/format"
+import { getUsageStatus } from "@/lib/utils/subscription"
+import type { Profile } from "@/types"
 
 export async function POST(
   request: Request,
@@ -30,19 +31,35 @@ export async function POST(
       return NextResponse.json({ error: "Project not found" }, { status: 404 })
     }
 
-    // Get user's API key or check trial
+    // Get user's profile for API key and usage check
     const adminSupabase = createAdminClient()
     const { data: profile } = await adminSupabase
       .from("profiles")
-      .select("openai_api_key_encrypted, trial_started_at")
+      .select("*")
       .eq("id", user.id)
       .single()
 
+    if (!profile) {
+      return NextResponse.json({ error: "Profile not found" }, { status: 404 })
+    }
+
+    // Check usage limits
+    const usageStatus = getUsageStatus(profile as Profile)
+
+    if (!usageStatus.canCreateComparison) {
+      return NextResponse.json(
+        { error: usageStatus.reason || "You've reached your comparison limit. Upgrade to continue." },
+        { status: 403 }
+      )
+    }
+
+    // Determine which API key to use
     let openaiApiKey: string
 
-    if (profile?.openai_api_key_encrypted) {
+    if (profile.openai_api_key_encrypted) {
       openaiApiKey = decrypt(profile.openai_api_key_encrypted)
-    } else if (profile?.trial_started_at && !isTrialExpired(profile.trial_started_at)) {
+    } else {
+      // Use app's API key for paid plans or free tier
       openaiApiKey = process.env.OPENAI_API_KEY || ""
       if (!openaiApiKey) {
         return NextResponse.json(
@@ -50,11 +67,14 @@ export async function POST(
           { status: 500 }
         )
       }
-    } else {
-      return NextResponse.json(
-        { error: "Trial expired. Please add your OpenAI API key in settings." },
-        { status: 403 }
-      )
+    }
+
+    // Increment comparisons_used (only for users without their own API key and not on unlimited paid plan)
+    if (!usageStatus.hasApiKey && usageStatus.comparisonsLimit !== null) {
+      await adminSupabase
+        .from("profiles")
+        .update({ comparisons_used: (profile.comparisons_used || 0) + 1 })
+        .eq("id", user.id)
     }
 
     // Clear any existing extracted items for re-analysis

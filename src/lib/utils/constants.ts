@@ -24,3 +24,38 @@ export const OPENAI_MODEL = 'gpt-4o'
 // Confidence thresholds
 export const CONFIDENCE_THRESHOLD_LOW = 0.6
 export const CONFIDENCE_THRESHOLD_MEDIUM = 0.8
+
+// Tooltips for bid analysis metrics
+export const METRIC_TOOLTIPS = {
+  bidsCompared: "The total number of subcontractor bids included in this comparison analysis.",
+  priceRange: "Shows the lowest to highest base bid totals. This excludes exclusions and add-ons to give you a true baseline comparison.",
+  scopeItems: "The number of unique scope items identified across all bids after AI normalization. Similar items from different contractors are grouped together.",
+  scopeGaps: "Items that appear in some bids but are missing from others. These gaps can significantly impact the true cost comparison.",
+  confidence: "How confident the AI is in the extracted data. 100% = clearly stated in document, 80% = reasonably inferred, 60% = some ambiguity, below 60% = needs review.",
+  exclusions: "Items that contractors have explicitly excluded from their base bid. You may need to add these costs back to get the true project cost.",
+} as const
+
+// Subscription and pricing
+export const FREE_COMPARISON_LIMIT = 5
+
+export const PLAN_LIMITS = {
+  free: { comparisons: 5, users: 1, brandedReports: false },
+  pro: { comparisons: Infinity, users: 1, brandedReports: false },
+  team: { comparisons: Infinity, users: 10, brandedReports: true },
+  enterprise: { comparisons: Infinity, users: Infinity, brandedReports: true },
+} as const
+
+export const PRICING = {
+  pro: {
+    monthly: 79,
+    annual: 790, // 2 months free
+    stripePriceIdMonthly: process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID || '',
+    stripePriceIdAnnual: process.env.NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID || '',
+  },
+  team: {
+    monthly: 199,
+    annual: 1990, // 2 months free
+    stripePriceIdMonthly: process.env.NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_PRICE_ID || '',
+    stripePriceIdAnnual: process.env.NEXT_PUBLIC_STRIPE_TEAM_ANNUAL_PRICE_ID || '',
+  },
+} as const

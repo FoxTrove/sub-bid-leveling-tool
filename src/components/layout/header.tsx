@@ -14,11 +14,17 @@ export function Header({ showAuth = true }: HeaderProps) {
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <Scale className="h-6 w-6 text-primary" />
-          <span className="text-xl font-bold">BidLevel</span>
+          <div className="flex flex-col leading-none">
+            <span className="text-xl font-bold">BidLevel</span>
+            <span className="text-[10px] text-muted-foreground">by Foxtrove.ai</span>
+          </div>
         </Link>
 
         {showAuth && (
           <nav className="flex items-center gap-4">
+            <Link href="/pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+              Pricing
+            </Link>
             <Link href="/login">
               <Button variant="ghost">Log in</Button>
             </Link>

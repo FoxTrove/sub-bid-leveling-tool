@@ -55,7 +55,7 @@ export function Hero() {
           </form>
 
           <p className="mt-4 text-sm text-muted-foreground">
-            Free for 30 days. No credit card required.
+            5 free comparisons. No credit card required.
           </p>
 
           <div className="mt-12 flex flex-wrap justify-center gap-x-8 gap-y-4">

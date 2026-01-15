@@ -27,12 +27,20 @@ export default async function DashboardPage() {
     .eq("id", user.id)
     .single()
 
-  // Fetch folders with nested projects
+  // Fetch folders with nested projects (including project_size)
   const { data: folders } = await supabase
     .from("project_folders")
     .select(
       `
-      *,
+      id,
+      user_id,
+      name,
+      location,
+      client_name,
+      project_size,
+      notes,
+      created_at,
+      updated_at,
       projects (
         *,
         bid_documents (id),
