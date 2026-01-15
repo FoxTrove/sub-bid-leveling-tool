@@ -9,8 +9,7 @@ import { cn } from "@/lib/utils"
 interface CreditPackCardProps {
   name: string
   price: number
-  credits: number
-  pricePerCredit: number
+  estimatedComparisons: number
   bonus?: string
   isPopular?: boolean
   onPurchase: () => void
@@ -20,8 +19,7 @@ interface CreditPackCardProps {
 export function CreditPackCard({
   name,
   price,
-  credits,
-  pricePerCredit,
+  estimatedComparisons,
   bonus,
   isPopular,
   onPurchase,
@@ -55,15 +53,12 @@ export function CreditPackCard({
           <Coins className="h-7 w-7 text-accent" />
         </div>
         <CardTitle className="text-xl">{name}</CardTitle>
-        <CardDescription>{credits} comparisons</CardDescription>
+        <CardDescription>~{estimatedComparisons} comparisons*</CardDescription>
       </CardHeader>
 
       <CardContent className="flex-1">
         <div className="text-center mb-6">
           <span className="text-4xl font-bold">${price}</span>
-          <p className="text-sm text-muted-foreground mt-2">
-            ${pricePerCredit.toFixed(2)} per comparison
-          </p>
         </div>
 
         <ul className="space-y-3 text-sm">

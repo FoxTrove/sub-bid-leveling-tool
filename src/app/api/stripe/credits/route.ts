@@ -5,7 +5,9 @@ import { NextResponse } from "next/server"
 
 export async function POST(request: Request) {
   try {
-    const { pack } = await request.json() as { pack: CreditPackKey }
+    const body = await request.json()
+    // Support both 'pack' and 'packKey' for flexibility
+    const pack = (body.pack || body.packKey) as CreditPackKey
 
     if (!pack || !CREDIT_PACKS[pack]) {
       return NextResponse.json({ error: "Invalid credit pack" }, { status: 400 })
@@ -72,13 +74,13 @@ export async function POST(request: Request) {
       metadata: {
         supabase_user_id: user.id,
         credit_pack: pack,
-        credits_amount: creditPack.credits.toString(),
+        credits_amount: creditPack.estimatedComparisons.toString(),
       },
       payment_intent_data: {
         metadata: {
           supabase_user_id: user.id,
           credit_pack: pack,
-          credits_amount: creditPack.credits.toString(),
+          credits_amount: creditPack.estimatedComparisons.toString(),
         },
       },
     })

@@ -66,25 +66,22 @@ export const CREDIT_PACKS = {
   starter: {
     name: 'Starter',
     price: 100, // $100
-    credits: 15, // 15 comparisons
-    pricePerCredit: 6.67,
+    estimatedComparisons: 15, // Estimated based on typical API usage
     bonus: null,
     stripePriceId: process.env.NEXT_PUBLIC_STRIPE_STARTER_PACK_PRICE_ID || '',
   },
   professional: {
     name: 'Professional',
     price: 250, // $250
-    credits: 40, // 40 comparisons (6% bonus)
-    pricePerCredit: 6.25,
-    bonus: '6% bonus',
+    estimatedComparisons: 40, // Estimated, includes ~6% bonus value
+    bonus: '6% more',
     stripePriceId: process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PACK_PRICE_ID || '',
   },
   enterprise: {
     name: 'Enterprise',
     price: 500, // $500
-    credits: 90, // 90 comparisons (17% bonus)
-    pricePerCredit: 5.56,
-    bonus: '17% bonus',
+    estimatedComparisons: 90, // Estimated, includes ~17% bonus value
+    bonus: '17% more',
     stripePriceId: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PACK_PRICE_ID || '',
   },
 } as const

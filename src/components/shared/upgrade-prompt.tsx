@@ -89,16 +89,19 @@ export function UpgradePrompt({ creditBalance = 0 }: UpgradePromptProps) {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">
-              $100<span className="text-lg font-normal text-muted-foreground"> / 15 credits</span>
+              $100
             </div>
             <p className="text-sm text-muted-foreground mt-1">
-              ~$6.67 per comparison
+              ~15 comparisons*
             </p>
             <ul className="mt-4 space-y-2 text-sm">
-              <li>15 bid comparisons</li>
+              <li>Pay only for what you use</li>
               <li>Never expires</li>
               <li>Buy more anytime</li>
             </ul>
+            <p className="text-xs text-muted-foreground mt-3">
+              *Based on typical document sizes
+            </p>
           </CardContent>
           <CardFooter>
             <Button

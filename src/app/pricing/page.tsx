@@ -140,18 +140,119 @@ export default function PricingPage() {
           Pricing
         </Badge>
         <h1 className="text-4xl font-bold tracking-tight sm:text-5xl mb-4">
-          Pay for what you use
+          Choose how you want to pay
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-4">
-          Buy credit packs for occasional use, or go unlimited with a subscription.
+          Two simple options—pick what works best for your workflow.
         </p>
         <p className="text-lg text-primary font-medium">
           Start with 3 free comparisons. No credit card required.
         </p>
       </section>
 
+      {/* Side-by-side Options Overview */}
+      <section className="container pb-16">
+        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          {/* Credit Packs Option */}
+          <Card className="border-2 border-accent/30 bg-accent/5 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-accent/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-xl bg-accent/10 flex items-center justify-center">
+                  <Coins className="h-6 w-6 text-accent" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl">Credit Packs</CardTitle>
+                  <CardDescription>Pay as you go</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-muted-foreground">
+                Buy credits upfront, use them whenever. Perfect for occasional or seasonal use.
+              </p>
+              <div className="flex items-baseline gap-1">
+                <span className="text-3xl font-bold">From $100</span>
+              </div>
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-green-500" />
+                  Credits never expire
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-green-500" />
+                  No monthly commitment
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-green-500" />
+                  Buy more anytime
+                </li>
+              </ul>
+            </CardContent>
+            <CardFooter>
+              <Button
+                variant="outline"
+                className="w-full border-accent/30 text-accent hover:bg-accent/10"
+                onClick={() => document.getElementById('credit-packs')?.scrollIntoView({ behavior: 'smooth' })}
+              >
+                View Credit Packs
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </CardFooter>
+          </Card>
+
+          {/* Subscription Option */}
+          <Card className="border-2 border-primary/30 bg-primary/5 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Sparkles className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl">Unlimited Subscription</CardTitle>
+                  <CardDescription>Best for regular users</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-muted-foreground">
+                Flat monthly rate for unlimited comparisons. Best value for 10+ comparisons/month.
+              </p>
+              <div className="flex items-baseline gap-1">
+                <span className="text-3xl font-bold">$79</span>
+                <span className="text-muted-foreground">/month</span>
+              </div>
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-green-500" />
+                  Unlimited comparisons
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-green-500" />
+                  Priority support
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-green-500" />
+                  Cancel anytime
+                </li>
+              </ul>
+            </CardContent>
+            <CardFooter>
+              <Button
+                className="w-full"
+                onClick={() => document.getElementById('subscriptions')?.scrollIntoView({ behavior: 'smooth' })}
+              >
+                View Subscriptions
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+      </section>
+
       {/* Credit Packs Section */}
-      <section className="container pb-20">
+      <section id="credit-packs" className="container pb-20 scroll-mt-20">
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-4 py-1.5 text-sm font-medium text-accent mb-4">
             <Coins className="h-4 w-4" />
@@ -167,16 +268,14 @@ export default function PricingPage() {
           <CreditPackCard
             name={CREDIT_PACKS.starter.name}
             price={CREDIT_PACKS.starter.price}
-            credits={CREDIT_PACKS.starter.credits}
-            pricePerCredit={CREDIT_PACKS.starter.pricePerCredit}
+            estimatedComparisons={CREDIT_PACKS.starter.estimatedComparisons}
             onPurchase={() => handlePurchasePack("starter")}
             isLoading={loadingPack === "starter"}
           />
           <CreditPackCard
             name={CREDIT_PACKS.professional.name}
             price={CREDIT_PACKS.professional.price}
-            credits={CREDIT_PACKS.professional.credits}
-            pricePerCredit={CREDIT_PACKS.professional.pricePerCredit}
+            estimatedComparisons={CREDIT_PACKS.professional.estimatedComparisons}
             bonus={CREDIT_PACKS.professional.bonus}
             isPopular
             onPurchase={() => handlePurchasePack("professional")}
@@ -185,13 +284,16 @@ export default function PricingPage() {
           <CreditPackCard
             name={CREDIT_PACKS.enterprise.name}
             price={CREDIT_PACKS.enterprise.price}
-            credits={CREDIT_PACKS.enterprise.credits}
-            pricePerCredit={CREDIT_PACKS.enterprise.pricePerCredit}
+            estimatedComparisons={CREDIT_PACKS.enterprise.estimatedComparisons}
             bonus={CREDIT_PACKS.enterprise.bonus}
             onPurchase={() => handlePurchasePack("enterprise")}
             isLoading={loadingPack === "enterprise"}
           />
         </div>
+
+        <p className="text-center text-xs text-muted-foreground mt-6 max-w-lg mx-auto">
+          *Comparison estimates are based on typical document sizes. Actual usage may vary depending on the length and complexity of your bid documents.
+        </p>
       </section>
 
       {/* Comparison Helper */}
@@ -278,9 +380,9 @@ export default function PricingPage() {
 
             <div className="mt-8 p-4 rounded-xl bg-muted/50 border text-center">
               <p className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">Break-even analysis:</span>{" "}
-                At $79/month for unlimited, the subscription pays for itself at ~12 comparisons/month
-                (vs. $6.67/comparison with credit packs).
+                <span className="font-medium text-foreground">Rule of thumb:</span>{" "}
+                If you run 10+ comparisons per month consistently, a subscription offers better value.
+                For occasional or seasonal use, credit packs give you flexibility.
               </p>
             </div>
           </div>
@@ -288,7 +390,7 @@ export default function PricingPage() {
       </section>
 
       {/* Subscription Plans */}
-      <section className="container py-20">
+      <section id="subscriptions" className="container py-20 scroll-mt-20">
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary mb-4">
             <Sparkles className="h-4 w-4" />
