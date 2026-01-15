@@ -8,6 +8,7 @@ import { SummaryCards } from "@/components/compare/results/summary-cards"
 import { ComparisonGrid } from "@/components/compare/results/comparison-grid"
 import { RecommendationPanel } from "@/components/compare/results/recommendation-panel"
 import { ProcessingState } from "@/components/compare/results/processing-state"
+import { ContractorDetailCards } from "@/components/compare/results/contractor-detail-cards"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default async function ComparisonPage({
@@ -128,6 +129,11 @@ export default async function ComparisonPage({
           />
 
           <ComparisonGrid
+            documents={project.bid_documents}
+            results={project.comparison_results}
+          />
+
+          <ContractorDetailCards
             documents={project.bid_documents}
             results={project.comparison_results}
           />

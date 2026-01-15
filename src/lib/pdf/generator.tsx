@@ -6,7 +6,7 @@ import {
   View,
   StyleSheet,
 } from "@react-pdf/renderer"
-import type { Project, BidDocument, ComparisonResult } from "@/types"
+import type { Project, BidDocumentWithItems, ComparisonResult, ExtractedItem } from "@/types"
 
 const styles = StyleSheet.create({
   page: {
@@ -119,11 +119,101 @@ const styles = StyleSheet.create({
   included: {
     color: "#16a34a",
   },
+  contractorHeader: {
+    backgroundColor: "#f0f9ff",
+    padding: 12,
+    marginBottom: 12,
+    borderRadius: 4,
+  },
+  contractorName: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#0369a1",
+  },
+  contractorSubtitle: {
+    fontSize: 10,
+    color: "#666",
+    marginTop: 2,
+  },
+  exclusionBox: {
+    backgroundColor: "#fef2f2",
+    borderWidth: 1,
+    borderColor: "#fecaca",
+    padding: 10,
+    marginBottom: 12,
+    borderRadius: 4,
+  },
+  exclusionTitle: {
+    fontSize: 11,
+    fontWeight: "bold",
+    color: "#dc2626",
+    marginBottom: 6,
+  },
+  exclusionItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 2,
+  },
+  categoryHeader: {
+    backgroundColor: "#f1f5f9",
+    padding: 6,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  categoryTitle: {
+    fontSize: 10,
+    fontWeight: "bold",
+    color: "#475569",
+  },
+  lineItem: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e5e5",
+    paddingVertical: 4,
+  },
+  lineItemDesc: {
+    flex: 3,
+    fontSize: 9,
+  },
+  lineItemQty: {
+    flex: 1,
+    fontSize: 9,
+    textAlign: "center",
+  },
+  lineItemPrice: {
+    flex: 1,
+    fontSize: 9,
+    textAlign: "right",
+  },
+  totalsBox: {
+    backgroundColor: "#f8fafc",
+    padding: 10,
+    marginTop: 12,
+    borderRadius: 4,
+  },
+  totalRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 2,
+  },
+  totalLabel: {
+    fontSize: 10,
+  },
+  totalValue: {
+    fontSize: 10,
+    fontWeight: "bold",
+  },
+  grandTotal: {
+    borderTopWidth: 1,
+    borderTopColor: "#cbd5e1",
+    marginTop: 4,
+    paddingTop: 4,
+  },
 })
 
 interface PDFGeneratorProps {
   project: Project
-  documents: BidDocument[]
+  documents: BidDocumentWithItems[]
   results: ComparisonResult
 }
 
@@ -274,6 +364,161 @@ export function ComparisonReportPDF({
           information before making decisions.
         </Text>
       </Page>
+
+      {/* Detailed Contractor Pages */}
+      {documents.map((doc) => {
+        const items = doc.extracted_items || []
+        const inclusions = items.filter((i) => !i.is_exclusion)
+        const exclusions = items.filter((i) => i.is_exclusion)
+
+        // Group inclusions by category
+        const byCategory = new Map<string, ExtractedItem[]>()
+        for (const item of inclusions) {
+          const cat = item.category || "General"
+          if (!byCategory.has(cat)) {
+            byCategory.set(cat, [])
+          }
+          byCategory.get(cat)!.push(item)
+        }
+        const categories = Array.from(byCategory.entries()).sort((a, b) =>
+          a[0].localeCompare(b[0])
+        )
+
+        const baseTotal = inclusions.reduce(
+          (sum, i) => sum + (i.total_price || 0),
+          0
+        )
+        const exclusionsTotal = exclusions.reduce(
+          (sum, i) => sum + (i.total_price || 0),
+          0
+        )
+        const isRecommended =
+          recommendation.recommended_contractor_id === doc.id
+
+        return (
+          <Page key={doc.id} size="A4" style={styles.page}>
+            {/* Contractor Header */}
+            <View style={styles.contractorHeader}>
+              <Text style={styles.contractorName}>
+                {doc.contractor_name}
+                {isRecommended ? " (RECOMMENDED)" : ""}
+              </Text>
+              <Text style={styles.contractorSubtitle}>
+                {items.length} line items | Base Bid:{" "}
+                {formatCurrency(baseTotal)}
+              </Text>
+            </View>
+
+            {/* Exclusions Box - Show First */}
+            {exclusions.length > 0 && (
+              <View style={styles.exclusionBox}>
+                <Text style={styles.exclusionTitle}>
+                  EXCLUSIONS (Not Included in Base Bid)
+                </Text>
+                {exclusions.map((item, index) => (
+                  <View key={index} style={styles.exclusionItem}>
+                    <Text style={{ fontSize: 9, flex: 3 }}>
+                      {item.description}
+                    </Text>
+                    <Text style={{ fontSize: 9, flex: 1, textAlign: "right" }}>
+                      {item.total_price
+                        ? formatCurrency(item.total_price)
+                        : "TBD"}
+                    </Text>
+                  </View>
+                ))}
+                <View
+                  style={[
+                    styles.exclusionItem,
+                    { borderTopWidth: 1, borderTopColor: "#fecaca", marginTop: 4, paddingTop: 4 },
+                  ]}
+                >
+                  <Text style={{ fontSize: 9, fontWeight: "bold", flex: 3 }}>
+                    Total Exclusions
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 9,
+                      fontWeight: "bold",
+                      flex: 1,
+                      textAlign: "right",
+                    }}
+                  >
+                    {formatCurrency(exclusionsTotal)}
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {/* Included Items by Category */}
+            <Text style={styles.sectionTitle}>Included Items</Text>
+            {categories.map(([category, categoryItems]) => (
+              <View key={category}>
+                <View style={styles.categoryHeader}>
+                  <Text style={styles.categoryTitle}>
+                    {category} ({formatCurrency(
+                      categoryItems.reduce(
+                        (sum, i) => sum + (i.total_price || 0),
+                        0
+                      )
+                    )})
+                  </Text>
+                </View>
+                {categoryItems.slice(0, 15).map((item, index) => (
+                  <View key={index} style={styles.lineItem}>
+                    <Text style={styles.lineItemDesc}>{item.description}</Text>
+                    <Text style={styles.lineItemQty}>
+                      {item.quantity || "-"} {item.unit || ""}
+                    </Text>
+                    <Text style={styles.lineItemPrice}>
+                      {formatCurrency(item.total_price)}
+                    </Text>
+                  </View>
+                ))}
+                {categoryItems.length > 15 && (
+                  <Text style={{ fontSize: 8, color: "#666", marginTop: 2 }}>
+                    ... and {categoryItems.length - 15} more items
+                  </Text>
+                )}
+              </View>
+            ))}
+
+            {/* Totals */}
+            <View style={styles.totalsBox}>
+              <View style={styles.totalRow}>
+                <Text style={styles.totalLabel}>Base Bid Subtotal:</Text>
+                <Text style={styles.totalValue}>
+                  {formatCurrency(baseTotal)}
+                </Text>
+              </View>
+              {exclusionsTotal > 0 && (
+                <View style={styles.totalRow}>
+                  <Text style={[styles.totalLabel, { color: "#dc2626" }]}>
+                    Potential Exclusion Add-ons:
+                  </Text>
+                  <Text style={[styles.totalValue, { color: "#dc2626" }]}>
+                    +{formatCurrency(exclusionsTotal)}
+                  </Text>
+                </View>
+              )}
+              <View style={[styles.totalRow, styles.grandTotal]}>
+                <Text style={[styles.totalLabel, { fontWeight: "bold" }]}>
+                  Estimated True Cost:
+                </Text>
+                <Text style={styles.totalValue}>
+                  {formatCurrency(baseTotal + exclusionsTotal)}
+                </Text>
+              </View>
+            </View>
+
+            {/* Footer */}
+            <Text style={styles.footer}>
+              Powered by Foxtrove.ai | This report is AI-generated. Verify all
+              information before making decisions.
+            </Text>
+          </Page>
+        )
+      })}
     </Document>
   )
 }

@@ -22,13 +22,16 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Fetch project with all data
+    // Fetch project with all data including extracted items
     const { data: project, error } = await supabase
       .from("projects")
       .select(
         `
         *,
-        bid_documents (*),
+        bid_documents (
+          *,
+          extracted_items (*)
+        ),
         comparison_results (*)
       `
       )
