@@ -78,12 +78,20 @@ export default async function ComparisonPage({
         </div>
 
         {isComplete && (
-          <Link href={`/api/export/${projectId}`} target="_blank">
-            <Button>
-              <Download className="mr-2 h-4 w-4" />
-              Export PDF
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link href={`/api/export/${projectId}`} target="_blank">
+              <Button>
+                <Download className="mr-2 h-4 w-4" />
+                Export PDF
+              </Button>
+            </Link>
+            <Link href={`/api/export/${projectId}/csv`} target="_blank">
+              <Button variant="outline">
+                <Download className="mr-2 h-4 w-4" />
+                Export CSV
+              </Button>
+            </Link>
+          </div>
         )}
       </div>
 
