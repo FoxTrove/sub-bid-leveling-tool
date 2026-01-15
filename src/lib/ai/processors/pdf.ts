@@ -1,7 +1,9 @@
 export async function extractTextFromPdf(buffer: Buffer): Promise<string> {
   try {
     // Dynamic import for CommonJS module compatibility with Turbopack
-    const pdfParse = (await import("pdf-parse")).default
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const pdfParseModule = await import("pdf-parse") as any
+    const pdfParse = pdfParseModule.default || pdfParseModule
     const data = await pdfParse(buffer)
     return data.text
   } catch (error) {

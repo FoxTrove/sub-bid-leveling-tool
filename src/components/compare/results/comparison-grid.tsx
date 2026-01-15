@@ -46,7 +46,7 @@ export function ComparisonGrid({ documents, results }: ComparisonGridProps) {
       ...new Set(
         allItems
           .map((i) => i.normalized_category || i.category)
-          .filter(Boolean)
+          .filter((c): c is string => Boolean(c))
       ),
     ].sort()
 

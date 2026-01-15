@@ -98,6 +98,7 @@ export interface RecommendationFactor {
 export interface RecommendationWarning {
   type: string
   description: string
+  contractor_id?: string
 }
 
 export interface Recommendation {
