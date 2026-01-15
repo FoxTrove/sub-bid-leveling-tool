@@ -2,6 +2,9 @@ import { createClient, createAdminClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { analyzeProject } from "@/lib/ai/analyzer"
 
+// Increase function timeout for analysis (Vercel Pro: up to 300s)
+export const maxDuration = 120
+
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -32,17 +35,36 @@ export async function POST(
     // Use admin client for analysis (bypasses RLS for service operations)
     const adminSupabase = createAdminClient()
 
-    // Run analysis in background
-    // Note: In production, you'd use a queue like Vercel's background functions
-    analyzeProject(adminSupabase, projectId).catch((error) => {
-      console.error("Background analysis error:", error)
-    })
+    // Update project status to processing
+    await adminSupabase
+      .from("projects")
+      .update({ status: "processing" })
+      .eq("id", projectId)
 
-    return NextResponse.json({ success: true, message: "Analysis started" })
+    // Run analysis synchronously - must complete within maxDuration
+    await analyzeProject(adminSupabase, projectId)
+
+    return NextResponse.json({ success: true, message: "Analysis complete" })
   } catch (error) {
-    console.error("Analysis trigger error:", error)
+    console.error("Analysis error:", error)
+
+    // Try to update project status to error
+    try {
+      const adminSupabase = createAdminClient()
+      const { id: projectId } = await params
+      await adminSupabase
+        .from("projects")
+        .update({
+          status: "error",
+          error_message: error instanceof Error ? error.message : "Analysis failed"
+        })
+        .eq("id", projectId)
+    } catch {
+      // Ignore error updating status
+    }
+
     return NextResponse.json(
-      { error: "Failed to start analysis" },
+      { error: error instanceof Error ? error.message : "Failed to analyze" },
       { status: 500 }
     )
   }
