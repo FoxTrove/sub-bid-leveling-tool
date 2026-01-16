@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Shield, Zap, Clock } from "lucide-react"
 
@@ -13,8 +14,19 @@ const trustPoints = [
 export function CTA() {
   return (
     <section className="relative border-t overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0 -z-30">
+        <Image
+          src="/cta-bg.png"
+          alt="Abstract construction background"
+          fill
+          className="object-cover opacity-40"
+        />
+        <div className="absolute inset-0 bg-slate-950/60 mix-blend-multiply" />
+      </div>
+
       {/* Gradient background */}
-      <div className="absolute inset-0 gradient-cta" />
+      <div className="absolute inset-0 gradient-cta opacity-75" />
 
       {/* Pattern overlay */}
       <div className="absolute inset-0 pattern-grid opacity-10" />

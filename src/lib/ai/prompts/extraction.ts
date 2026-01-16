@@ -1,4 +1,10 @@
-export function getExtractionPrompt(tradeType: string, documentText: string): string {
+export function getExtractionPrompt(
+  tradeType: string,
+  documentText: string,
+  learnedExamples?: string
+): string {
+  const examplesSection = learnedExamples || ''
+
   return `You are an expert construction estimator analyzing a ${tradeType} subcontractor bid.
 
 Your task is to extract all line items, pricing, and exclusions from this bid document and return them as structured JSON.
@@ -31,7 +37,7 @@ IMPORTANT EXTRACTION RULES:
 
 Common ${tradeType} scope items to look for:
 ${getTradeSpecificItems(tradeType)}
-
+${examplesSection}
 Document text:
 ---
 ${documentText}

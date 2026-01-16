@@ -8,7 +8,6 @@ import {
   Target,
   Zap,
 } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 const features = [
   {
@@ -16,92 +15,90 @@ const features = [
     title: "Scope Gap Detection",
     description:
       "Instantly see which items are missing from each bid. Never miss an exclusion again.",
-    accent: "primary",
+    color: "blue",
   },
   {
     icon: AlertTriangle,
     title: "Exclusion Flagging",
     description:
       "AI identifies and highlights exclusions that could blow your budget later.",
-    accent: "accent",
+    color: "amber",
   },
   {
     icon: BarChart3,
     title: "True Price Comparison",
     description:
       "Compare bids on equal footing by accounting for what's actually included.",
-    accent: "primary",
+    color: "emerald",
   },
   {
     icon: Zap,
     title: "AI Recommendations",
     description:
       "Get intelligent suggestions on which contractor to choose and why.",
-    accent: "accent",
+    color: "violet",
   },
   {
     icon: Clock,
     title: "Save Hours of Work",
     description:
       "What used to take 2-4 hours in spreadsheets now takes minutes.",
-    accent: "primary",
+    color: "blue",
   },
   {
     icon: FileText,
     title: "PDF Export",
     description:
       "Generate professional comparison reports to share with your team or clients.",
-    accent: "accent",
+    color: "indigo",
   },
 ]
 
+const colorMap: Record<string, { bg: string; text: string; border: string }> = {
+  blue: { bg: "bg-blue-500/10", text: "text-blue-400", border: "border-blue-500/20" },
+  amber: { bg: "bg-amber-500/10", text: "text-amber-400", border: "border-amber-500/20" },
+  emerald: { bg: "bg-emerald-500/10", text: "text-emerald-400", border: "border-emerald-500/20" },
+  violet: { bg: "bg-violet-500/10", text: "text-violet-400", border: "border-violet-500/20" },
+  indigo: { bg: "bg-indigo-500/10", text: "text-indigo-400", border: "border-indigo-500/20" },
+}
+
 export function Features() {
   return (
-    <section className="relative py-24 overflow-hidden">
-      {/* Subtle background pattern */}
-      <div className="absolute inset-0 pattern-grid opacity-30" />
+    <section className="relative py-24 overflow-hidden bg-slate-950">
+      {/* Gradient accents */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[128px] translate-x-1/2 -translate-y-1/2" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[128px] -translate-x-1/2 translate-y-1/2" />
 
       <div className="container relative">
         <div className="text-center max-w-2xl mx-auto">
-          <div className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-4 py-1.5 text-sm font-medium text-accent mb-4">
+          <div className="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-4 py-1.5 text-sm font-medium text-indigo-400 mb-4">
             Features
           </div>
-          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+          <h2 className="text-3xl font-bold tracking-tight md:text-4xl text-white">
             Everything You Need to{" "}
-            <span className="text-gradient">Level Bids</span>
+            <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Level Bids</span>
           </h2>
-          <p className="mt-4 text-lg text-muted-foreground">
+          <p className="mt-4 text-lg text-slate-400">
             Powerful features designed for construction professionals who demand accuracy
           </p>
         </div>
 
         <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map((feature, index) => (
-            <Card
-              key={feature.title}
-              className="group relative border-2 border-border/50 bg-card/50 backdrop-blur-sm card-hover-lift border-accent-hover animate-slide-up"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              {/* Hover gradient overlay */}
-              <div className="absolute inset-0 rounded-lg gradient-card-hover opacity-0 group-hover:opacity-100 transition-opacity" />
-
-              <CardHeader className="relative">
-                <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${
-                  feature.accent === "primary"
-                    ? "bg-primary/10 group-hover:bg-primary/20"
-                    : "bg-accent/10 group-hover:bg-accent/20"
-                } transition-colors`}>
-                  <feature.icon className={`h-6 w-6 ${
-                    feature.accent === "primary" ? "text-primary" : "text-accent"
-                  }`} />
+          {features.map((feature, index) => {
+            const colors = colorMap[feature.color]
+            return (
+              <div
+                key={feature.title}
+                className="group relative rounded-2xl bg-slate-900/50 border border-slate-800 p-6 hover:border-slate-700 transition-all duration-300 hover:shadow-lg hover:shadow-slate-900/50"
+              >
+                <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${colors.bg} border ${colors.border} transition-colors`}>
+                  <feature.icon className={`h-6 w-6 ${colors.text}`} />
                 </div>
-                <CardTitle className="mt-4 text-lg">{feature.title}</CardTitle>
-              </CardHeader>
-              <CardContent className="relative">
-                <p className="text-muted-foreground text-sm leading-relaxed">{feature.description}</p>
-              </CardContent>
-            </Card>
-          ))}
+                <h3 className="mt-4 text-lg font-semibold text-white">{feature.title}</h3>
+                <p className="mt-2 text-slate-400 text-sm leading-relaxed">{feature.description}</p>
+              </div>
+            )
+          })}
         </div>
       </div>
     </section>

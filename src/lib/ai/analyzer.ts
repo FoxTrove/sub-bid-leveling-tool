@@ -3,11 +3,13 @@ import { createOpenAIClient, chatCompletion, getApiKey } from "./openai"
 import { getExtractionPrompt } from "./prompts/extraction"
 import { getNormalizationPrompt } from "./prompts/normalization"
 import { getRecommendationPrompt } from "./prompts/recommendation"
+import { getTradeExamples, formatExtractionExamples, formatNormalizationExamples } from "./prompts/examples"
 import { extractTextFromPdf } from "./processors/pdf"
 import { extractTextFromExcel } from "./processors/excel"
 import { extractTextFromWord } from "./processors/word"
 import { decrypt } from "@/lib/utils/encryption"
 import { isTrialExpired } from "@/lib/utils/format"
+import { MetricsCollector, categorizeError } from "@/lib/metrics/collector"
 import type { BidDocument, ExtractedItem } from "@/types"
 
 interface ExtractionResult {
@@ -78,6 +80,9 @@ export async function analyzeProject(
 ): Promise<void> {
   console.log(`Starting analysis for project ${projectId}`)
 
+  // Initialize metrics collector (NOT linked to project - anonymized)
+  let metricsCollector: MetricsCollector | null = null
+
   try {
     // 1. Get project details
     const { data: project, error: projectError } = await supabase
@@ -89,6 +94,16 @@ export async function analyzeProject(
     if (projectError || !project) {
       throw new Error("Project not found")
     }
+
+    // Initialize metrics collector with trade type
+    const documents = project.bid_documents as BidDocument[]
+    const totalDocumentSize = documents.reduce((sum, d) => sum + (d.file_size || 0), 0)
+    const primaryDocType = documents[0]?.file_type?.split("/").pop() || "unknown"
+
+    metricsCollector = new MetricsCollector(supabase, project.trade_type, {
+      type: primaryDocType,
+      sizeBytes: totalDocumentSize,
+    })
 
     // 2. Get user's API key or check trial
     const { data: profile } = await supabase
@@ -109,9 +124,17 @@ export async function analyzeProject(
 
     const openai = createOpenAIClient(apiKey)
 
+    // Fetch learned examples for this trade type (non-blocking, fallback to empty)
+    const tradeExamples = await getTradeExamples(project.trade_type, 10)
+    const extractionExamples = formatExtractionExamples(tradeExamples)
+    const normalizationExamples = formatNormalizationExamples(tradeExamples)
+
     // 3. Process each document
-    const documents = project.bid_documents as BidDocument[]
     const extractedByDocument: Map<string, ExtractedItem[]> = new Map()
+    const extractionStartTime = Date.now()
+    let allConfidenceScores: number[] = []
+    let totalItemsNeedingReview = 0
+    let extractionError: unknown = null
 
     for (const doc of documents) {
       console.log(`Processing document: ${doc.file_name}`)
@@ -149,8 +172,8 @@ export async function analyzeProject(
           .update({ raw_text: text })
           .eq("id", doc.id)
 
-        // Run extraction
-        const extractionPrompt = getExtractionPrompt(project.trade_type, text)
+        // Run extraction (with learned examples if available)
+        const extractionPrompt = getExtractionPrompt(project.trade_type, text, extractionExamples)
         const extractionResponse = await chatCompletion(openai, [
           { role: "user", content: extractionPrompt },
         ])
@@ -185,6 +208,12 @@ export async function analyzeProject(
 
         extractedByDocument.set(doc.id, insertedItems || [])
 
+        // Capture metrics data
+        allConfidenceScores = allConfidenceScores.concat(
+          extraction.items.map((i) => i.confidence_score)
+        )
+        totalItemsNeedingReview += extraction.items.filter((i) => i.needs_review).length
+
         // Update document status
         await supabase
           .from("bid_documents")
@@ -192,6 +221,7 @@ export async function analyzeProject(
           .eq("id", doc.id)
       } catch (error) {
         console.error(`Error processing document ${doc.id}:`, error)
+        extractionError = error
         await supabase
           .from("bid_documents")
           .update({
@@ -202,8 +232,25 @@ export async function analyzeProject(
       }
     }
 
+    // Record extraction metrics
+    const extractionDuration = Date.now() - extractionStartTime
+    const totalItemsExtracted = Array.from(extractedByDocument.values()).reduce(
+      (sum, items) => sum + items.length,
+      0
+    )
+
+    metricsCollector.recordExtraction({
+      success: !extractionError,
+      duration_ms: extractionDuration,
+      items_count: totalItemsExtracted,
+      error_code: extractionError ? categorizeError(extractionError) : undefined,
+      confidence_scores: allConfidenceScores,
+      items_needing_review: totalItemsNeedingReview,
+    })
+
     // 4. Run normalization across all bids
     console.log("Running normalization...")
+    const normalizationStartTime = Date.now()
 
     const contractorsData = documents.map((doc) => ({
       contractorId: doc.id,
@@ -211,12 +258,25 @@ export async function analyzeProject(
       items: extractedByDocument.get(doc.id) || [],
     }))
 
-    const normalizationPrompt = getNormalizationPrompt(project.trade_type, contractorsData)
+    const normalizationPrompt = getNormalizationPrompt(project.trade_type, contractorsData, normalizationExamples)
     const normalizationResponse = await chatCompletion(openai, [
       { role: "user", content: normalizationPrompt },
     ])
 
     const normalization: NormalizationResult = JSON.parse(normalizationResponse)
+
+    // Record normalization metrics
+    const normalizationDuration = Date.now() - normalizationStartTime
+    const scopeGapsCount = normalization.normalized_items.filter((ni) => ni.is_scope_gap).length
+    const matchedItemsCount = normalization.normalized_items.filter((ni) => !ni.is_scope_gap).length
+    const matchRate = totalItemsExtracted > 0 ? matchedItemsCount / totalItemsExtracted : 0
+
+    metricsCollector.recordNormalization({
+      success: true,
+      duration_ms: normalizationDuration,
+      match_rate: matchRate,
+      scope_gaps_count: scopeGapsCount,
+    })
 
     // Update normalized_category on items
     for (const normalizedItem of normalization.normalized_items) {
@@ -232,6 +292,7 @@ export async function analyzeProject(
 
     // 5. Generate recommendation
     console.log("Generating recommendation...")
+    const recommendationStartTime = Date.now()
 
     const contractorSummaries = documents.map((doc) => {
       const items = extractedByDocument.get(doc.id) || []
@@ -277,6 +338,14 @@ export async function analyzeProject(
     ])
 
     const recommendation: RecommendationResult = JSON.parse(recommendationResponse)
+
+    // Record recommendation metrics
+    const recommendationDuration = Date.now() - recommendationStartTime
+    metricsCollector.recordRecommendation({
+      success: true,
+      duration_ms: recommendationDuration,
+      confidence: recommendation.confidence,
+    })
 
     // 6. Save comparison results
     const prices = contractorSummaries.map((c) => c.baseBid).filter((p) => p > 0)
@@ -329,9 +398,22 @@ export async function analyzeProject(
       .update({ status: "complete" })
       .eq("id", projectId)
 
+    // Flush metrics (fire-and-forget)
+    metricsCollector.flush()
+
     console.log(`Analysis complete for project ${projectId}`)
   } catch (error) {
     console.error(`Analysis failed for project ${projectId}:`, error)
+
+    // Record error in metrics if collector was initialized
+    if (metricsCollector) {
+      metricsCollector.recordExtraction({
+        success: false,
+        duration_ms: 0,
+        error_code: categorizeError(error),
+      })
+      metricsCollector.flush()
+    }
 
     await supabase
       .from("projects")

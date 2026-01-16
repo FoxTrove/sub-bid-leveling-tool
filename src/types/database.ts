@@ -26,6 +26,10 @@ export interface Profile {
   credit_balance: number
   credits_purchased_total: number
   last_credit_purchase_at: string | null
+  // Training data opt-in
+  training_data_opt_in: boolean
+  training_data_opted_in_at: string | null
+  training_data_contribution_count: number
   created_at: string
   updated_at: string
 }
@@ -225,3 +229,70 @@ export const TRADE_TYPES = [
 ] as const
 
 export type TradeType = typeof TRADE_TYPES[number]
+
+// ============================================
+// AI METRICS & TRAINING DATA TYPES
+// ============================================
+
+export type CorrectionType =
+  | 'description'
+  | 'category'
+  | 'price'
+  | 'exclusion_flag'
+  | 'quantity'
+  | 'unit'
+
+export type ModerationStatus = 'pending' | 'approved' | 'rejected'
+
+export interface AIPipelineMetrics {
+  id: string
+  pipeline_run_id: string
+  trade_type: string
+  document_type: string
+  document_size_bytes: number | null
+
+  extraction_success: boolean
+  extraction_duration_ms: number | null
+  extraction_items_count: number | null
+  extraction_error_code: string | null
+
+  normalization_success: boolean | null
+  normalization_duration_ms: number | null
+  normalization_match_rate: number | null
+  normalization_scope_gaps_count: number | null
+
+  recommendation_success: boolean | null
+  recommendation_duration_ms: number | null
+  recommendation_confidence: 'high' | 'medium' | 'low' | null
+
+  avg_confidence_score: number | null
+  min_confidence_score: number | null
+  max_confidence_score: number | null
+  low_confidence_items_count: number | null
+  items_needing_review_count: number | null
+
+  created_at: string
+}
+
+export interface TrainingContribution {
+  id: string
+  trade_type: string
+  document_type: string
+  correction_type: CorrectionType
+  original_value: Record<string, unknown>
+  corrected_value: Record<string, unknown>
+  raw_text_snippet: string | null
+  ai_notes: string | null
+  confidence_score_original: number | null
+  was_marked_needs_review: boolean | null
+  moderation_status: ModerationStatus
+  moderated_at: string | null
+  moderation_notes: string | null
+  contributed_at: string
+}
+
+export interface UserTrainingPreferences {
+  training_data_opt_in: boolean
+  training_data_opted_in_at: string | null
+  training_data_contribution_count: number
+}

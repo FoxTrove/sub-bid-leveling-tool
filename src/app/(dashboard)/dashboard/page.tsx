@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { Plus, FolderPlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { TrialBanner } from "@/components/dashboard/trial-banner"
+import { UsageBanner } from "@/components/dashboard/usage-banner"
 import { EmptyState } from "@/components/dashboard/empty-state"
 import { FolderCard } from "@/components/dashboard/folder-card"
 import { CreateFolderDialog } from "@/components/dashboard/create-folder-dialog"
@@ -80,9 +80,11 @@ export default async function DashboardPage() {
       </div>
 
       {profile && (
-        <TrialBanner
-          trialStartedAt={profile.trial_started_at}
-          hasOwnApiKey={!!profile.openai_api_key_encrypted}
+        <UsageBanner
+          comparisonsUsed={profile.comparisons_used ?? 0}
+          creditBalance={profile.credit_balance ?? 0}
+          hasApiKey={!!profile.openai_api_key_encrypted}
+          isSubscriptionActive={profile.subscription_status === 'active'}
         />
       )}
 

@@ -8,8 +8,10 @@ interface ContractorItems {
 
 export function getNormalizationPrompt(
   tradeType: string,
-  contractors: ContractorItems[]
+  contractors: ContractorItems[],
+  learnedExamples?: string
 ): string {
+  const examplesSection = learnedExamples || ''
   const itemsJson = contractors.map((c) => ({
     contractor_id: c.contractorId,
     contractor_name: c.contractorName,
@@ -41,7 +43,7 @@ MATCHING RULES:
 - "NIC" / "By Others" / "$0" items should be treated as exclusions
 - If one contractor has a detailed breakdown and another has a lump sum, note this
 - Group related items under standard categories
-
+${examplesSection}
 Return JSON in this exact format:
 {
   "normalized_items": [

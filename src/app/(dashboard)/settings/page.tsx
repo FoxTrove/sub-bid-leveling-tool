@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { ApiKeyForm } from "@/components/settings/api-key-form"
 import { PasswordSetupForm } from "@/components/settings/password-setup-form"
 import { BillingSection } from "@/components/settings/billing-section"
+import { TrainingDataSettings } from "@/components/settings/training-data-settings"
 import {
   Card,
   CardContent,
@@ -100,6 +101,12 @@ export default async function SettingsPage() {
             <PasswordSetupForm hasPassword={profile?.password_set || false} />
           </CardContent>
         </Card>
+
+        {/* Training Data Contributions */}
+        <TrainingDataSettings
+          initialOptIn={profile?.training_data_opt_in || false}
+          initialContributionCount={profile?.training_data_contribution_count || 0}
+        />
       </div>
     </div>
   )

@@ -68,10 +68,10 @@ export function Footer() {
           <div>
             <h3 className="font-semibold text-sm mb-4">Legal</h3>
             <nav className="flex flex-col gap-3">
-              <Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <Link href="/privacy-policy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Privacy Policy
               </Link>
-              <Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <Link href="/terms-of-service" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Terms of Service
               </Link>
             </nav>
