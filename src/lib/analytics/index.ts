@@ -10,6 +10,8 @@
  * - API key added
  * - Credit purchase
  * - Subscription events
+ *
+ * All events include `product: 'bidlevel'` parameter for cross-product filtering
  */
 
 // Extend window type for gtag
@@ -19,6 +21,9 @@ declare global {
     dataLayer?: unknown[]
   }
 }
+
+// Product identifier - used on all events for cross-product analytics
+const PRODUCT_ID = 'bidlevel'
 
 // Event names - keep consistent for GA4 reports
 export const AnalyticsEvents = {
@@ -112,6 +117,7 @@ export function trackPageView(path?: string, title?: string) {
 
 /**
  * Track a custom event
+ * Automatically adds `product: 'bidlevel'` to all events
  */
 export function trackEvent(
   eventName: AnalyticsEvent | string,
@@ -119,11 +125,17 @@ export function trackEvent(
 ) {
   if (!isGtagAvailable()) return
 
-  window.gtag?.('event', eventName, params)
+  // Add product identifier to all events for cross-product filtering
+  const enrichedParams = {
+    product: PRODUCT_ID,
+    ...params,
+  }
+
+  window.gtag?.('event', eventName, enrichedParams)
 
   // Also log in development for debugging
   if (process.env.NODE_ENV === 'development') {
-    console.log('[Analytics]', eventName, params)
+    console.log('[Analytics]', eventName, enrichedParams)
   }
 }
 
