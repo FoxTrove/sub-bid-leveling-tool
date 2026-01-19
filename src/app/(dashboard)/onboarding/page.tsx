@@ -1,14 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2 } from "lucide-react"
+import { Loader2, Gift, CheckCircle2, Key, Clock } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
+import { PROMO_CODES } from "@/lib/utils/constants"
+import { trackOnboardingCompleted, trackSignUp, setUserId } from "@/lib/analytics"
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -16,6 +18,15 @@ export default function OnboardingPage() {
   const [fullName, setFullName] = useState("")
   const [gcName, setGcName] = useState("")
   const [companyName, setCompanyName] = useState("")
+  const [promoCode, setPromoCode] = useState<string | null>(null)
+
+  // Check for promo code from session storage
+  useEffect(() => {
+    const savedPromoCode = sessionStorage.getItem("bidlevel_promo_code")
+    if (savedPromoCode && savedPromoCode in PROMO_CODES) {
+      setPromoCode(savedPromoCode)
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,19 +49,41 @@ export default function OnboardingPage() {
         throw new Error("Not authenticated")
       }
 
+      // Build update object with promo code if present
+      const updateData: Record<string, unknown> = {
+        full_name: fullName.trim(),
+        gc_name: gcName.trim() || null,
+        company_name: companyName.trim(),
+        onboarding_completed: true,
+      }
+
+      // Add promo code if valid
+      if (promoCode && promoCode in PROMO_CODES) {
+        updateData.promo_code = promoCode
+        updateData.promo_applied_at = new Date().toISOString()
+      }
+
       const { error } = await supabase
         .from("profiles")
-        .update({
-          full_name: fullName.trim(),
-          gc_name: gcName.trim() || null,
-          company_name: companyName.trim(),
-          onboarding_completed: true,
-        })
+        .update(updateData)
         .eq("id", user.id)
 
       if (error) throw error
 
-      toast.success("Profile setup complete!")
+      // Clear promo code from session storage
+      sessionStorage.removeItem("bidlevel_promo_code")
+
+      // Track analytics events
+      setUserId(user.id)
+      trackSignUp({ method: 'magic_link', promo_code: promoCode || undefined })
+      trackOnboardingCompleted(promoCode || undefined)
+
+      if (promoCode === "HANDSHAKE") {
+        toast.success("Welcome! You have 30 days of free unlimited access.")
+      } else {
+        toast.success("Profile setup complete!")
+      }
+
       router.push("/dashboard")
       router.refresh()
     } catch (error) {
@@ -62,12 +95,37 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="flex min-h-[80vh] items-center justify-center">
+    <div className="flex min-h-[80vh] items-center justify-center px-4">
       <Card className="w-full max-w-md">
+        {promoCode === "HANDSHAKE" && (
+          <div className="border-b bg-green-50 dark:bg-green-900/20 px-6 py-4">
+            <div className="flex items-center justify-center gap-2 text-green-700 dark:text-green-300 mb-3">
+              <Gift className="h-5 w-5" />
+              <span className="font-semibold">Partner Access Activated</span>
+            </div>
+            <div className="space-y-2 text-sm text-green-600 dark:text-green-400">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 shrink-0" />
+                <span>30 days unlimited access—we cover all costs</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Key className="h-4 w-4 shrink-0" />
+                <span>After 30 days, add your OpenAI key (~$1-3/comparison)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 shrink-0" />
+                <span>BidLevel is free forever—no subscription to us</span>
+              </div>
+            </div>
+          </div>
+        )}
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Welcome to BidLevel</CardTitle>
           <CardDescription>
-            Let&apos;s set up your account. This information will appear on your bid comparison reports.
+            {promoCode === "HANDSHAKE"
+              ? "Complete your profile to get started. Your info appears on bid comparison reports."
+              : "Let's set up your account. This information will appear on your bid comparison reports."
+            }
           </CardDescription>
         </CardHeader>
         <CardContent>

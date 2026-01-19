@@ -30,6 +30,9 @@ export interface Profile {
   training_data_opt_in: boolean
   training_data_opted_in_at: string | null
   training_data_contribution_count: number
+  // Promo code fields
+  promo_code: string | null
+  promo_applied_at: string | null
   created_at: string
   updated_at: string
 }

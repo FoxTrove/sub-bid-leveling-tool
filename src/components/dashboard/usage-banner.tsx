@@ -1,16 +1,18 @@
 "use client"
 
 import Link from "next/link"
-import { Coins, Sparkles, Gift, ArrowRight } from "lucide-react"
+import { Coins, Sparkles, Gift, ArrowRight, Key, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { FREE_COMPARISON_LIMIT } from "@/lib/utils/constants"
+import { FREE_COMPARISON_LIMIT, HANDSHAKE_FREE_PERIOD_DAYS } from "@/lib/utils/constants"
 
 interface UsageBannerProps {
   comparisonsUsed: number
   creditBalance: number
   hasApiKey: boolean
   isSubscriptionActive: boolean
+  promoCode?: string | null
+  promoAppliedAt?: string | null
 }
 
 export function UsageBanner({
@@ -18,8 +20,116 @@ export function UsageBanner({
   creditBalance,
   hasApiKey,
   isSubscriptionActive,
+  promoCode,
+  promoAppliedAt,
 }: UsageBannerProps) {
-  // Don't show for subscribers or BYOK users
+  // Calculate HANDSHAKE status
+  const isHandshakeUser = promoCode === "HANDSHAKE"
+  const handshakeStatus = (() => {
+    if (!isHandshakeUser || !promoAppliedAt) return null
+
+    const appliedAt = new Date(promoAppliedAt)
+    const freePeriodEndsAt = new Date(appliedAt)
+    freePeriodEndsAt.setDate(freePeriodEndsAt.getDate() + HANDSHAKE_FREE_PERIOD_DAYS)
+
+    const now = new Date()
+    const isFreePeriodActive = now < freePeriodEndsAt
+    const msRemaining = freePeriodEndsAt.getTime() - now.getTime()
+    const daysRemaining = Math.max(0, Math.ceil(msRemaining / (1000 * 60 * 60 * 24)))
+
+    return { freePeriodEndsAt, isFreePeriodActive, daysRemaining }
+  })()
+
+  // HANDSHAKE user banner
+  if (isHandshakeUser && handshakeStatus) {
+    // Within free period - show encouraging message
+    if (handshakeStatus.isFreePeriodActive) {
+      return (
+        <div className="mb-6 rounded-xl border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 dark:border-green-800 dark:from-green-900/20 dark:to-emerald-900/20 p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 dark:bg-green-800/50">
+                <Gift className="h-6 w-6 text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <p className="text-sm text-green-700 dark:text-green-400">HANDSHAKE Partner</p>
+                <p className="text-xl font-bold text-green-800 dark:text-green-300">
+                  {handshakeStatus.daysRemaining} day{handshakeStatus.daysRemaining !== 1 ? 's' : ''} of free access remaining
+                </p>
+                <p className="text-xs text-green-600 dark:text-green-500 mt-0.5">
+                  Unlimited comparisons • We provide the API key
+                </p>
+              </div>
+            </div>
+            <Link href="/settings">
+              <Button variant="outline" size="sm" className="border-green-300 text-green-700 hover:bg-green-100 dark:border-green-700 dark:text-green-300 dark:hover:bg-green-800/50">
+                <Key className="mr-2 h-4 w-4" />
+                Add Your API Key
+              </Button>
+            </Link>
+          </div>
+          <div className="mt-3 space-y-1">
+            <Progress
+              value={((HANDSHAKE_FREE_PERIOD_DAYS - handshakeStatus.daysRemaining) / HANDSHAKE_FREE_PERIOD_DAYS) * 100}
+              className="h-2 bg-green-200 dark:bg-green-800"
+            />
+            <p className="text-xs text-green-600 dark:text-green-500">
+              Add your OpenAI API key before your free period ends to continue using BidLevel for free
+            </p>
+          </div>
+        </div>
+      )
+    }
+
+    // Free period expired but has API key - show success
+    if (hasApiKey) {
+      return (
+        <div className="mb-6 rounded-xl border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 dark:border-green-800 dark:from-green-900/20 dark:to-emerald-900/20 p-4">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 dark:bg-green-800/50">
+              <Key className="h-6 w-6 text-green-600 dark:text-green-400" />
+            </div>
+            <div>
+              <p className="text-sm text-green-700 dark:text-green-400">HANDSHAKE Partner</p>
+              <p className="text-xl font-bold text-green-800 dark:text-green-300">
+                Unlimited access with your API key
+              </p>
+              <p className="text-xs text-green-600 dark:text-green-500 mt-0.5">
+                Using your OpenAI key • API costs billed by OpenAI
+              </p>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    // Free period expired without API key - urgent CTA
+    return (
+      <div className="mb-6 rounded-xl border-2 border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 dark:border-amber-700 dark:from-amber-900/20 dark:to-orange-900/20 p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-800/50">
+              <Clock className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-amber-800 dark:text-amber-300">Free period ended</p>
+              <p className="text-sm text-amber-700 dark:text-amber-400">
+                Add your OpenAI API key to continue using BidLevel
+              </p>
+            </div>
+          </div>
+          <Link href="/settings">
+            <Button className="bg-amber-600 hover:bg-amber-700 text-white">
+              <Key className="mr-2 h-4 w-4" />
+              Add API Key Now
+            </Button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  // Don't show for subscribers or BYOK users (non-HANDSHAKE)
   if (isSubscriptionActive || hasApiKey) {
     return null
   }

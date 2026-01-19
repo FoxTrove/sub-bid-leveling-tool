@@ -11,7 +11,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import type { PlanType, BillingCycle } from "@/types"
+import { canUseBYOK, getHandshakeStatus } from "@/lib/utils/subscription"
+import type { PlanType, BillingCycle, Profile } from "@/types"
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -31,6 +32,8 @@ export default async function SettingsPage() {
     .single()
 
   const hasApiKey = !!profile?.openai_api_key_encrypted
+  const showByokSection = profile ? canUseBYOK(profile as Profile) : false
+  const handshakeStatus = profile ? getHandshakeStatus(profile as Profile) : null
 
   return (
     <div className="max-w-2xl">
@@ -53,11 +56,20 @@ export default async function SettingsPage() {
             creditBalance={profile.credit_balance || 0}
             hasApiKey={hasApiKey}
             stripeCustomerId={profile.stripe_customer_id}
+            promoCode={profile.promo_code}
+            promoAppliedAt={profile.promo_applied_at}
           />
         )}
 
-        {/* API Key Form */}
-        <ApiKeyForm hasExistingKey={hasApiKey} />
+        {/* API Key Form - Only show to HANDSHAKE users or grandfathered BYOK users */}
+        {showByokSection && (
+          <ApiKeyForm
+            hasExistingKey={hasApiKey}
+            isHandshakeUser={handshakeStatus?.isHandshake || false}
+            handshakeDaysRemaining={handshakeStatus?.daysRemaining || 0}
+            handshakeFreePeriodExpired={!handshakeStatus?.isFreePeriodActive && handshakeStatus?.isHandshake}
+          />
+        )}
 
         {/* Account Info */}
         <Card>

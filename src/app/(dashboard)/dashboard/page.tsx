@@ -85,6 +85,8 @@ export default async function DashboardPage() {
           creditBalance={profile.credit_balance ?? 0}
           hasApiKey={!!profile.openai_api_key_encrypted}
           isSubscriptionActive={profile.subscription_status === 'active'}
+          promoCode={profile.promo_code}
+          promoAppliedAt={profile.promo_applied_at}
         />
       )}
 

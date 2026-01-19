@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { CreditCard, Loader2, Sparkles, Key, Coins, ArrowRight } from "lucide-react"
+import { CreditCard, Loader2, Sparkles, Key, Coins, ArrowRight, Gift, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -14,7 +14,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { toast } from "sonner"
-import { FREE_COMPARISON_LIMIT } from "@/lib/utils/constants"
+import { FREE_COMPARISON_LIMIT, HANDSHAKE_FREE_PERIOD_DAYS } from "@/lib/utils/constants"
 import { getPlanDisplayName, getPlanBadgeColor } from "@/lib/utils/subscription"
 import type { PlanType, BillingCycle } from "@/types"
 
@@ -27,6 +27,8 @@ interface BillingSectionProps {
   creditBalance: number
   hasApiKey: boolean
   stripeCustomerId: string | null
+  promoCode?: string | null
+  promoAppliedAt?: string | null
 }
 
 export function BillingSection({
@@ -38,8 +40,27 @@ export function BillingSection({
   creditBalance,
   hasApiKey,
   stripeCustomerId,
+  promoCode,
+  promoAppliedAt,
 }: BillingSectionProps) {
   const [isLoading, setIsLoading] = useState(false)
+
+  // Calculate HANDSHAKE status
+  const isHandshakeUser = promoCode === "HANDSHAKE"
+  const handshakeStatus = (() => {
+    if (!isHandshakeUser || !promoAppliedAt) return null
+
+    const appliedAt = new Date(promoAppliedAt)
+    const freePeriodEndsAt = new Date(appliedAt)
+    freePeriodEndsAt.setDate(freePeriodEndsAt.getDate() + HANDSHAKE_FREE_PERIOD_DAYS)
+
+    const now = new Date()
+    const isFreePeriodActive = now < freePeriodEndsAt
+    const msRemaining = freePeriodEndsAt.getTime() - now.getTime()
+    const daysRemaining = Math.max(0, Math.ceil(msRemaining / (1000 * 60 * 60 * 24)))
+
+    return { freePeriodEndsAt, isFreePeriodActive, daysRemaining }
+  })()
 
   const handleManageBilling = async () => {
     setIsLoading(true)
@@ -80,7 +101,12 @@ export function BillingSection({
             <CardTitle>Billing & Plan</CardTitle>
             <CardDescription>Manage your subscription and billing</CardDescription>
           </div>
-          {hasApiKey ? (
+          {isHandshakeUser ? (
+            <Badge className="gap-1 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+              <Gift className="h-3 w-3" />
+              HANDSHAKE
+            </Badge>
+          ) : hasApiKey ? (
             <Badge variant="outline" className="gap-1">
               <Key className="h-3 w-3" />
               BYOK Active
@@ -101,8 +127,69 @@ export function BillingSection({
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* HANDSHAKE Status - Priority display for HANDSHAKE users */}
+        {isHandshakeUser && handshakeStatus && (
+          <div className="rounded-xl border-2 border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20 p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 dark:bg-green-800/50">
+                <Gift className="h-5 w-5 text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <p className="font-semibold text-green-800 dark:text-green-300">
+                  HANDSHAKE Partner
+                </p>
+                <p className="text-sm text-green-700 dark:text-green-400">
+                  {handshakeStatus.isFreePeriodActive
+                    ? "Free unlimited access"
+                    : hasApiKey
+                      ? "Unlimited access with your API key"
+                      : "Add your API key to continue"
+                  }
+                </p>
+              </div>
+            </div>
+
+            {handshakeStatus.isFreePeriodActive ? (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-green-700 dark:text-green-400">Free period</span>
+                  <span className="font-medium text-green-800 dark:text-green-300">
+                    {handshakeStatus.daysRemaining} day{handshakeStatus.daysRemaining !== 1 ? 's' : ''} remaining
+                  </span>
+                </div>
+                <Progress
+                  value={((HANDSHAKE_FREE_PERIOD_DAYS - handshakeStatus.daysRemaining) / HANDSHAKE_FREE_PERIOD_DAYS) * 100}
+                  className="h-2 bg-green-200 dark:bg-green-800"
+                />
+                <p className="text-xs text-green-600 dark:text-green-500">
+                  After your free period, add your OpenAI API key to continue using BidLevel for free.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {hasApiKey ? (
+                  <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
+                    <Key className="h-4 w-4" />
+                    <span>Using your OpenAI API key for unlimited access</span>
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-700 dark:bg-amber-900/20 p-3">
+                    <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300">
+                      <Clock className="h-4 w-4" />
+                      <span className="text-sm font-medium">Action required</span>
+                    </div>
+                    <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">
+                      Your 30-day free period has ended. Add your OpenAI API key below to continue using BidLevel.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Credit Balance - Prominent for credit-based users */}
-        {!hasApiKey && !isPaidPlan && (
+        {!isHandshakeUser && !hasApiKey && !isPaidPlan && (
           <div className="rounded-xl border-2 border-accent/20 bg-accent/5 p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -132,7 +219,7 @@ export function BillingSection({
         )}
 
         {/* Usage Stats for Free Tier */}
-        {!hasApiKey && !isPaidPlan && creditBalance === 0 && (
+        {!isHandshakeUser && !hasApiKey && !isPaidPlan && creditBalance === 0 && (
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Free Comparisons</span>
@@ -184,8 +271,8 @@ export function BillingSection({
           </div>
         )}
 
-        {/* BYOK Status */}
-        {hasApiKey && (
+        {/* BYOK Status - Only show for non-HANDSHAKE legacy BYOK users */}
+        {!isHandshakeUser && hasApiKey && (
           <div className="space-y-2 rounded-lg bg-muted/50 p-3">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Access Type</span>
@@ -226,7 +313,7 @@ export function BillingSection({
               Manage Billing
             </Button>
           ) : (
-            !hasApiKey && (
+            !isHandshakeUser && !hasApiKey && (
               <div className="grid gap-2 sm:grid-cols-2">
                 <Link href="/pricing">
                   <Button variant="outline" className="w-full gap-2 border-accent/30 text-accent hover:bg-accent/10">
@@ -244,7 +331,8 @@ export function BillingSection({
             )
           )}
 
-          {hasApiKey && (
+          {/* Legacy BYOK warning - only for non-HANDSHAKE users */}
+          {!isHandshakeUser && hasApiKey && (
             <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-3">
               <p className="text-xs text-amber-800 dark:text-amber-200">
                 <strong>Note:</strong> BYOK (Bring Your Own Key) is a legacy feature.

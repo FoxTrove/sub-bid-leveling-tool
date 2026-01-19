@@ -87,3 +87,24 @@ export const CREDIT_PACKS = {
 } as const
 
 export type CreditPackKey = keyof typeof CREDIT_PACKS
+
+// Promo codes
+export const PROMO_CODES = {
+  HANDSHAKE: {
+    code: 'HANDSHAKE',
+    description: 'Free unlimited access with BYOK after 30 days',
+    freeApiKeyDays: 30, // First 30 days we provide the OpenAI key
+    requiresByokAfter: true, // After free period, user must provide their own key
+  },
+} as const
+
+export const HANDSHAKE_FREE_PERIOD_DAYS = 30
+
+// Invite tokens for protected signup links
+// Format: { token: promoCode } - token is in URL, promoCode is applied to account
+// Change these tokens if they leak. Add multiple tokens for different campaigns.
+export const INVITE_TOKENS: Record<string, keyof typeof PROMO_CODES> = {
+  'HANDSHAKE2026': 'HANDSHAKE',
+  'GC-PARTNER': 'HANDSHAKE',
+  // Add more tokens as needed for different campaigns
+} as const

@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Scale } from "lucide-react"
+import { Scale, Gift } from "lucide-react"
 import { LoginForm } from "@/components/auth/login-form"
 import {
   Card,
@@ -8,8 +8,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { PROMO_CODES } from "@/lib/utils/constants"
 
-export default function LoginPage() {
+interface LoginPageProps {
+  searchParams: Promise<{ code?: string; redirect?: string }>
+}
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const params = await searchParams
+  const promoCode = params.code?.toUpperCase()
+  const isValidPromo = promoCode && promoCode in PROMO_CODES
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-muted/30 p-4">
       <Link href="/" className="mb-8 flex items-center gap-2">
@@ -17,25 +27,37 @@ export default function LoginPage() {
         <span className="text-2xl font-bold">BidLevel</span>
       </Link>
 
+      {isValidPromo && (
+        <div className="mb-4 flex items-center gap-2 rounded-full bg-green-100 px-4 py-2 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+          <Gift className="h-4 w-4" />
+          <span className="text-sm font-medium">
+            Special offer code <Badge variant="secondary" className="ml-1">{promoCode}</Badge> applied!
+          </span>
+        </div>
+      )}
+
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Welcome to BidLevel</CardTitle>
           <CardDescription>
-            Sign in to start leveling your subcontractor bids
+            {isValidPromo
+              ? "Sign up to claim your free unlimited access"
+              : "Sign in to start leveling your subcontractor bids"
+            }
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <LoginForm />
+          <LoginForm promoCode={isValidPromo ? promoCode : undefined} />
         </CardContent>
       </Card>
 
       <p className="mt-8 text-center text-sm text-muted-foreground">
         By signing in, you agree to our{" "}
-        <Link href="/terms" className="underline hover:text-foreground">
+        <Link href="/terms-of-service" className="underline hover:text-foreground">
           Terms of Service
         </Link>{" "}
         and{" "}
-        <Link href="/privacy" className="underline hover:text-foreground">
+        <Link href="/privacy-policy" className="underline hover:text-foreground">
           Privacy Policy
         </Link>
       </p>

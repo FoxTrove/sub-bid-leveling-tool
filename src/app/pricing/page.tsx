@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Check, X, Zap, Users, Building2, ArrowRight, Coins, Scale, Sparkles, Calculator } from "lucide-react"
@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils"
 import { CREDIT_PACKS } from "@/lib/utils/constants"
 import { CreditPackCard } from "@/components/pricing/credit-pack-card"
 import { toast } from "sonner"
+import { trackPricingPageViewed } from "@/lib/analytics"
 
 const subscriptionPlans = [
   {
@@ -75,6 +76,11 @@ export default function PricingPage() {
   const router = useRouter()
   const [isAnnual, setIsAnnual] = useState(true)
   const [loadingPack, setLoadingPack] = useState<string | null>(null)
+
+  // Track pricing page view
+  useEffect(() => {
+    trackPricingPageViewed()
+  }, [])
 
   const handlePurchasePack = async (packKey: string) => {
     setLoadingPack(packKey)

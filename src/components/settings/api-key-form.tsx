@@ -15,12 +15,21 @@ import {
 } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { toast } from "sonner"
+import { trackApiKeyAdded, trackApiKeyRemoved } from "@/lib/analytics"
 
 interface ApiKeyFormProps {
   hasExistingKey: boolean
+  isHandshakeUser?: boolean
+  handshakeDaysRemaining?: number
+  handshakeFreePeriodExpired?: boolean
 }
 
-export function ApiKeyForm({ hasExistingKey }: ApiKeyFormProps) {
+export function ApiKeyForm({
+  hasExistingKey,
+  isHandshakeUser = false,
+  handshakeDaysRemaining = 0,
+  handshakeFreePeriodExpired = false,
+}: ApiKeyFormProps) {
   const router = useRouter()
   const [apiKey, setApiKey] = useState("")
   const [showKey, setShowKey] = useState(false)
@@ -80,6 +89,7 @@ export function ApiKeyForm({ hasExistingKey }: ApiKeyFormProps) {
         throw new Error("Failed to save API key")
       }
 
+      trackApiKeyAdded()
       toast.success("API key saved successfully")
       setApiKey("")
       router.refresh()
@@ -106,6 +116,7 @@ export function ApiKeyForm({ hasExistingKey }: ApiKeyFormProps) {
         throw new Error("Failed to remove API key")
       }
 
+      trackApiKeyRemoved()
       toast.success("API key removed")
       router.refresh()
     } catch {
@@ -115,17 +126,37 @@ export function ApiKeyForm({ hasExistingKey }: ApiKeyFormProps) {
     }
   }
 
+  // Generate description based on user type and status
+  const getDescription = () => {
+    if (isHandshakeUser) {
+      if (handshakeFreePeriodExpired) {
+        return hasExistingKey
+          ? "Your API key is active. You have unlimited access to BidLevel."
+          : "Your 30-day free period has ended. Add your OpenAI API key to continue using BidLevel for free."
+      }
+      return hasExistingKey
+        ? "You have an API key configured. You can update or remove it below."
+        : `You have ${handshakeDaysRemaining} day${handshakeDaysRemaining !== 1 ? 's' : ''} remaining in your free period. Add your OpenAI API key before it ends to continue using BidLevel for free.`
+    }
+    return hasExistingKey
+      ? "You have an API key configured. You can update or remove it below."
+      : "Add your own OpenAI API key to continue using BidLevel after your trial ends."
+  }
+
   return (
-    <Card>
+    <Card className={handshakeFreePeriodExpired && !hasExistingKey ? "border-amber-300 dark:border-amber-700" : ""}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Key className="h-5 w-5" />
           OpenAI API Key
+          {isHandshakeUser && (
+            <span className="ml-auto text-xs font-normal text-muted-foreground">
+              HANDSHAKE Benefit
+            </span>
+          )}
         </CardTitle>
         <CardDescription>
-          {hasExistingKey
-            ? "You have an API key configured. You can update or remove it below."
-            : "Add your own OpenAI API key to continue using BidLevel after your trial ends."}
+          {getDescription()}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -136,6 +167,22 @@ export function ApiKeyForm({ hasExistingKey }: ApiKeyFormProps) {
               API key configured and active
             </AlertDescription>
           </Alert>
+        )}
+
+        {/* Step-by-step guide for getting an API key */}
+        {!hasExistingKey && isHandshakeUser && (
+          <div className="rounded-lg border bg-muted/50 p-4 text-sm">
+            <p className="font-medium mb-2">How to get your OpenAI API key:</p>
+            <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+              <li>Go to <a href="https://platform.openai.com/signup" target="_blank" rel="noopener noreferrer" className="text-primary underline">platform.openai.com</a> and create an account</li>
+              <li>Add a payment method (you'll only pay for what you use)</li>
+              <li>Go to <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-primary underline">API Keys</a> and click "Create new secret key"</li>
+              <li>Copy the key and paste it below</li>
+            </ol>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Typical cost: $1-3 per bid comparison depending on document size
+            </p>
+          </div>
         )}
 
         <div className="space-y-2">
@@ -168,17 +215,19 @@ export function ApiKeyForm({ hasExistingKey }: ApiKeyFormProps) {
               )}
             </Button>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Get your API key from{" "}
-            <a
-              href="https://platform.openai.com/api-keys"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary underline"
-            >
-              OpenAI&apos;s dashboard
-            </a>
-          </p>
+          {!isHandshakeUser && (
+            <p className="text-sm text-muted-foreground">
+              Get your API key from{" "}
+              <a
+                href="https://platform.openai.com/api-keys"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline"
+              >
+                OpenAI&apos;s dashboard
+              </a>
+            </p>
+          )}
         </div>
 
         {isValid !== null && (

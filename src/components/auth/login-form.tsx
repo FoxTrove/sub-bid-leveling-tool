@@ -12,7 +12,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Loader2, Mail, CheckCircle2, Lock } from "lucide-react"
 import { toast } from "sonner"
 
-export function LoginForm() {
+interface LoginFormProps {
+  promoCode?: string
+}
+
+export function LoginForm({ promoCode }: LoginFormProps) {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -20,14 +24,19 @@ export function LoginForm() {
   const [isSent, setIsSent] = useState(false)
   const [activeTab, setActiveTab] = useState<"magic" | "password">("magic")
 
-  // Pre-fill email from landing page
+  // Pre-fill email from landing page and store promo code
   useEffect(() => {
     const savedEmail = sessionStorage.getItem("bidlevel_email")
     if (savedEmail) {
       setEmail(savedEmail)
       sessionStorage.removeItem("bidlevel_email")
     }
-  }, [])
+
+    // Store promo code for use during onboarding
+    if (promoCode) {
+      sessionStorage.setItem("bidlevel_promo_code", promoCode)
+    }
+  }, [promoCode])
 
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault()
