@@ -11,6 +11,7 @@ import { ProcessingState } from "@/components/compare/results/processing-state"
 import { ContractorDetailCards } from "@/components/compare/results/contractor-detail-cards"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { ReanalyzeButton } from "@/components/compare/results/reanalyze-button"
+import { ResultsTracker, TrackedExportLink } from "@/components/compare/results/results-tracker"
 
 export default async function ComparisonPage({
   params,
@@ -90,6 +91,13 @@ export default async function ComparisonPage({
 
   return (
     <div>
+      {/* Analytics Tracker */}
+      <ResultsTracker
+        comparisonId={projectId}
+        isComplete={isComplete}
+        completedAt={project.comparison_results?.created_at}
+      />
+
       {/* Header */}
       <div className="mb-8 flex items-start justify-between">
         <div>
@@ -122,18 +130,26 @@ export default async function ComparisonPage({
           )}
           {isComplete && (
             <>
-              <Link href={`/api/export/${projectId}`} target="_blank">
+              <TrackedExportLink
+                comparisonId={projectId}
+                format="pdf"
+                href={`/api/export/${projectId}`}
+              >
                 <Button>
                   <Download className="mr-2 h-4 w-4" />
                   Export PDF
                 </Button>
-              </Link>
-              <Link href={`/api/export/${projectId}/csv`} target="_blank">
+              </TrackedExportLink>
+              <TrackedExportLink
+                comparisonId={projectId}
+                format="csv"
+                href={`/api/export/${projectId}/csv`}
+              >
                 <Button variant="outline">
                   <Download className="mr-2 h-4 w-4" />
                   Export CSV
                 </Button>
-              </Link>
+              </TrackedExportLink>
             </>
           )}
         </div>

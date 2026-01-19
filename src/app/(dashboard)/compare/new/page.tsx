@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { ArrowLeft, ArrowRight, Loader2, FolderPlus } from "lucide-react"
@@ -28,6 +28,13 @@ import { toast } from "sonner"
 import { TRADE_TYPES, type ProjectFolder, type Profile } from "@/types"
 import { MIN_BIDS, MAX_BIDS } from "@/lib/utils/constants"
 import { getUsageStatus, type UsageStatus } from "@/lib/utils/subscription"
+import {
+  trackComparisonStarted,
+  trackComparisonStep,
+  trackProcessingStarted,
+  trackComparisonAbandoned,
+  trackSubmissionError,
+} from "@/lib/analytics"
 
 const STEPS = [
   { id: 1, name: "Project Details" },
@@ -65,6 +72,9 @@ export default function NewComparisonPage() {
   const [tradeType, setTradeType] = useState("")
   const [files, setFiles] = useState<UploadedFile[]>([])
   const [contractors, setContractors] = useState<ContractorInfo[]>([])
+
+  // Tracking refs
+  const hasTrackedStart = useRef(false)
 
   // Load folders and usage status on mount
   useEffect(() => {
@@ -105,6 +115,14 @@ export default function NewComparisonPage() {
     }
 
     loadData()
+
+    // Track comparison started
+    if (!hasTrackedStart.current) {
+      hasTrackedStart.current = true
+      trackComparisonStarted({
+        source: preselectedFolderId ? 'folder' : 'dashboard',
+      })
+    }
   }, [preselectedFolderId])
 
   // Create new folder inline
@@ -173,7 +191,11 @@ export default function NewComparisonPage() {
   }
 
   const handleNext = () => {
-    setCurrentStep((prev) => Math.min(prev + 1, STEPS.length))
+    const nextStep = Math.min(currentStep + 1, STEPS.length)
+    setCurrentStep(nextStep)
+
+    // Track step progression
+    trackComparisonStep(nextStep, STEPS[nextStep - 1].name, STEPS.length)
   }
 
   const handleBack = () => {
@@ -261,11 +283,24 @@ export default function NewComparisonPage() {
         method: "POST",
       }).catch(console.error)
 
+      // Track processing started
+      trackProcessingStarted({
+        comparison_id: project.id,
+        document_count: contractors.length,
+      })
+
       toast.success("Comparison created! Analysis is starting...")
       router.push(`/compare/${project.id}`)
     } catch (error) {
       console.error("Submit error:", error)
       toast.error("Failed to create comparison. Please try again.")
+
+      // Track submission error
+      trackSubmissionError({
+        form_name: 'comparison_wizard',
+        error_type: 'submit_failed',
+        error_message: error instanceof Error ? error.message : 'Unknown error',
+      })
     } finally {
       setIsSubmitting(false)
     }

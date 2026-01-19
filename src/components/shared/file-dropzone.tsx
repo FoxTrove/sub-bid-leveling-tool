@@ -7,6 +7,11 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { formatFileSize } from "@/lib/utils/format"
 import { ALLOWED_FILE_TYPES, MAX_FILE_SIZE, MAX_BIDS, MIN_BIDS } from "@/lib/utils/constants"
+import {
+  trackDocumentsUploaded,
+  trackDocumentRemoved,
+  trackUploadError,
+} from "@/lib/analytics"
 
 export interface UploadedFile {
   id: string
@@ -50,8 +55,21 @@ export function FileDropzone({
 
       // Check for rejected files
       if (rejectedFiles.length > 0) {
-        const errors = rejectedFiles[0].errors.map((e) => e.message).join(", ")
+        const rejection = rejectedFiles[0]
+        const errors = rejection.errors.map((e) => e.message).join(", ")
         setDragError(errors)
+
+        // Track upload error
+        const errorType = rejection.errors[0]?.code === 'file-too-large'
+          ? 'size_exceeded'
+          : rejection.errors[0]?.code === 'file-invalid-type'
+            ? 'invalid_type'
+            : 'upload_failed'
+        trackUploadError({
+          file_type: rejection.file.type || 'unknown',
+          error_type: errorType,
+          file_size_mb: Math.round(rejection.file.size / 1024 / 1024 * 100) / 100,
+        })
         return
       }
 
@@ -59,6 +77,10 @@ export function FileDropzone({
       const totalFiles = files.length + acceptedFiles.length
       if (totalFiles > maxFiles) {
         setDragError(`Maximum ${maxFiles} files allowed`)
+        trackUploadError({
+          file_type: 'multiple',
+          error_type: 'max_files_exceeded',
+        })
         return
       }
 
@@ -71,6 +93,18 @@ export function FileDropzone({
       }))
 
       onFilesChange([...files, ...newFiles])
+
+      // Track documents uploaded
+      const documentTypes = acceptedFiles.map(f => {
+        const ext = f.name.split('.').pop()?.toLowerCase() || 'unknown'
+        return ext
+      })
+      const totalSizeMb = acceptedFiles.reduce((sum, f) => sum + f.size, 0) / 1024 / 1024
+      trackDocumentsUploaded({
+        document_count: acceptedFiles.length,
+        document_types: documentTypes,
+        total_size_mb: Math.round(totalSizeMb * 100) / 100,
+      })
     },
     [files, onFilesChange, maxFiles]
   )
@@ -84,6 +118,11 @@ export function FileDropzone({
   })
 
   const removeFile = (id: string) => {
+    const fileToRemove = files.find((f) => f.id === id)
+    if (fileToRemove) {
+      const ext = fileToRemove.file.name.split('.').pop()?.toLowerCase() || 'unknown'
+      trackDocumentRemoved(ext)
+    }
     onFilesChange(files.filter((f) => f.id !== id))
   }
 
