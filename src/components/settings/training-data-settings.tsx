@@ -77,7 +77,7 @@ export function TrainingDataSettings({
         <CardHeader>
           <div className="flex items-center gap-2">
             <Heart className="h-5 w-5 text-primary" />
-            <CardTitle>Help Improve BidLevel</CardTitle>
+            <CardTitle>Help Improve BidVet</CardTitle>
           </div>
           <CardDescription>
             Optionally contribute anonymized corrections to help improve our AI accuracy
@@ -116,7 +116,7 @@ export function TrainingDataSettings({
                   <span className="text-sm">
                     You&apos;ve contributed{" "}
                     <span className="font-medium">{contributionCount}</span>{" "}
-                    {contributionCount === 1 ? "correction" : "corrections"} to improve BidLevel
+                    {contributionCount === 1 ? "correction" : "corrections"} to improve BidVet
                   </span>
                 </div>
               )}
@@ -129,7 +129,7 @@ export function TrainingDataSettings({
       <Dialog open={showConsentDialog} onOpenChange={setShowConsentDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Help Improve BidLevel AI</DialogTitle>
+            <DialogTitle>Help Improve BidVet AI</DialogTitle>
             <DialogDescription>
               By opting in, you agree to share anonymized corrections to help improve our extraction accuracy.
             </DialogDescription>

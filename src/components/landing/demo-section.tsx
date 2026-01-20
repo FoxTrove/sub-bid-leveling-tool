@@ -127,7 +127,7 @@ export function DemoSection() {
                   <div className="h-3 w-3 rounded-full bg-yellow-500" />
                   <div className="h-3 w-3 rounded-full bg-green-500" />
                 </div>
-                <span className="ml-4 text-sm text-slate-400">app.bidlevel.com</span>
+                <span className="ml-4 text-sm text-slate-400">app.bidvet.com</span>
               </div>
               <Button
                 variant="ghost"

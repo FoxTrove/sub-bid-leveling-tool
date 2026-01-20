@@ -14,7 +14,7 @@ export default function ResetPasswordPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-muted/30 p-4">
       <Link href="/" className="mb-8 flex items-center gap-2">
         <Scale className="h-8 w-8 text-primary" />
-        <span className="text-2xl font-bold">BidLevel</span>
+        <span className="text-2xl font-bold">BidVet</span>
       </Link>
 
       <Card className="w-full max-w-md">

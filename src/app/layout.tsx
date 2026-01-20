@@ -11,7 +11,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "BidLevel - Sub Bid Leveling Tool for Construction GCs",
+  title: "BidVet - Sub Bid Leveling Tool for Construction GCs",
   description:
     "Compare subcontractor bids apples-to-apples with AI. Identify scope gaps, exclusions, and get recommendations in minutes instead of hours.",
   keywords: [
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     "construction management",
   ],
   openGraph: {
-    title: "BidLevel - Sub Bid Leveling Tool",
+    title: "BidVet - Sub Bid Leveling Tool",
     description:
       "Compare subcontractor bids apples-to-apples with AI. Identify scope gaps, exclusions, and get recommendations in minutes.",
     type: "website",

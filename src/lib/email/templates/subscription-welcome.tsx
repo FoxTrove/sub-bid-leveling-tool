@@ -13,7 +13,7 @@ import {
   Text,
 } from '@react-email/components'
 
-const LOGO_URL = 'https://bidlevel.foxtrove.ai/bidlevel-logo.png'
+const LOGO_URL = 'https://bidvet.foxtrove.ai/bidvet-logo.png'
 
 interface SubscriptionWelcomeEmailProps {
   firstName: string
@@ -30,7 +30,7 @@ export function SubscriptionWelcomeEmail({
   amount,
   nextBillingDate,
 }: SubscriptionWelcomeEmailProps) {
-  const previewText = `Welcome to BidLevel ${planName} - You're all set!`
+  const previewText = `Welcome to BidVet ${planName} - You're all set!`
 
   return (
     <Html>
@@ -39,21 +39,21 @@ export function SubscriptionWelcomeEmail({
       <Body style={main}>
         <Container style={container}>
           <Section style={logoSection}>
-            <Img src={LOGO_URL} width="160" height="45" alt="BidLevel" style={logo} />
+            <Img src={LOGO_URL} width="160" height="45" alt="BidVet" style={logo} />
           </Section>
 
           <Section style={successBadge}>
             <Text style={checkmark}>&#10003;</Text>
           </Section>
 
-          <Heading style={h1}>Welcome to BidLevel {planName}!</Heading>
+          <Heading style={h1}>Welcome to BidVet {planName}!</Heading>
 
           <Text style={text}>
             Hi {firstName || 'there'},
           </Text>
 
           <Text style={text}>
-            Thanks for subscribing! Your {planName} plan is now active and you have unlimited access to BidLevel.
+            Thanks for subscribing! Your {planName} plan is now active and you have unlimited access to BidVet.
           </Text>
 
           <Section style={highlightBox}>
@@ -78,14 +78,14 @@ export function SubscriptionWelcomeEmail({
           </Section>
 
           <Section style={buttonContainer}>
-            <Button style={button} href="https://bidlevel.foxtrove.ai/dashboard">
+            <Button style={button} href="https://bidvet.foxtrove.ai/dashboard">
               Go to Dashboard
             </Button>
           </Section>
 
           <Text style={text}>
             You can manage your subscription anytime from the{' '}
-            <Link href="https://bidlevel.foxtrove.ai/settings" style={link}>
+            <Link href="https://bidvet.foxtrove.ai/settings" style={link}>
               Settings page
             </Link>.
           </Text>
@@ -97,7 +97,7 @@ export function SubscriptionWelcomeEmail({
           </Text>
 
           <Text style={footer}>
-            BidLevel by Foxtrove
+            BidVet by Foxtrove
           </Text>
         </Container>
       </Body>

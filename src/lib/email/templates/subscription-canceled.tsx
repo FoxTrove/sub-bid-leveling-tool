@@ -13,7 +13,7 @@ import {
   Text,
 } from '@react-email/components'
 
-const LOGO_URL = 'https://bidlevel.foxtrove.ai/bidlevel-logo.png'
+const LOGO_URL = 'https://bidvet.foxtrove.ai/bidvet-logo.png'
 
 interface SubscriptionCanceledEmailProps {
   firstName: string
@@ -26,7 +26,7 @@ export function SubscriptionCanceledEmail({
   planName,
   accessEndsDate,
 }: SubscriptionCanceledEmailProps) {
-  const previewText = `Your BidLevel ${planName} subscription has been canceled`
+  const previewText = `Your BidVet ${planName} subscription has been canceled`
 
   return (
     <Html>
@@ -35,7 +35,7 @@ export function SubscriptionCanceledEmail({
       <Body style={main}>
         <Container style={container}>
           <Section style={logoSection}>
-            <Img src={LOGO_URL} width="160" height="45" alt="BidLevel" style={logo} />
+            <Img src={LOGO_URL} width="160" height="45" alt="BidVet" style={logo} />
           </Section>
 
           <Heading style={h1}>Subscription Canceled</Heading>
@@ -45,7 +45,7 @@ export function SubscriptionCanceledEmail({
           </Text>
 
           <Text style={text}>
-            Your BidLevel {planName} subscription has been canceled. We're sorry to see you go.
+            Your BidVet {planName} subscription has been canceled. We're sorry to see you go.
           </Text>
 
           <Section style={infoBox}>
@@ -62,7 +62,7 @@ export function SubscriptionCanceledEmail({
           </Section>
 
           <Section style={optionsBox}>
-            <Text style={optionsTitle}>Ways to continue using BidLevel:</Text>
+            <Text style={optionsTitle}>Ways to continue using BidVet:</Text>
             <Text style={optionItem}>
               <strong>Buy credits</strong> — Pay only when you need a comparison (~$7/comparison)
             </Text>
@@ -75,7 +75,7 @@ export function SubscriptionCanceledEmail({
           </Section>
 
           <Section style={buttonContainer}>
-            <Button style={button} href="https://bidlevel.foxtrove.ai/pricing">
+            <Button style={button} href="https://bidvet.foxtrove.ai/pricing">
               View Options
             </Button>
           </Section>
@@ -88,14 +88,14 @@ export function SubscriptionCanceledEmail({
 
           <Text style={subtext}>
             Changed your mind?{' '}
-            <Link href="https://bidlevel.foxtrove.ai/settings" style={link}>
+            <Link href="https://bidvet.foxtrove.ai/settings" style={link}>
               Resubscribe anytime
             </Link>{' '}
             from your settings.
           </Text>
 
           <Text style={footer}>
-            BidLevel by Foxtrove
+            BidVet by Foxtrove
           </Text>
         </Container>
       </Body>

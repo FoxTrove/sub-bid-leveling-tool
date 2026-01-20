@@ -54,7 +54,7 @@ export function GoogleAnalytics() {
               cookie_flags: 'SameSite=None;Secure',
               // Link domains for cross-subdomain tracking
               linker: {
-                domains: ['foxtrove.ai', 'bidlevel.foxtrove.ai']
+                domains: ['foxtrove.ai', 'bidvet.foxtrove.ai']
               }
             });
           `,

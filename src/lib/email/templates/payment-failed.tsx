@@ -13,7 +13,7 @@ import {
   Text,
 } from '@react-email/components'
 
-const LOGO_URL = 'https://bidlevel.foxtrove.ai/bidlevel-logo.png'
+const LOGO_URL = 'https://bidvet.foxtrove.ai/bidvet-logo.png'
 
 interface PaymentFailedEmailProps {
   firstName: string
@@ -28,7 +28,7 @@ export function PaymentFailedEmail({
   amount,
   nextRetryDate,
 }: PaymentFailedEmailProps) {
-  const previewText = `Action required: Your BidLevel payment couldn't be processed`
+  const previewText = `Action required: Your BidVet payment couldn't be processed`
 
   return (
     <Html>
@@ -37,7 +37,7 @@ export function PaymentFailedEmail({
       <Body style={main}>
         <Container style={container}>
           <Section style={logoSection}>
-            <Img src={LOGO_URL} width="160" height="45" alt="BidLevel" style={logo} />
+            <Img src={LOGO_URL} width="160" height="45" alt="BidVet" style={logo} />
           </Section>
 
           <Section style={warningBadge}>
@@ -51,7 +51,7 @@ export function PaymentFailedEmail({
           </Text>
 
           <Text style={text}>
-            We couldn't process your payment of ${amount} for your BidLevel {planName} subscription. This can happen if your card expired, was declined, or has insufficient funds.
+            We couldn't process your payment of ${amount} for your BidVet {planName} subscription. This can happen if your card expired, was declined, or has insufficient funds.
           </Text>
 
           <Section style={alertBox}>
@@ -67,7 +67,7 @@ export function PaymentFailedEmail({
           </Section>
 
           <Section style={buttonContainer}>
-            <Button style={button} href="https://bidlevel.foxtrove.ai/settings">
+            <Button style={button} href="https://bidvet.foxtrove.ai/settings">
               Update Payment Method
             </Button>
           </Section>
@@ -97,7 +97,7 @@ export function PaymentFailedEmail({
           </Text>
 
           <Text style={footer}>
-            BidLevel by Foxtrove
+            BidVet by Foxtrove
           </Text>
         </Container>
       </Body>

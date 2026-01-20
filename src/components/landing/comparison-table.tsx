@@ -6,61 +6,61 @@ import { cn } from "@/lib/utils"
 const features = [
   {
     name: "Time to compare 4 bids",
-    bidlevel: "~2 minutes",
+    bidvet: "~2 minutes",
     manual: "3-4 hours",
     intern: "1-2 hours",
   },
   {
     name: "Automatic scope extraction",
-    bidlevel: true,
+    bidvet: true,
     manual: false,
     intern: false,
   },
   {
     name: "Exclusion detection",
-    bidlevel: true,
+    bidvet: true,
     manual: "Maybe",
     intern: "Varies",
   },
   {
     name: "Scope gap analysis",
-    bidlevel: true,
+    bidvet: true,
     manual: false,
     intern: false,
   },
   {
     name: "AI recommendations",
-    bidlevel: true,
+    bidvet: true,
     manual: false,
     intern: false,
   },
   {
     name: "Consistent formatting",
-    bidlevel: true,
+    bidvet: true,
     manual: false,
     intern: "Varies",
   },
   {
     name: "PDF/Word/Excel support",
-    bidlevel: true,
+    bidvet: true,
     manual: true,
     intern: true,
   },
   {
     name: "Professional PDF export",
-    bidlevel: true,
+    bidvet: true,
     manual: false,
     intern: "Basic",
   },
   {
     name: "Learn your preferences",
-    bidlevel: "Coming soon",
+    bidvet: "Coming soon",
     manual: false,
     intern: "Over time",
   },
   {
     name: "Cost per comparison",
-    bidlevel: "~$6",
+    bidvet: "~$6",
     manual: "$150-300*",
     intern: "$30-60*",
     note: "*Based on labor cost",
@@ -121,10 +121,10 @@ export function ComparisonTable() {
             Compare Options
           </div>
           <h2 className="text-3xl font-bold tracking-tight md:text-4xl text-white">
-            BidLevel vs. The Alternatives
+            BidVet vs. The Alternatives
           </h2>
           <p className="mt-4 text-lg text-slate-400">
-            See how BidLevel stacks up against manual spreadsheets and hiring help
+            See how BidVet stacks up against manual spreadsheets and hiring help
           </p>
         </div>
 
@@ -139,7 +139,7 @@ export function ComparisonTable() {
                       <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center mb-2">
                         <Sparkles className="h-6 w-6 text-white" />
                       </div>
-                      <span className="font-bold text-blue-400">BidLevel</span>
+                      <span className="font-bold text-blue-400">BidVet</span>
                     </div>
                   </th>
                   <th className="p-4 text-center">
@@ -178,7 +178,7 @@ export function ComparisonTable() {
                       )}
                     </td>
                     <td className="p-4 bg-blue-500/5">
-                      <FeatureValue value={feature.bidlevel} />
+                      <FeatureValue value={feature.bidvet} />
                     </td>
                     <td className="p-4">
                       <FeatureValue value={feature.manual} />

@@ -16,7 +16,7 @@ export function Hero() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (email) {
-      sessionStorage.setItem("bidlevel_email", email)
+      sessionStorage.setItem("bidvet_email", email)
     }
     router.push("/login")
   }
@@ -56,8 +56,8 @@ export function Hero() {
             {/* Logo */}
             <div className="mb-6">
               <Image
-                src="/bidlevel-logo.png"
-                alt="BidLevel"
+                src="/bidvet-logo.png"
+                alt="BidVet"
                 width={200}
                 height={56}
                 className="h-12 w-auto mx-auto lg:mx-0"

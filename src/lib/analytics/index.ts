@@ -1,8 +1,8 @@
 /**
- * Google Analytics 4 tracking for BidLevel
+ * Google Analytics 4 tracking for BidVet
  *
  * Harmonized with Foxtrove unified analytics approach.
- * All events automatically include `product: 'bidlevel'`
+ * All events automatically include `product: 'bidvet'`
  *
  * Events tracked:
  * - Page views (automatic + custom)
@@ -25,7 +25,7 @@ declare global {
 }
 
 // Product identifier - used on all events for cross-product analytics
-const PRODUCT_ID = 'bidlevel'
+const PRODUCT_ID = 'bidvet'
 
 // ============================================
 // EVENT NAMES - Consistent naming convention

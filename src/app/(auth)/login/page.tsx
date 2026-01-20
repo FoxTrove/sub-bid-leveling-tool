@@ -24,7 +24,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     <div className="flex min-h-screen flex-col items-center justify-center bg-muted/30 p-4">
       <Link href="/" className="mb-8 flex items-center gap-2">
         <Scale className="h-8 w-8 text-primary" />
-        <span className="text-2xl font-bold">BidLevel</span>
+        <span className="text-2xl font-bold">BidVet</span>
       </Link>
 
       {isValidPromo && (
@@ -38,7 +38,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Welcome to BidLevel</CardTitle>
+          <CardTitle className="text-2xl">Welcome to BidVet</CardTitle>
           <CardDescription>
             {isValidPromo
               ? "Sign up to claim your free unlimited access"

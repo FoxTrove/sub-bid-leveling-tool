@@ -12,7 +12,7 @@ import { TeamInviteEmail } from './templates/team-invite'
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 const FROM_EMAIL = process.env.NOTIFICATION_EMAIL || 'hello@foxtrove.ai'
-const FROM_NAME = 'BidLevel'
+const FROM_NAME = 'BidVet'
 
 // Retry configuration
 const MAX_RETRIES = 3
@@ -85,7 +85,7 @@ export async function sendHandshakeWelcomeEmail(params: {
     resend.emails.send({
       from: `${FROM_NAME} <${FROM_EMAIL}>`,
       to: params.to,
-      subject: 'Welcome to BidLevel - Your 30 days of free access starts now',
+      subject: 'Welcome to BidVet - Your 30 days of free access starts now',
       react: HandshakeWelcomeEmail({ firstName: params.firstName }),
     })
   )
@@ -101,9 +101,9 @@ export async function sendHandshakeReminderEmail(params: {
   reminderType: 'day7' | 'day21' | 'day27'
 }): Promise<EmailResult> {
   const subjects = {
-    day7: "23 days left - How's BidLevel working for you?",
+    day7: "23 days left - How's BidVet working for you?",
     day21: '9 days until you need your OpenAI key',
-    day27: '3 days left - Add your API key to keep using BidLevel',
+    day27: '3 days left - Add your API key to keep using BidVet',
   }
 
   return sendWithRetry(() =>
@@ -149,7 +149,7 @@ export async function sendApiKeySuccessEmail(params: {
     resend.emails.send({
       from: `${FROM_NAME} <${FROM_EMAIL}>`,
       to: params.to,
-      subject: "You're all set - Unlimited BidLevel access unlocked",
+      subject: "You're all set - Unlimited BidVet access unlocked",
       react: ApiKeySuccessEmail({
         firstName: params.firstName,
         isHandshakeUser: params.isHandshakeUser,
@@ -173,7 +173,7 @@ export async function sendSubscriptionWelcomeEmail(params: {
     resend.emails.send({
       from: `${FROM_NAME} <${FROM_EMAIL}>`,
       to: params.to,
-      subject: `Welcome to BidLevel ${params.planName} - You're all set!`,
+      subject: `Welcome to BidVet ${params.planName} - You're all set!`,
       react: SubscriptionWelcomeEmail({
         firstName: params.firstName,
         planName: params.planName,
@@ -225,7 +225,7 @@ export async function sendSubscriptionCanceledEmail(params: {
     resend.emails.send({
       from: `${FROM_NAME} <${FROM_EMAIL}>`,
       to: params.to,
-      subject: `Your BidLevel ${params.planName} subscription has been canceled`,
+      subject: `Your BidVet ${params.planName} subscription has been canceled`,
       react: SubscriptionCanceledEmail({
         firstName: params.firstName,
         planName: params.planName,
@@ -249,7 +249,7 @@ export async function sendPaymentFailedEmail(params: {
     resend.emails.send({
       from: `${FROM_NAME} <${FROM_EMAIL}>`,
       to: params.to,
-      subject: `Action required: Your BidLevel payment couldn't be processed`,
+      subject: `Action required: Your BidVet payment couldn't be processed`,
       react: PaymentFailedEmail({
         firstName: params.firstName,
         planName: params.planName,
@@ -273,7 +273,7 @@ export async function sendTeamInviteEmail(
     resend.emails.send({
       from: `${FROM_NAME} <${FROM_EMAIL}>`,
       to,
-      subject: `You've been invited to join ${organizationName} on BidLevel`,
+      subject: `You've been invited to join ${organizationName} on BidVet`,
       react: TeamInviteEmail({
         organizationName,
         inviterName,

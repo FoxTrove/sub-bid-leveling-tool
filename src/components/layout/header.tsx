@@ -33,7 +33,7 @@ export function Header({ showAuth = true }: HeaderProps) {
             </div>
           </div>
           <div className="flex flex-col leading-none">
-            <span className="text-xl font-bold text-gradient">BidLevel</span>
+            <span className="text-xl font-bold text-gradient">BidVet</span>
             <span className="text-[10px] text-muted-foreground">by Foxtrove.ai</span>
           </div>
         </Link>

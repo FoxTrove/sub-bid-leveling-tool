@@ -65,7 +65,7 @@ export default function InviteAcceptPage() {
       if (!response.ok) {
         if (response.status === 401) {
           // User not logged in, redirect to login with return URL
-          sessionStorage.setItem("bidlevel_invite_token", token)
+          sessionStorage.setItem("bidvet_invite_token", token)
           router.push(`/login?redirect=/invite/${token}`)
           return
         }
@@ -157,7 +157,7 @@ export default function InviteAcceptPage() {
               </div>
             </div>
             <div className="flex flex-col leading-none">
-              <span className="text-xl font-bold text-gradient">BidLevel</span>
+              <span className="text-xl font-bold text-gradient">BidVet</span>
               <span className="text-[10px] text-muted-foreground">by Foxtrove.ai</span>
             </div>
           </Link>
@@ -173,7 +173,7 @@ export default function InviteAcceptPage() {
             </div>
             <CardTitle className="text-2xl">You're invited!</CardTitle>
             <CardDescription>
-              Join {invite?.organization.name} on BidLevel
+              Join {invite?.organization.name} on BidVet
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">

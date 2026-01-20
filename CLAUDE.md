@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-BidLevel is an AI-powered SaaS tool that helps construction general contractors compare subcontractor bids. It automates bid leveling by extracting scope items from documents (PDF, Excel, Word), normalizing data across bids, identifying scope gaps, and generating recommendations using GPT-4o.
+BidVet is an AI-powered SaaS tool that helps construction general contractors compare subcontractor bids. It automates bid leveling by extracting scope items from documents (PDF, Excel, Word), normalizing data across bids, identifying scope gaps, and generating recommendations using GPT-4o.
 
 ## Commands
 

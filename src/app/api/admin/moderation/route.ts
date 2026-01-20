@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 // Admin email whitelist - add admin emails here
 const ADMIN_EMAILS = [
   'kyle@foxtrove.ai',
-  'admin@bidlevel.com',
+  'admin@bidvet.com',
 ]
 
 async function isAdmin(supabase: Awaited<ReturnType<typeof createClient>>): Promise<boolean> {

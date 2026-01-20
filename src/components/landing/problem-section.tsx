@@ -79,7 +79,7 @@ export function ProblemSection() {
                   : "text-slate-400 hover:text-white"
               )}
             >
-              With BidLevel
+              With BidVet
             </button>
           </div>
         </div>

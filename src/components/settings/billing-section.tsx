@@ -162,7 +162,7 @@ export function BillingSection({
                   className="h-2 bg-green-200 dark:bg-green-800"
                 />
                 <p className="text-xs text-green-600 dark:text-green-500">
-                  After your free period, add your OpenAI API key to continue using BidLevel for free.
+                  After your free period, add your OpenAI API key to continue using BidVet for free.
                 </p>
               </div>
             ) : (
@@ -179,7 +179,7 @@ export function BillingSection({
                       <span className="text-sm font-medium">Action required</span>
                     </div>
                     <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">
-                      Your 30-day free period has ended. Add your OpenAI API key below to continue using BidLevel.
+                      Your 30-day free period has ended. Add your OpenAI API key below to continue using BidVet.
                     </p>
                   </div>
                 )}
@@ -292,7 +292,7 @@ export function BillingSection({
         {subscriptionStatus === "past_due" && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-3">
             <p className="text-sm text-amber-800 dark:text-amber-200">
-              Your payment is past due. Please update your payment method to continue using BidLevel.
+              Your payment is past due. Please update your payment method to continue using BidVet.
             </p>
           </div>
         )}

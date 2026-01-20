@@ -13,14 +13,14 @@ import {
   Text,
 } from '@react-email/components'
 
-const LOGO_URL = 'https://bidlevel.foxtrove.ai/bidlevel-logo.png'
+const LOGO_URL = 'https://bidvet.foxtrove.ai/bidvet-logo.png'
 
 interface HandshakeExpiredEmailProps {
   firstName: string
 }
 
 export function HandshakeExpiredEmail({ firstName }: HandshakeExpiredEmailProps) {
-  const previewText = 'Quick setup to keep your free BidLevel access'
+  const previewText = 'Quick setup to keep your free BidVet access'
 
   return (
     <Html>
@@ -29,7 +29,7 @@ export function HandshakeExpiredEmail({ firstName }: HandshakeExpiredEmailProps)
       <Body style={main}>
         <Container style={container}>
           <Section style={logoSection}>
-            <Img src={LOGO_URL} width="160" height="45" alt="BidLevel" style={logo} />
+            <Img src={LOGO_URL} width="160" height="45" alt="BidVet" style={logo} />
           </Section>
 
           <Section style={partnerBadge}>
@@ -43,13 +43,13 @@ export function HandshakeExpiredEmail({ firstName }: HandshakeExpiredEmailProps)
           </Text>
 
           <Text style={text}>
-            Your 30 days of fully-covered access are up—but your HANDSHAKE partner access isn't going anywhere. You just need to add your own OpenAI API key to keep using BidLevel.
+            Your 30 days of fully-covered access are up—but your HANDSHAKE partner access isn't going anywhere. You just need to add your own OpenAI API key to keep using BidVet.
           </Text>
 
           <Section style={infoBox}>
             <Text style={infoTitle}>Your partner deal (still active):</Text>
             <Text style={infoText}>
-              <strong>BidLevel is still free for you</strong> — No subscription fees, ever. Other GCs pay $99-299/month for this.
+              <strong>BidVet is still free for you</strong> — No subscription fees, ever. Other GCs pay $99-299/month for this.
             </Text>
             <Text style={infoText}>
               <strong>You just cover your own AI costs</strong> — Pay OpenAI directly, ~$1-3 per comparison. That's it.
@@ -60,7 +60,7 @@ export function HandshakeExpiredEmail({ firstName }: HandshakeExpiredEmailProps)
           </Section>
 
           <Section style={buttonContainer}>
-            <Button style={button} href="https://bidlevel.foxtrove.ai/settings">
+            <Button style={button} href="https://bidvet.foxtrove.ai/settings">
               Add Your API Key
             </Button>
           </Section>
@@ -70,7 +70,7 @@ export function HandshakeExpiredEmail({ firstName }: HandshakeExpiredEmailProps)
             <Text style={stepText}>1. Go to <Link href="https://platform.openai.com/signup" style={link}>platform.openai.com</Link></Text>
             <Text style={stepText}>2. Create an account and add a payment method</Text>
             <Text style={stepText}>3. Go to API Keys and create a new secret key</Text>
-            <Text style={stepText}>4. Copy and paste it in your BidLevel settings</Text>
+            <Text style={stepText}>4. Copy and paste it in your BidVet settings</Text>
           </Section>
 
           <Text style={text}>
@@ -80,7 +80,7 @@ export function HandshakeExpiredEmail({ firstName }: HandshakeExpiredEmailProps)
           <Hr style={hr} />
 
           <Text style={footer}>
-            BidLevel by Foxtrove
+            BidVet by Foxtrove
           </Text>
         </Container>
       </Body>

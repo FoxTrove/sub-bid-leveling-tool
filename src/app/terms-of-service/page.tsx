@@ -13,7 +13,7 @@ export default function TermsOfService() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">1. Acceptance of Terms</h2>
             <p>
-              By accessing and using BidLevel ("the Service"), you accept and agree to be bound by the terms and provision of this agreement. 
+              By accessing and using BidVet ("the Service"), you accept and agree to be bound by the terms and provision of this agreement. 
               In addition, when using these particular services, you shall be subject to any posted guidelines or rules applicable to such services.
             </p>
           </section>
@@ -21,7 +21,7 @@ export default function TermsOfService() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">2. Description of Service</h2>
             <p>
-              BidLevel provides an AI-powered tool for comparing and leveling subcontractor bids. 
+              BidVet provides an AI-powered tool for comparing and leveling subcontractor bids. 
               The Service analyzes uploaded documents to identify scope gaps and normalize pricing for comparison purposes.
             </p>
           </section>
@@ -42,7 +42,7 @@ export default function TermsOfService() {
                 You represent and warrant that you will verify all data, calculations, scope items, and exclusions independently before relying on them for any commercial purpose, including but not limited to submitting bids, signing contracts, or procuring materials.
               </li>
               <li>
-                BidLevel shall not be liable for any errors in estimation, missed scope items, incorrect pricing, or any financial losses resulting from the use of the Service.
+                BidVet shall not be liable for any errors in estimation, missed scope items, incorrect pricing, or any financial losses resulting from the use of the Service.
               </li>
             </ul>
           </section>
@@ -58,19 +58,19 @@ export default function TermsOfService() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">5. Intellectual Property</h2>
             <p>
-              The Service and its original content, features, and functionality are and will remain the exclusive property of BidLevel and its licensors. 
+              The Service and its original content, features, and functionality are and will remain the exclusive property of BidVet and its licensors. 
               The Service is protected by copyright, trademark, and other laws of both the United States and foreign countries.
             </p>
             <p className="mt-4">
               You retain all rights to the documents and data you upload to the Service ("User Content"). 
-              By uploading User Content, you grant BidLevel a license to use, reproduce, and process such content solely for the purpose of providing the Service to you.
+              By uploading User Content, you grant BidVet a license to use, reproduce, and process such content solely for the purpose of providing the Service to you.
             </p>
           </section>
 
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">6. Limitation of Liability</h2>
             <p>
-              In no event shall BidLevel, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages, 
+              In no event shall BidVet, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages, 
               including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from 
               (i) your access to or use of or inability to access or use the Service; 
               (ii) any conduct or content of any third party on the Service; 
@@ -97,7 +97,7 @@ export default function TermsOfService() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">9. Contact Us</h2>
             <p>
-              If you have any questions about these Terms, please contact us at: support@bidlevel.com
+              If you have any questions about these Terms, please contact us at: support@bidvet.com
             </p>
           </section>
         </div>

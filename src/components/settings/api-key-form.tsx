@@ -131,16 +131,16 @@ export function ApiKeyForm({
     if (isHandshakeUser) {
       if (handshakeFreePeriodExpired) {
         return hasExistingKey
-          ? "Your API key is active. You have unlimited access to BidLevel."
-          : "Your 30-day free period has ended. Add your OpenAI API key to continue using BidLevel for free."
+          ? "Your API key is active. You have unlimited access to BidVet."
+          : "Your 30-day free period has ended. Add your OpenAI API key to continue using BidVet for free."
       }
       return hasExistingKey
         ? "You have an API key configured. You can update or remove it below."
-        : `You have ${handshakeDaysRemaining} day${handshakeDaysRemaining !== 1 ? 's' : ''} remaining in your free period. Add your OpenAI API key before it ends to continue using BidLevel for free.`
+        : `You have ${handshakeDaysRemaining} day${handshakeDaysRemaining !== 1 ? 's' : ''} remaining in your free period. Add your OpenAI API key before it ends to continue using BidVet for free.`
     }
     return hasExistingKey
       ? "You have an API key configured. You can update or remove it below."
-      : "Add your own OpenAI API key to continue using BidLevel after your trial ends."
+      : "Add your own OpenAI API key to continue using BidVet after your trial ends."
   }
 
   return (

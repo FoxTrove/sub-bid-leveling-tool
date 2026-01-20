@@ -39,7 +39,7 @@ export default function PrivacyPolicy() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>
             <p>
-              BidLevel ("we," "us," or "our") respects your privacy and is committed to protecting your personal data and business-sensitive documents.
+              BidVet ("we," "us," or "our") respects your privacy and is committed to protecting your personal data and business-sensitive documents.
               This privacy policy will inform you as to how we look after your personal data when you visit our website
               and use our bid leveling services, and tell you about your privacy rights and how the law protects you.
             </p>
@@ -187,7 +187,7 @@ export default function PrivacyPolicy() {
               <li><strong>Technical Logs:</strong> Automatically deleted after 90 days.</li>
             </ul>
             <p className="mt-4">
-              You can request complete deletion of your account and all associated data at any time by contacting us at support@bidlevel.com.
+              You can request complete deletion of your account and all associated data at any time by contacting us at support@bidvet.com.
             </p>
           </section>
 
@@ -206,7 +206,7 @@ export default function PrivacyPolicy() {
               <li><strong>Right to Withdraw Consent:</strong> Withdraw consent where we rely on consent for processing.</li>
             </ul>
             <p className="mt-4">
-              To exercise any of these rights, please contact us at support@bidlevel.com. We will respond to your request within 30 days.
+              To exercise any of these rights, please contact us at support@bidvet.com. We will respond to your request within 30 days.
             </p>
           </section>
 
@@ -232,8 +232,8 @@ export default function PrivacyPolicy() {
               If you have any questions about this privacy policy, our privacy practices, or wish to exercise your data protection rights, please contact us at:
             </p>
             <div className="not-prose mt-4 p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-              <p className="font-semibold text-slate-900 dark:text-slate-100">BidLevel Support</p>
-              <p className="text-slate-600 dark:text-slate-400">Email: support@bidlevel.com</p>
+              <p className="font-semibold text-slate-900 dark:text-slate-100">BidVet Support</p>
+              <p className="text-slate-600 dark:text-slate-400">Email: support@bidvet.com</p>
               <p className="text-slate-600 dark:text-slate-400 mt-2">We aim to respond to all requests within 2 business days.</p>
             </div>
           </section>

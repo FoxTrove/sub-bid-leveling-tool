@@ -11,7 +11,7 @@ import {
 // Admin email whitelist
 const ADMIN_EMAILS = [
   'kyle@foxtrove.ai',
-  'admin@bidlevel.com',
+  'admin@bidvet.com',
 ]
 
 async function isAdmin(supabase: Awaited<ReturnType<typeof createClient>>): Promise<boolean> {

@@ -102,7 +102,7 @@ export function getUsageStatus(profile: Profile): UsageStatus {
       hasApiKey: false,
       isSubscriptionActive,
       accessType: "none",
-      reason: "Your 30-day free period has ended. Add your OpenAI API key to continue using BidLevel for free.",
+      reason: "Your 30-day free period has ended. Add your OpenAI API key to continue using BidVet for free.",
       isHandshakeUser: true,
       handshakeFreePeriodEndsAt: handshakeStatus.freePeriodEndsAt!,
       handshakeFreePeriodExpired: true,

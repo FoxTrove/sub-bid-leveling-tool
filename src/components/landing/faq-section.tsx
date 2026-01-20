@@ -12,7 +12,7 @@ const faqs = [
   {
     question: "What file types can I upload?",
     answer:
-      "BidLevel supports PDF files, Excel spreadsheets (.xlsx, .xls), Word documents (.docx, .doc), and CSV files. Most subcontractor bids come in these formats, and our AI is trained to extract data from all of them accurately.",
+      "BidVet supports PDF files, Excel spreadsheets (.xlsx, .xls), Word documents (.docx, .doc), and CSV files. Most subcontractor bids come in these formats, and our AI is trained to extract data from all of them accurately.",
   },
   {
     question: "How accurate is the AI analysis?",
@@ -32,7 +32,7 @@ const faqs = [
   {
     question: "Can I compare bids from different trades?",
     answer:
-      "Yes! BidLevel works with any trade—electrical, plumbing, HVAC, mechanical, concrete, you name it. The AI understands trade-specific terminology and scope items, ensuring accurate comparisons regardless of the specialty.",
+      "Yes! BidVet works with any trade—electrical, plumbing, HVAC, mechanical, concrete, you name it. The AI understands trade-specific terminology and scope items, ensuring accurate comparisons regardless of the specialty.",
   },
   {
     question: "What if a contractor's bid format is unusual?",
@@ -42,7 +42,7 @@ const faqs = [
   {
     question: "Do you offer a free trial?",
     answer:
-      "Yes! Every new account gets 5 free bid comparisons—no credit card required. This lets you experience the full power of BidLevel on real projects before committing to a subscription or credit pack.",
+      "Yes! Every new account gets 5 free bid comparisons—no credit card required. This lets you experience the full power of BidVet on real projects before committing to a subscription or credit pack.",
   },
   {
     question: "Can I export the comparison results?",
@@ -64,7 +64,7 @@ export function FAQSection() {
             Frequently Asked Questions
           </h2>
           <p className="mt-4 text-lg text-slate-600">
-            Everything you need to know about BidLevel
+            Everything you need to know about BidVet
           </p>
         </div>
 

@@ -13,7 +13,7 @@ import {
   Text,
 } from '@react-email/components'
 
-const LOGO_URL = 'https://bidlevel.foxtrove.ai/bidlevel-logo.png'
+const LOGO_URL = 'https://bidvet.foxtrove.ai/bidvet-logo.png'
 
 interface CreditPurchaseEmailProps {
   firstName: string
@@ -39,7 +39,7 @@ export function CreditPurchaseEmail({
       <Body style={main}>
         <Container style={container}>
           <Section style={logoSection}>
-            <Img src={LOGO_URL} width="160" height="45" alt="BidLevel" style={logo} />
+            <Img src={LOGO_URL} width="160" height="45" alt="BidVet" style={logo} />
           </Section>
 
           <Section style={successBadge}>
@@ -76,7 +76,7 @@ export function CreditPurchaseEmail({
           </Section>
 
           <Section style={buttonContainer}>
-            <Button style={button} href="https://bidlevel.foxtrove.ai/compare/new">
+            <Button style={button} href="https://bidvet.foxtrove.ai/compare/new">
               Start a Comparison
             </Button>
           </Section>
@@ -92,13 +92,13 @@ export function CreditPurchaseEmail({
 
           <Text style={subtext}>
             Need more credits?{' '}
-            <Link href="https://bidlevel.foxtrove.ai/pricing" style={link}>
+            <Link href="https://bidvet.foxtrove.ai/pricing" style={link}>
               View credit packs
             </Link>
           </Text>
 
           <Text style={footer}>
-            BidLevel by Foxtrove
+            BidVet by Foxtrove
           </Text>
         </Container>
       </Body>

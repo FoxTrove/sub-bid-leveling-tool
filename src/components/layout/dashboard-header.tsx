@@ -116,8 +116,8 @@ export function DashboardHeader({ userEmail, planInfo }: DashboardHeaderProps) {
       <div className="container flex h-16 items-center justify-between">
         <Link href="/dashboard" className="flex items-center group transition-opacity hover:opacity-80">
           <Image
-            src="/bidlevel-logo.png"
-            alt="BidLevel"
+            src="/bidvet-logo.png"
+            alt="BidVet"
             width={140}
             height={40}
             className="h-8 w-auto"

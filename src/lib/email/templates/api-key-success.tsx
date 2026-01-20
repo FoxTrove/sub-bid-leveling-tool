@@ -12,7 +12,7 @@ import {
   Text,
 } from '@react-email/components'
 
-const LOGO_URL = 'https://bidlevel.foxtrove.ai/bidlevel-logo.png'
+const LOGO_URL = 'https://bidvet.foxtrove.ai/bidvet-logo.png'
 
 interface ApiKeySuccessEmailProps {
   firstName: string
@@ -20,7 +20,7 @@ interface ApiKeySuccessEmailProps {
 }
 
 export function ApiKeySuccessEmail({ firstName, isHandshakeUser }: ApiKeySuccessEmailProps) {
-  const previewText = "You're all set - Your free BidLevel access is now permanent"
+  const previewText = "You're all set - Your free BidVet access is now permanent"
 
   return (
     <Html>
@@ -29,7 +29,7 @@ export function ApiKeySuccessEmail({ firstName, isHandshakeUser }: ApiKeySuccess
       <Body style={main}>
         <Container style={container}>
           <Section style={logoSection}>
-            <Img src={LOGO_URL} width="160" height="45" alt="BidLevel" style={logo} />
+            <Img src={LOGO_URL} width="160" height="45" alt="BidVet" style={logo} />
           </Section>
 
           {isHandshakeUser && (
@@ -49,7 +49,7 @@ export function ApiKeySuccessEmail({ firstName, isHandshakeUser }: ApiKeySuccess
           </Text>
 
           <Text style={text}>
-            Your OpenAI API key has been saved. You now have full, unlimited access to BidLevel—and it's yours to keep.
+            Your OpenAI API key has been saved. You now have full, unlimited access to BidVet—and it's yours to keep.
           </Text>
 
           <Section style={highlightBox}>
@@ -58,7 +58,7 @@ export function ApiKeySuccessEmail({ firstName, isHandshakeUser }: ApiKeySuccess
               <strong>Unlimited comparisons</strong> — Run as many bid analyses as you need, whenever you need them
             </Text>
             <Text style={highlightText}>
-              <strong>No subscription fees</strong> — BidLevel is free for you{isHandshakeUser ? '. Other GCs pay $99-299/month for tools like this' : ''}
+              <strong>No subscription fees</strong> — BidVet is free for you{isHandshakeUser ? '. Other GCs pay $99-299/month for tools like this' : ''}
             </Text>
             <Text style={highlightText}>
               <strong>You only pay OpenAI</strong> — ~$1-3 per comparison, paid directly to them. That's it.
@@ -66,7 +66,7 @@ export function ApiKeySuccessEmail({ firstName, isHandshakeUser }: ApiKeySuccess
           </Section>
 
           <Section style={buttonContainer}>
-            <Button style={button} href="https://bidlevel.foxtrove.ai/dashboard">
+            <Button style={button} href="https://bidvet.foxtrove.ai/dashboard">
               Go to Dashboard
             </Button>
           </Section>
@@ -80,18 +80,18 @@ export function ApiKeySuccessEmail({ firstName, isHandshakeUser }: ApiKeySuccess
               <strong>Set a spending limit:</strong> You can configure a monthly cap in OpenAI's billing settings
             </Text>
             <Text style={tipText}>
-              <strong>Update your key anytime:</strong> Go to Settings in BidLevel if you need to change your API key
+              <strong>Update your key anytime:</strong> Go to Settings in BidVet if you need to change your API key
             </Text>
           </Section>
 
           <Hr style={hr} />
 
           <Text style={subtext}>
-            Thanks for using BidLevel. If you have any feedback or questions, just reply to this email.
+            Thanks for using BidVet. If you have any feedback or questions, just reply to this email.
           </Text>
 
           <Text style={footer}>
-            BidLevel by Foxtrove
+            BidVet by Foxtrove
           </Text>
         </Container>
       </Body>

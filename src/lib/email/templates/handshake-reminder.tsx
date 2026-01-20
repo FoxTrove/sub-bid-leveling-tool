@@ -13,7 +13,7 @@ import {
   Text,
 } from '@react-email/components'
 
-const LOGO_URL = 'https://bidlevel.foxtrove.ai/bidlevel-logo.png'
+const LOGO_URL = 'https://bidvet.foxtrove.ai/bidvet-logo.png'
 
 interface HandshakeReminderEmailProps {
   firstName: string
@@ -35,7 +35,7 @@ export function HandshakeReminderEmail({
       <Body style={main}>
         <Container style={container}>
           <Section style={logoSection}>
-            <Img src={LOGO_URL} width="160" height="45" alt="BidLevel" style={logo} />
+            <Img src={LOGO_URL} width="160" height="45" alt="BidVet" style={logo} />
           </Section>
 
           <Heading style={h1}>{content.headline}</Heading>
@@ -55,7 +55,7 @@ export function HandshakeReminderEmail({
               <Section style={statsBox}>
                 <Text style={statsTitle}>Fully-covered access</Text>
                 <Text style={statsValue}>{daysRemaining} days left</Text>
-                <Text style={statsSubtext}>Then just bring your own API key—BidLevel stays free</Text>
+                <Text style={statsSubtext}>Then just bring your own API key—BidVet stays free</Text>
               </Section>
             </>
           )}
@@ -65,7 +65,7 @@ export function HandshakeReminderEmail({
               <Section style={warningBox}>
                 <Text style={warningTitle}>Here's the deal</Text>
                 <Text style={warningText}>
-                  Other GCs pay $99-299/month for tools like this. As a HANDSHAKE partner, <strong>BidLevel is free for you forever</strong>—you only cover your own OpenAI API costs (~$1-3 per comparison, paid directly to OpenAI).
+                  Other GCs pay $99-299/month for tools like this. As a HANDSHAKE partner, <strong>BidVet is free for you forever</strong>—you only cover your own OpenAI API costs (~$1-3 per comparison, paid directly to OpenAI).
                 </Text>
               </Section>
 
@@ -75,7 +75,7 @@ export function HandshakeReminderEmail({
               <Text style={listItem}>1. Go to platform.openai.com</Text>
               <Text style={listItem}>2. Create an account & add a payment method</Text>
               <Text style={listItem}>3. Generate an API key</Text>
-              <Text style={listItem}>4. Paste it in your BidLevel settings</Text>
+              <Text style={listItem}>4. Paste it in your BidVet settings</Text>
 
               <Text style={text}>
                 That's it. No subscription to us. No monthly fees. Just pay-as-you-go directly to OpenAI for what you use.
@@ -93,7 +93,7 @@ export function HandshakeReminderEmail({
               </Section>
 
               <Text style={text}>
-                <strong>Remember:</strong> BidLevel is free for you. No subscription, ever. You only pay OpenAI directly for the AI costs (~$1-3 per comparison). That's the partner deal.
+                <strong>Remember:</strong> BidVet is free for you. No subscription, ever. You only pay OpenAI directly for the AI costs (~$1-3 per comparison). That's the partner deal.
               </Text>
             </>
           )}
@@ -101,7 +101,7 @@ export function HandshakeReminderEmail({
           <Section style={buttonContainer}>
             <Button
               style={reminderType === 'day27' ? urgentButton : button}
-              href="https://bidlevel.foxtrove.ai/settings"
+              href="https://bidvet.foxtrove.ai/settings"
             >
               {reminderType === 'day7' ? 'View Dashboard' : 'Add Your API Key'}
             </Button>
@@ -123,7 +123,7 @@ export function HandshakeReminderEmail({
           <Hr style={hr} />
 
           <Text style={footer}>
-            BidLevel by Foxtrove
+            BidVet by Foxtrove
           </Text>
         </Container>
       </Body>
@@ -137,19 +137,19 @@ function getContent(reminderType: 'day7' | 'day21' | 'day27', daysRemaining: num
       return {
         preview: `${daysRemaining} days left of fully-covered access`,
         headline: `${daysRemaining} days of fully-covered access remaining`,
-        intro: `You've had a week to try BidLevel with all AI costs on us. Have you had a chance to run a comparison yet?`,
+        intro: `You've had a week to try BidVet with all AI costs on us. Have you had a chance to run a comparison yet?`,
       }
     case 'day21':
       return {
         preview: `Quick setup needed to keep your free partner access`,
         headline: `Action needed: ${daysRemaining} days to set up your API key`,
-        intro: `Your 30-day fully-covered period is ending soon. The good news? BidLevel stays completely free for you as a HANDSHAKE partner—you just need to bring your own OpenAI key.`,
+        intro: `Your 30-day fully-covered period is ending soon. The good news? BidVet stays completely free for you as a HANDSHAKE partner—you just need to bring your own OpenAI key.`,
       }
     case 'day27':
       return {
         preview: `${daysRemaining} days left - Keep your free partner access`,
         headline: `Don't lose your free partner access`,
-        intro: `Your fully-covered trial ends in ${daysRemaining} days. Take 2 minutes to add your OpenAI key and keep using BidLevel—still free, no subscription ever.`,
+        intro: `Your fully-covered trial ends in ${daysRemaining} days. Take 2 minutes to add your OpenAI key and keep using BidVet—still free, no subscription ever.`,
       }
   }
 }

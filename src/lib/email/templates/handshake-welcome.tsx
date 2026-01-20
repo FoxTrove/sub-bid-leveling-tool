@@ -13,14 +13,14 @@ import {
   Text,
 } from '@react-email/components'
 
-const LOGO_URL = 'https://bidlevel.foxtrove.ai/bidlevel-logo.png'
+const LOGO_URL = 'https://bidvet.foxtrove.ai/bidvet-logo.png'
 
 interface HandshakeWelcomeEmailProps {
   firstName: string
 }
 
 export function HandshakeWelcomeEmail({ firstName }: HandshakeWelcomeEmailProps) {
-  const previewText = 'Welcome to BidLevel - You have exclusive partner access'
+  const previewText = 'Welcome to BidVet - You have exclusive partner access'
 
   return (
     <Html>
@@ -29,14 +29,14 @@ export function HandshakeWelcomeEmail({ firstName }: HandshakeWelcomeEmailProps)
       <Body style={main}>
         <Container style={container}>
           <Section style={logoSection}>
-            <Img src={LOGO_URL} width="160" height="45" alt="BidLevel" style={logo} />
+            <Img src={LOGO_URL} width="160" height="45" alt="BidVet" style={logo} />
           </Section>
 
           <Section style={partnerBadge}>
             <Text style={badgeText}>HANDSHAKE PARTNER</Text>
           </Section>
 
-          <Heading style={h1}>Welcome to BidLevel!</Heading>
+          <Heading style={h1}>Welcome to BidVet!</Heading>
 
           <Text style={text}>
             Hi {firstName || 'there'},
@@ -52,7 +52,7 @@ export function HandshakeWelcomeEmail({ firstName }: HandshakeWelcomeEmailProps)
               <strong>First 30 days:</strong> Completely free. We cover all AI costs so you can try everything with zero risk.
             </Text>
             <Text style={highlightText}>
-              <strong>After 30 days:</strong> Still free to use BidLevel. You just bring your own OpenAI API key and pay OpenAI directly—typically $1-3 per comparison.
+              <strong>After 30 days:</strong> Still free to use BidVet. You just bring your own OpenAI API key and pay OpenAI directly—typically $1-3 per comparison.
             </Text>
             <Text style={highlightText}>
               <strong>Bottom line:</strong> No subscription. No monthly fees to us. Ever. You only pay for what you use, directly to OpenAI.
@@ -60,7 +60,7 @@ export function HandshakeWelcomeEmail({ firstName }: HandshakeWelcomeEmailProps)
           </Section>
 
           <Section style={buttonContainer}>
-            <Button style={button} href="https://bidlevel.foxtrove.ai/dashboard">
+            <Button style={button} href="https://bidvet.foxtrove.ai/dashboard">
               Start Your First Comparison
             </Button>
           </Section>
@@ -79,7 +79,7 @@ export function HandshakeWelcomeEmail({ firstName }: HandshakeWelcomeEmailProps)
           </Text>
 
           <Text style={footer}>
-            BidLevel by Foxtrove
+            BidVet by Foxtrove
           </Text>
         </Container>
       </Body>

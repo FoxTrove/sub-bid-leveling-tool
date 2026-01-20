@@ -16,7 +16,7 @@ export function Footer() {
                 <Scale className="h-4 w-4 text-primary-foreground" />
               </div>
               <div className="flex flex-col leading-none">
-                <span className="font-bold text-gradient">BidLevel</span>
+                <span className="font-bold text-gradient">BidVet</span>
                 <span className="text-[10px] text-muted-foreground">by Foxtrove.ai</span>
               </div>
             </Link>

@@ -5,7 +5,7 @@ import { AdminDashboard } from "@/components/admin/admin-dashboard"
 // Admin email whitelist
 const ADMIN_EMAILS = [
   'kyle@foxtrove.ai',
-  'admin@bidlevel.com',
+  'admin@bidvet.com',
 ]
 
 export default async function AdminPage() {

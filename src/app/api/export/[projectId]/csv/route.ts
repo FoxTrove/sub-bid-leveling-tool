@@ -55,7 +55,7 @@ export async function GET(
     const lines: string[] = []
 
     // Header info
-    lines.push(`"BidLevel Comparison Report"`)
+    lines.push(`"BidVet Comparison Report"`)
     lines.push(`"Project:","${escapeCSV(project.name)}"`)
     lines.push(`"Trade:","${escapeCSV(project.trade_type)}"`)
     if (project.location) {

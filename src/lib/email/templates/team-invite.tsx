@@ -25,13 +25,13 @@ export function TeamInviteEmail({
   return (
     <Html>
       <Head />
-      <Preview>You've been invited to join {organizationName} on BidLevel</Preview>
+      <Preview>You've been invited to join {organizationName} on BidVet</Preview>
       <Body style={main}>
         <Container style={container}>
           <Heading style={h1}>You're invited to join {organizationName}</Heading>
 
           <Text style={text}>
-            {inviterName} has invited you to join their team on BidLevel, the AI-powered
+            {inviterName} has invited you to join their team on BidVet, the AI-powered
             bid leveling tool for construction professionals.
           </Text>
 
@@ -69,7 +69,7 @@ export function TeamInviteEmail({
           <Hr style={hr} />
 
           <Text style={footer}>
-            BidLevel by Foxtrove.ai
+            BidVet by Foxtrove.ai
             <br />
             Compare subcontractor bids in minutes, not hours.
           </Text>

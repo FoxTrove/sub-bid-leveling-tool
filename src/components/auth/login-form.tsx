@@ -26,15 +26,15 @@ export function LoginForm({ promoCode }: LoginFormProps) {
 
   // Pre-fill email from landing page and store promo code
   useEffect(() => {
-    const savedEmail = sessionStorage.getItem("bidlevel_email")
+    const savedEmail = sessionStorage.getItem("bidvet_email")
     if (savedEmail) {
       setEmail(savedEmail)
-      sessionStorage.removeItem("bidlevel_email")
+      sessionStorage.removeItem("bidvet_email")
     }
 
     // Store promo code for use during onboarding
     if (promoCode) {
-      sessionStorage.setItem("bidlevel_promo_code", promoCode)
+      sessionStorage.setItem("bidvet_promo_code", promoCode)
     }
   }, [promoCode])
 

@@ -74,7 +74,7 @@ export function UsageBanner({
               className="h-2 bg-green-200 dark:bg-green-800"
             />
             <p className="text-xs text-green-600 dark:text-green-500">
-              Add your OpenAI API key before your free period ends to continue using BidLevel for free
+              Add your OpenAI API key before your free period ends to continue using BidVet for free
             </p>
           </div>
         </div>
@@ -114,7 +114,7 @@ export function UsageBanner({
             <div>
               <p className="text-sm font-medium text-amber-800 dark:text-amber-300">Free period ended</p>
               <p className="text-sm text-amber-700 dark:text-amber-400">
-                Add your OpenAI API key to continue using BidLevel
+                Add your OpenAI API key to continue using BidVet
               </p>
             </div>
           </div>

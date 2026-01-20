@@ -1,4 +1,4 @@
--- BidLevel Database Schema
+-- BidVet Database Schema
 -- Run this in Supabase SQL Editor
 
 -- Enable UUID extension

@@ -10,8 +10,8 @@ export function ROICalculator() {
   const [hourlyRate, setHourlyRate] = useState(75)
 
   // Calculations
-  const hoursWithBidLevel = 0.1 // ~6 minutes per comparison
-  const hoursSavedPerComparison = hoursPerComparison - hoursWithBidLevel
+  const hoursWithBidVet = 0.1 // ~6 minutes per comparison
+  const hoursSavedPerComparison = hoursPerComparison - hoursWithBidVet
   const totalHoursSavedPerMonth = hoursSavedPerComparison * comparisonsPerMonth
   const totalHoursSavedPerYear = totalHoursSavedPerMonth * 12
   const moneySavedPerMonth = totalHoursSavedPerMonth * hourlyRate
@@ -33,7 +33,7 @@ export function ROICalculator() {
             Calculate Your Time Savings
           </h2>
           <p className="mt-4 text-lg text-slate-600">
-            See how much time and money you could save with BidLevel
+            See how much time and money you could save with BidVet
           </p>
         </div>
 
@@ -187,13 +187,13 @@ export function ROICalculator() {
                   </div>
                   <div>
                     <div className="flex justify-between text-sm mb-1">
-                      <span className="text-slate-600">With BidLevel</span>
+                      <span className="text-slate-600">With BidVet</span>
                       <span className="font-medium text-emerald-600">~6 minutes</span>
                     </div>
                     <div className="h-3 rounded-full bg-emerald-100 overflow-hidden">
                       <div
                         className="h-full bg-emerald-500 rounded-full"
-                        style={{ width: `${(hoursWithBidLevel / hoursPerComparison) * 100}%` }}
+                        style={{ width: `${(hoursWithBidVet / hoursPerComparison) * 100}%` }}
                       />
                     </div>
                   </div>

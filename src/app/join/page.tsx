@@ -45,7 +45,7 @@ function InvalidInvitePage() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2">
             <Scale className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">BidLevel</span>
+            <span className="text-xl font-bold">BidVet</span>
           </Link>
         </div>
       </header>
@@ -64,7 +64,7 @@ function InvalidInvitePage() {
           <div className="space-y-3">
             <Link href="/">
               <Button variant="outline" className="w-full">
-                Visit BidLevel Home
+                Visit BidVet Home
               </Button>
             </Link>
             <p className="text-sm text-muted-foreground">
@@ -92,7 +92,7 @@ function JoinPageContent() {
   // Store the promo code when page loads with valid invite
   useEffect(() => {
     if (isValidInvite && promoCode) {
-      sessionStorage.setItem("bidlevel_promo_code", promoCode)
+      sessionStorage.setItem("bidvet_promo_code", promoCode)
       // Track invite link view
       trackInviteLinkViewed({
         invite_token: inviteToken || undefined,
@@ -119,7 +119,7 @@ function JoinPageContent() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2">
             <Scale className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">BidLevel</span>
+            <span className="text-xl font-bold">BidVet</span>
           </Link>
         </div>
       </header>
@@ -135,7 +135,7 @@ function JoinPageContent() {
 
           {/* Headline */}
           <h1 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl">
-            Use BidLevel{" "}
+            Use BidVet{" "}
             <span className="text-primary">Free Forever</span>
           </h1>
 
@@ -190,7 +190,7 @@ function JoinPageContent() {
                     <Shield className="h-5 w-5 text-green-600 dark:text-green-400" />
                   </div>
                   <div>
-                    <h3 className="font-semibold">BidLevel is Always Free</h3>
+                    <h3 className="font-semibold">BidVet is Always Free</h3>
                     <p className="text-sm text-muted-foreground">
                       No subscription to us. No monthly fees. The tool is free—you just cover AI costs.
                     </p>
@@ -257,11 +257,11 @@ function JoinPageContent() {
               <div className="text-left">
                 <FAQItem
                   question="Why is this free? What's the catch?"
-                  answer="No catch. We're building BidLevel for GCs and want real users to help us improve it. You get a free tool, we get feedback. After 30 days, you cover your own AI costs directly with OpenAI—we don't mark it up or take a cut."
+                  answer="No catch. We're building BidVet for GCs and want real users to help us improve it. You get a free tool, we get feedback. After 30 days, you cover your own AI costs directly with OpenAI—we don't mark it up or take a cut."
                 />
                 <FAQItem
                   question="What's an OpenAI API key and is it hard to set up?"
-                  answer="It's like a password that lets BidLevel use OpenAI's AI on your behalf. Getting one takes 2 minutes: create an OpenAI account, go to their API section, and generate a key. We'll walk you through it when the time comes."
+                  answer="It's like a password that lets BidVet use OpenAI's AI on your behalf. Getting one takes 2 minutes: create an OpenAI account, go to their API section, and generate a key. We'll walk you through it when the time comes."
                 />
                 <FAQItem
                   question="How much will OpenAI actually cost me?"

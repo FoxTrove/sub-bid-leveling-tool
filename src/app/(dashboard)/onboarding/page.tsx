@@ -22,7 +22,7 @@ export default function OnboardingPage() {
 
   // Check for promo code from session storage
   useEffect(() => {
-    const savedPromoCode = sessionStorage.getItem("bidlevel_promo_code")
+    const savedPromoCode = sessionStorage.getItem("bidvet_promo_code")
     if (savedPromoCode && savedPromoCode in PROMO_CODES) {
       setPromoCode(savedPromoCode)
     }
@@ -71,7 +71,7 @@ export default function OnboardingPage() {
       if (error) throw error
 
       // Clear promo code from session storage
-      sessionStorage.removeItem("bidlevel_promo_code")
+      sessionStorage.removeItem("bidvet_promo_code")
 
       // Send welcome email for HANDSHAKE users (fire and forget)
       if (promoCode === "HANDSHAKE") {
@@ -119,13 +119,13 @@ export default function OnboardingPage() {
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 shrink-0" />
-                <span>BidLevel is free forever—no subscription to us</span>
+                <span>BidVet is free forever—no subscription to us</span>
               </div>
             </div>
           </div>
         )}
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Welcome to BidLevel</CardTitle>
+          <CardTitle className="text-2xl">Welcome to BidVet</CardTitle>
           <CardDescription>
             {promoCode === "HANDSHAKE"
               ? "Complete your profile to get started. Your info appears on bid comparison reports."

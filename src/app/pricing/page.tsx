@@ -67,7 +67,7 @@ const subscriptionPlans = [
       { text: "Dedicated account manager", included: true },
     ],
     cta: "Contact Sales",
-    ctaLink: "mailto:sales@foxtrove.ai?subject=BidLevel Enterprise Inquiry",
+    ctaLink: "mailto:sales@foxtrove.ai?subject=BidVet Enterprise Inquiry",
     popular: false,
   },
 ]
@@ -95,7 +95,7 @@ export default function PricingPage() {
         const data = await response.json()
         if (response.status === 401) {
           // User not logged in, redirect to login first
-          sessionStorage.setItem("bidlevel_purchase_pack", packKey)
+          sessionStorage.setItem("bidvet_purchase_pack", packKey)
           router.push("/login")
           return
         }
@@ -124,7 +124,7 @@ export default function PricingPage() {
               </div>
             </div>
             <div className="flex flex-col leading-none">
-              <span className="text-xl font-bold text-gradient">BidLevel</span>
+              <span className="text-xl font-bold text-gradient">BidVet</span>
               <span className="text-[10px] text-muted-foreground">by Foxtrove.ai</span>
             </div>
           </Link>
