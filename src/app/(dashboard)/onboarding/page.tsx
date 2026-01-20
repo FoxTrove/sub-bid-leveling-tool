@@ -73,6 +73,11 @@ export default function OnboardingPage() {
       // Clear promo code from session storage
       sessionStorage.removeItem("bidlevel_promo_code")
 
+      // Send welcome email for HANDSHAKE users (fire and forget)
+      if (promoCode === "HANDSHAKE") {
+        fetch("/api/email/welcome", { method: "POST" }).catch(console.error)
+      }
+
       // Track analytics events
       setUserId(user.id)
       trackSignUp({ method: 'magic_link', promo_code: promoCode || undefined })

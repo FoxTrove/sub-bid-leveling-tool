@@ -53,6 +53,18 @@ export function Hero() {
 
           {/* Left column - Text content */}
           <div className="text-center lg:text-left">
+            {/* Logo */}
+            <div className="mb-6">
+              <Image
+                src="/bidlevel-logo.png"
+                alt="BidLevel"
+                width={200}
+                height={56}
+                className="h-12 w-auto mx-auto lg:mx-0"
+                priority
+              />
+            </div>
+
             {/* Pill badge */}
             <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-blue-500/10 border border-blue-500/20 px-4 py-1.5 text-sm font-medium text-blue-400">
               <span className="relative flex h-2 w-2">

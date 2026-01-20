@@ -33,6 +33,13 @@ export interface Profile {
   // Promo code fields
   promo_code: string | null
   promo_applied_at: string | null
+  // Email tracking fields
+  handshake_welcome_sent_at: string | null
+  handshake_reminder_day7_sent_at: string | null
+  handshake_reminder_day21_sent_at: string | null
+  handshake_reminder_day27_sent_at: string | null
+  handshake_expired_sent_at: string | null
+  api_key_success_sent_at: string | null
   created_at: string
   updated_at: string
 }

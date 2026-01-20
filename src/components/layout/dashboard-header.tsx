@@ -1,9 +1,10 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
-import { Scale, LogOut, Settings, Key, Sparkles, Coins, CreditCard } from "lucide-react"
+import { LogOut, Settings, Key, Sparkles, Coins, CreditCard } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -112,17 +113,15 @@ export function DashboardHeader({ userEmail, planInfo }: DashboardHeaderProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
-        <Link href="/dashboard" className="flex items-center gap-2.5 group">
-          <div className="relative">
-            <div className="absolute inset-0 bg-primary/20 rounded-lg blur-md group-hover:blur-lg transition-all" />
-            <div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/80">
-              <Scale className="h-5 w-5 text-primary-foreground" />
-            </div>
-          </div>
-          <div className="flex flex-col leading-none">
-            <span className="text-xl font-bold text-gradient">BidLevel</span>
-            <span className="text-[10px] text-muted-foreground">by Foxtrove.ai</span>
-          </div>
+        <Link href="/dashboard" className="flex items-center group">
+          <Image
+            src="/bidlevel-logo.png"
+            alt="BidLevel"
+            width={140}
+            height={40}
+            className="h-8 w-auto"
+            priority
+          />
         </Link>
 
         <div className="flex items-center gap-3">
