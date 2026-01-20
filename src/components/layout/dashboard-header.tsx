@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { LogOut, Settings, Key, Sparkles, Coins, CreditCard } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ThemeToggle } from "@/components/theme-toggle"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -142,6 +143,8 @@ export function DashboardHeader({ userEmail, planInfo }: DashboardHeaderProps) {
               </Button>
             </Link>
           )}
+
+          <ThemeToggle />
 
           <Link href="/compare/new">
             <Button className="shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-shadow">

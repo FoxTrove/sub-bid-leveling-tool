@@ -13,9 +13,13 @@ import { HANDSHAKE_FREE_PERIOD_DAYS } from '@/lib/utils/constants'
 const CRON_SECRET = process.env.CRON_SECRET
 
 export async function GET(request: NextRequest) {
-  // Verify authorization
+  // Verify authorization - CRON_SECRET is required
   const authHeader = request.headers.get('authorization')
-  if (CRON_SECRET && authHeader !== `Bearer ${CRON_SECRET}`) {
+  if (!CRON_SECRET) {
+    console.error('CRON_SECRET not configured')
+    return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+  }
+  if (authHeader !== `Bearer ${CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

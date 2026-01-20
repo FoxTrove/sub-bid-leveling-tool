@@ -2,6 +2,7 @@ import { createClient, createAdminClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { decrypt } from "@/lib/utils/encryption"
 import { getUsageStatus } from "@/lib/utils/subscription"
+import { rateLimiters } from "@/lib/utils/rate-limit"
 import type { Profile } from "@/types"
 
 export async function POST(
@@ -19,6 +20,21 @@ export async function POST(
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    // Rate limiting - 5 analyses per minute per user
+    const rateLimit = rateLimiters.analyze(user.id)
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: "Too many requests. Please wait before starting another analysis." },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000)),
+            'X-RateLimit-Remaining': '0',
+          }
+        }
+      )
     }
 
     const { data: project } = await supabase

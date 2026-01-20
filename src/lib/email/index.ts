@@ -13,10 +13,64 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 const FROM_EMAIL = process.env.NOTIFICATION_EMAIL || 'hello@foxtrove.ai'
 const FROM_NAME = 'BidLevel'
 
+// Retry configuration
+const MAX_RETRIES = 3
+const INITIAL_DELAY_MS = 1000 // 1 second
+
 export type EmailResult = {
   success: boolean
   error?: string
   id?: string
+  retries?: number
+}
+
+/**
+ * Sleep for a given number of milliseconds
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+/**
+ * Send email with retry logic and exponential backoff
+ */
+async function sendWithRetry(
+  sendFn: () => Promise<{ data: { id: string } | null; error: { message: string } | null }>
+): Promise<EmailResult> {
+  let lastError: string | undefined
+
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    try {
+      const { data, error } = await sendFn()
+
+      if (!error && data) {
+        return { success: true, id: data.id, retries: attempt }
+      }
+
+      lastError = error?.message || 'Unknown error'
+
+      // Don't retry on certain errors
+      if (error?.message?.includes('invalid') || error?.message?.includes('Invalid')) {
+        break
+      }
+
+      // Wait before retrying (exponential backoff)
+      if (attempt < MAX_RETRIES - 1) {
+        const delay = INITIAL_DELAY_MS * Math.pow(2, attempt)
+        console.log(`Email send failed, retrying in ${delay}ms (attempt ${attempt + 1}/${MAX_RETRIES})`)
+        await sleep(delay)
+      }
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : 'Unknown error'
+
+      if (attempt < MAX_RETRIES - 1) {
+        const delay = INITIAL_DELAY_MS * Math.pow(2, attempt)
+        await sleep(delay)
+      }
+    }
+  }
+
+  return { success: false, error: lastError }
 }
 
 /**
@@ -26,24 +80,14 @@ export async function sendHandshakeWelcomeEmail(params: {
   to: string
   firstName: string
 }): Promise<EmailResult> {
-  try {
-    const { data, error } = await resend.emails.send({
+  return sendWithRetry(() =>
+    resend.emails.send({
       from: `${FROM_NAME} <${FROM_EMAIL}>`,
       to: params.to,
       subject: 'Welcome to BidLevel - Your 30 days of free access starts now',
       react: HandshakeWelcomeEmail({ firstName: params.firstName }),
     })
-
-    if (error) {
-      console.error('Failed to send welcome email:', error)
-      return { success: false, error: error.message }
-    }
-
-    return { success: true, id: data?.id }
-  } catch (error) {
-    console.error('Error sending welcome email:', error)
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
-  }
+  )
 }
 
 /**
@@ -61,8 +105,8 @@ export async function sendHandshakeReminderEmail(params: {
     day27: '3 days left - Add your API key to keep using BidLevel',
   }
 
-  try {
-    const { data, error } = await resend.emails.send({
+  return sendWithRetry(() =>
+    resend.emails.send({
       from: `${FROM_NAME} <${FROM_EMAIL}>`,
       to: params.to,
       subject: subjects[params.reminderType],
@@ -72,17 +116,7 @@ export async function sendHandshakeReminderEmail(params: {
         reminderType: params.reminderType,
       }),
     })
-
-    if (error) {
-      console.error('Failed to send reminder email:', error)
-      return { success: false, error: error.message }
-    }
-
-    return { success: true, id: data?.id }
-  } catch (error) {
-    console.error('Error sending reminder email:', error)
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
-  }
+  )
 }
 
 /**
@@ -92,24 +126,14 @@ export async function sendHandshakeExpiredEmail(params: {
   to: string
   firstName: string
 }): Promise<EmailResult> {
-  try {
-    const { data, error } = await resend.emails.send({
+  return sendWithRetry(() =>
+    resend.emails.send({
       from: `${FROM_NAME} <${FROM_EMAIL}>`,
       to: params.to,
       subject: 'Your free period ended - Add your API key to continue',
       react: HandshakeExpiredEmail({ firstName: params.firstName }),
     })
-
-    if (error) {
-      console.error('Failed to send expired email:', error)
-      return { success: false, error: error.message }
-    }
-
-    return { success: true, id: data?.id }
-  } catch (error) {
-    console.error('Error sending expired email:', error)
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
-  }
+  )
 }
 
 /**
@@ -120,8 +144,8 @@ export async function sendApiKeySuccessEmail(params: {
   firstName: string
   isHandshakeUser: boolean
 }): Promise<EmailResult> {
-  try {
-    const { data, error } = await resend.emails.send({
+  return sendWithRetry(() =>
+    resend.emails.send({
       from: `${FROM_NAME} <${FROM_EMAIL}>`,
       to: params.to,
       subject: "You're all set - Unlimited BidLevel access unlocked",
@@ -130,17 +154,7 @@ export async function sendApiKeySuccessEmail(params: {
         isHandshakeUser: params.isHandshakeUser,
       }),
     })
-
-    if (error) {
-      console.error('Failed to send API key success email:', error)
-      return { success: false, error: error.message }
-    }
-
-    return { success: true, id: data?.id }
-  } catch (error) {
-    console.error('Error sending API key success email:', error)
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
-  }
+  )
 }
 
 /**
@@ -154,8 +168,8 @@ export async function sendSubscriptionWelcomeEmail(params: {
   amount: number
   nextBillingDate: string
 }): Promise<EmailResult> {
-  try {
-    const { data, error } = await resend.emails.send({
+  return sendWithRetry(() =>
+    resend.emails.send({
       from: `${FROM_NAME} <${FROM_EMAIL}>`,
       to: params.to,
       subject: `Welcome to BidLevel ${params.planName} - You're all set!`,
@@ -167,17 +181,7 @@ export async function sendSubscriptionWelcomeEmail(params: {
         nextBillingDate: params.nextBillingDate,
       }),
     })
-
-    if (error) {
-      console.error('Failed to send subscription welcome email:', error)
-      return { success: false, error: error.message }
-    }
-
-    return { success: true, id: data?.id }
-  } catch (error) {
-    console.error('Error sending subscription welcome email:', error)
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
-  }
+  )
 }
 
 /**
@@ -191,8 +195,8 @@ export async function sendCreditPurchaseEmail(params: {
   amountPaid: number
   newBalance: number
 }): Promise<EmailResult> {
-  try {
-    const { data, error } = await resend.emails.send({
+  return sendWithRetry(() =>
+    resend.emails.send({
       from: `${FROM_NAME} <${FROM_EMAIL}>`,
       to: params.to,
       subject: `Your ${params.packName} credit pack is ready - ${params.creditsAmount} comparisons added`,
@@ -204,17 +208,7 @@ export async function sendCreditPurchaseEmail(params: {
         newBalance: params.newBalance,
       }),
     })
-
-    if (error) {
-      console.error('Failed to send credit purchase email:', error)
-      return { success: false, error: error.message }
-    }
-
-    return { success: true, id: data?.id }
-  } catch (error) {
-    console.error('Error sending credit purchase email:', error)
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
-  }
+  )
 }
 
 /**
@@ -226,8 +220,8 @@ export async function sendSubscriptionCanceledEmail(params: {
   planName: string
   accessEndsDate: string
 }): Promise<EmailResult> {
-  try {
-    const { data, error } = await resend.emails.send({
+  return sendWithRetry(() =>
+    resend.emails.send({
       from: `${FROM_NAME} <${FROM_EMAIL}>`,
       to: params.to,
       subject: `Your BidLevel ${params.planName} subscription has been canceled`,
@@ -237,17 +231,7 @@ export async function sendSubscriptionCanceledEmail(params: {
         accessEndsDate: params.accessEndsDate,
       }),
     })
-
-    if (error) {
-      console.error('Failed to send subscription canceled email:', error)
-      return { success: false, error: error.message }
-    }
-
-    return { success: true, id: data?.id }
-  } catch (error) {
-    console.error('Error sending subscription canceled email:', error)
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
-  }
+  )
 }
 
 /**
@@ -260,8 +244,8 @@ export async function sendPaymentFailedEmail(params: {
   amount: number
   nextRetryDate?: string
 }): Promise<EmailResult> {
-  try {
-    const { data, error } = await resend.emails.send({
+  return sendWithRetry(() =>
+    resend.emails.send({
       from: `${FROM_NAME} <${FROM_EMAIL}>`,
       to: params.to,
       subject: `Action required: Your BidLevel payment couldn't be processed`,
@@ -272,15 +256,5 @@ export async function sendPaymentFailedEmail(params: {
         nextRetryDate: params.nextRetryDate,
       }),
     })
-
-    if (error) {
-      console.error('Failed to send payment failed email:', error)
-      return { success: false, error: error.message }
-    }
-
-    return { success: true, id: data?.id }
-  } catch (error) {
-    console.error('Error sending payment failed email:', error)
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
-  }
+  )
 }

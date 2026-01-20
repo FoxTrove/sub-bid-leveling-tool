@@ -28,6 +28,7 @@ export default async function DashboardPage() {
     .single()
 
   // Fetch folders with nested projects (including project_size)
+  // Limit to most recent 50 folders for performance
   const { data: folders } = await supabase
     .from("project_folders")
     .select(
@@ -54,6 +55,7 @@ export default async function DashboardPage() {
     )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
+    .limit(50)
 
   const typedFolders = (folders || []) as FolderWithProjects[]
   const hasFolders = typedFolders.length > 0

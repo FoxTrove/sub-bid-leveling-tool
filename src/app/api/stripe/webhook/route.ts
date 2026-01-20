@@ -35,6 +35,18 @@ export async function POST(request: Request) {
 
   const supabase = createAdminClient()
 
+  // Check for duplicate event (idempotency)
+  const { data: existingEvent } = await supabase
+    .from('webhook_events')
+    .select('id')
+    .eq('event_id', event.id)
+    .single()
+
+  if (existingEvent) {
+    console.log(`Duplicate webhook event ${event.id}, skipping`)
+    return NextResponse.json({ received: true, duplicate: true })
+  }
+
   try {
     switch (event.type) {
       case "checkout.session.completed": {
@@ -65,6 +77,14 @@ export async function POST(request: Request) {
       default:
         console.log(`Unhandled event type: ${event.type}`)
     }
+
+    // Store event ID to prevent duplicate processing
+    await supabase
+      .from('webhook_events')
+      .insert({
+        event_id: event.id,
+        event_type: event.type,
+      })
 
     return NextResponse.json({ received: true })
   } catch (error) {
