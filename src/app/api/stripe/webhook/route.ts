@@ -2,6 +2,12 @@ import { stripe } from "@/lib/stripe/client"
 import { createAdminClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import type Stripe from "stripe"
+import {
+  sendSubscriptionWelcomeEmail,
+  sendCreditPurchaseEmail,
+  sendSubscriptionCanceledEmail,
+  sendPaymentFailedEmail,
+} from "@/lib/email"
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
 
@@ -76,6 +82,7 @@ async function handleCheckoutCompleted(
     const userId = session.metadata.supabase_user_id
     const creditsAmount = parseInt(session.metadata.credits_amount || "0", 10)
     const packName = session.metadata.credit_pack
+    const amountPaid = session.amount_total ? session.amount_total / 100 : 0
 
     if (!userId || !creditsAmount) {
       console.error("Missing metadata for credit purchase:", session.metadata)
@@ -97,6 +104,25 @@ async function handleCheckoutCompleted(
     }
 
     console.log(`Added ${creditsAmount} credits for user ${userId}:`, data)
+
+    // Send credit purchase email
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("email, first_name, credits")
+      .eq("id", userId)
+      .single()
+
+    if (profile?.email) {
+      await sendCreditPurchaseEmail({
+        to: profile.email,
+        firstName: profile.first_name || "",
+        packName,
+        creditsAmount,
+        amountPaid,
+        newBalance: profile.credits || creditsAmount,
+      })
+      console.log(`Credit purchase email sent to ${profile.email}`)
+    }
     return
   }
 
@@ -104,13 +130,46 @@ async function handleCheckoutCompleted(
   if (session.subscription) {
     const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
     const userId = subscription.metadata.supabase_user_id
+    const plan = subscription.metadata.plan || "Pro"
 
     if (!userId) {
       console.error("No user ID in subscription metadata")
       return
     }
 
-    // Subscription details will be updated via subscription.updated webhook
+    // Get billing info
+    const priceId = subscription.items.data[0]?.price.id
+    const price = await stripe.prices.retrieve(priceId)
+    const billingCycle = price.recurring?.interval === "year" ? "annual" : "monthly"
+    const amount = price.unit_amount ? price.unit_amount / 100 : 0
+    const periodEnd = (subscription as unknown as { current_period_end: number }).current_period_end
+    const nextBillingDate = periodEnd
+      ? new Date(periodEnd * 1000).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })
+      : ""
+
+    // Send subscription welcome email
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("email, first_name")
+      .eq("id", userId)
+      .single()
+
+    if (profile?.email) {
+      await sendSubscriptionWelcomeEmail({
+        to: profile.email,
+        firstName: profile.first_name || "",
+        planName: plan.charAt(0).toUpperCase() + plan.slice(1),
+        billingCycle: billingCycle as "monthly" | "annual",
+        amount,
+        nextBillingDate,
+      })
+      console.log(`Subscription welcome email sent to ${profile.email}`)
+    }
+
     console.log(`Subscription checkout completed for user ${userId}`)
   }
 }
@@ -179,11 +238,33 @@ async function handleSubscriptionDeleted(
   subscription: Stripe.Subscription
 ) {
   const userId = subscription.metadata.supabase_user_id
+  const plan = subscription.metadata.plan || "Pro"
 
   if (!userId) {
     console.error("No user ID in subscription metadata")
     return
   }
+
+  // Get the period end before cancellation takes effect
+  const periodEnd = (subscription as unknown as { current_period_end: number }).current_period_end
+  const accessEndsDate = periodEnd
+    ? new Date(periodEnd * 1000).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+
+  // Get user profile before updating
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("email, first_name")
+    .eq("id", userId)
+    .single()
 
   const { error } = await supabase
     .from("profiles")
@@ -201,6 +282,17 @@ async function handleSubscriptionDeleted(
     throw error
   }
 
+  // Send subscription canceled email
+  if (profile?.email) {
+    await sendSubscriptionCanceledEmail({
+      to: profile.email,
+      firstName: profile.first_name || "",
+      planName: plan.charAt(0).toUpperCase() + plan.slice(1),
+      accessEndsDate,
+    })
+    console.log(`Subscription canceled email sent to ${profile.email}`)
+  }
+
   console.log(`Subscription canceled for user ${userId}`)
 }
 
@@ -209,11 +301,12 @@ async function handlePaymentFailed(
   invoice: Stripe.Invoice
 ) {
   const customerId = invoice.customer as string
+  const amount = invoice.amount_due ? invoice.amount_due / 100 : 0
 
   // Find user by Stripe customer ID
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id")
+    .select("id, email, first_name, plan")
     .eq("stripe_customer_id", customerId)
     .single()
 
@@ -226,6 +319,27 @@ async function handlePaymentFailed(
     .from("profiles")
     .update({ subscription_status: "past_due" })
     .eq("id", profile.id)
+
+  // Calculate next retry date (Stripe typically retries after 3-5 days)
+  const nextRetryDate = invoice.next_payment_attempt
+    ? new Date(invoice.next_payment_attempt * 1000).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : undefined
+
+  // Send payment failed email
+  if (profile.email) {
+    await sendPaymentFailedEmail({
+      to: profile.email,
+      firstName: profile.first_name || "",
+      planName: profile.plan ? profile.plan.charAt(0).toUpperCase() + profile.plan.slice(1) : "Pro",
+      amount,
+      nextRetryDate,
+    })
+    console.log(`Payment failed email sent to ${profile.email}`)
+  }
 
   console.log(`Payment failed for user ${profile.id}`)
 }

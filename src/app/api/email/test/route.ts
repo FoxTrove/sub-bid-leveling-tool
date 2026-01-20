@@ -4,6 +4,10 @@ import {
   sendHandshakeReminderEmail,
   sendHandshakeExpiredEmail,
   sendApiKeySuccessEmail,
+  sendSubscriptionWelcomeEmail,
+  sendCreditPurchaseEmail,
+  sendSubscriptionCanceledEmail,
+  sendPaymentFailedEmail,
 } from '@/lib/email'
 
 // Test endpoint - only enabled in development
@@ -23,7 +27,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (!type) {
-    return NextResponse.json({ error: 'Missing "type" parameter. Options: welcome, reminder-day7, reminder-day21, reminder-day27, expired, api-key-success' }, { status: 400 })
+    return NextResponse.json({ error: 'Missing "type" parameter. Options: welcome, reminder-day7, reminder-day21, reminder-day27, expired, api-key-success, subscription-welcome, credit-purchase, subscription-canceled, payment-failed' }, { status: 400 })
   }
 
   const firstName = 'Test User'
@@ -74,9 +78,50 @@ export async function POST(request: NextRequest) {
       })
       break
 
+    case 'subscription-welcome':
+      result = await sendSubscriptionWelcomeEmail({
+        to,
+        firstName,
+        planName: 'Pro',
+        billingCycle: 'monthly',
+        amount: 99,
+        nextBillingDate: 'February 20, 2026',
+      })
+      break
+
+    case 'credit-purchase':
+      result = await sendCreditPurchaseEmail({
+        to,
+        firstName,
+        packName: 'Starter',
+        creditsAmount: 10,
+        amountPaid: 69,
+        newBalance: 15,
+      })
+      break
+
+    case 'subscription-canceled':
+      result = await sendSubscriptionCanceledEmail({
+        to,
+        firstName,
+        planName: 'Pro',
+        accessEndsDate: 'February 20, 2026',
+      })
+      break
+
+    case 'payment-failed':
+      result = await sendPaymentFailedEmail({
+        to,
+        firstName,
+        planName: 'Pro',
+        amount: 99,
+        nextRetryDate: 'January 25, 2026',
+      })
+      break
+
     default:
       return NextResponse.json({
-        error: `Unknown type "${type}". Options: welcome, reminder-day7, reminder-day21, reminder-day27, expired, api-key-success`,
+        error: `Unknown type "${type}". Options: welcome, reminder-day7, reminder-day21, reminder-day27, expired, api-key-success, subscription-welcome, credit-purchase, subscription-canceled, payment-failed`,
       }, { status: 400 })
   }
 
