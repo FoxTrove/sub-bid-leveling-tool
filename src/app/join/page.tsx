@@ -304,8 +304,8 @@ function JoinPageContent() {
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
           <p>
             Questions? Contact us at{" "}
-            <a href="mailto:kyle@tryelderconstruction.com" className="text-primary hover:underline">
-              kyle@tryelderconstruction.com
+            <a href="mailto:support@foxtrove.ai" className="text-primary hover:underline">
+              support@foxtrove.ai
             </a>
           </p>
         </div>

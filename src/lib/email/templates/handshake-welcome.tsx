@@ -73,8 +73,8 @@ export function HandshakeWelcomeEmail({ firstName }: HandshakeWelcomeEmailProps)
 
           <Text style={subtext}>
             Questions? Just reply to this email or reach out to{' '}
-            <Link href="mailto:kyle@tryelderconstruction.com" style={link}>
-              kyle@tryelderconstruction.com
+            <Link href="mailto:support@foxtrove.ai" style={link}>
+              support@foxtrove.ai
             </Link>
           </Text>
 

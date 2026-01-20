@@ -90,7 +90,7 @@ export function PaymentFailedEmail({
 
           <Text style={subtext}>
             Having trouble?{' '}
-            <Link href="mailto:kyle@tryelderconstruction.com" style={link}>
+            <Link href="mailto:support@foxtrove.ai" style={link}>
               Contact support
             </Link>{' '}
             and we'll help you sort it out.
