@@ -11,7 +11,7 @@ import { TeamInviteEmail } from './templates/team-invite'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-const FROM_EMAIL = process.env.NOTIFICATION_EMAIL || 'support@foxtrove.ai'
+const FROM_EMAIL = process.env.NOTIFICATION_EMAIL || 'hello@foxtrove.ai'
 const FROM_NAME = 'BidVet'
 
 // Retry configuration
