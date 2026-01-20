@@ -4,6 +4,7 @@ import { ApiKeyForm } from "@/components/settings/api-key-form"
 import { PasswordSetupForm } from "@/components/settings/password-setup-form"
 import { BillingSection } from "@/components/settings/billing-section"
 import { TrainingDataSettings } from "@/components/settings/training-data-settings"
+import { TeamSettings } from "@/components/settings/team-settings"
 import {
   Card,
   CardContent,
@@ -12,7 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { canUseBYOK, getHandshakeStatus } from "@/lib/utils/subscription"
-import type { PlanType, BillingCycle, Profile } from "@/types"
+import type { PlanType, BillingCycle, Profile, OrganizationRole } from "@/types"
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -31,9 +32,33 @@ export default async function SettingsPage() {
     .eq("id", user.id)
     .single()
 
+  // Fetch organization and user's role if they're part of a team
+  let organization = null
+  let userRole: OrganizationRole | null = null
+
+  const { data: membership } = await supabase
+    .from("organization_members")
+    .select(`
+      role,
+      organization:organizations (
+        id,
+        name,
+        slug,
+        max_members
+      )
+    `)
+    .eq("user_id", user.id)
+    .single()
+
+  if (membership) {
+    organization = membership.organization as any
+    userRole = membership.role as OrganizationRole
+  }
+
   const hasApiKey = !!profile?.openai_api_key_encrypted
   const showByokSection = profile ? canUseBYOK(profile as Profile) : false
   const handshakeStatus = profile ? getHandshakeStatus(profile as Profile) : null
+  const isTeamPlanUser = profile?.plan === "team" || profile?.plan === "enterprise"
 
   return (
     <div className="max-w-2xl">
@@ -58,6 +83,15 @@ export default async function SettingsPage() {
             stripeCustomerId={profile.stripe_customer_id}
             promoCode={profile.promo_code}
             promoAppliedAt={profile.promo_applied_at}
+          />
+        )}
+
+        {/* Team Settings - Show for team/enterprise plan users or if already in a team */}
+        {(isTeamPlanUser || organization) && (
+          <TeamSettings
+            organization={organization}
+            userRole={userRole}
+            currentUserId={user.id}
           />
         )}
 

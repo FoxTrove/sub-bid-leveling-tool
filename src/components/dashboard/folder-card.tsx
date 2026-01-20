@@ -112,12 +112,12 @@ export function FolderCard({ folder, defaultOpen = false }: FolderCardProps) {
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card className="transition-shadow hover:shadow-md">
+      <Card className="transition-all duration-200 hover:shadow-lg hover:shadow-primary/5 border-border/60 hover:border-primary/20">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <CollapsibleTrigger asChild>
-              <button className="flex items-center gap-3 text-left hover:opacity-80">
-                <div className="rounded-lg bg-primary/10 p-2">
+              <button className="flex items-center gap-3 text-left hover:opacity-80 transition-opacity">
+                <div className="rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 p-2.5 ring-1 ring-primary/10">
                   {isOpen ? (
                     <FolderOpen className="h-5 w-5 text-primary" />
                   ) : (
@@ -241,17 +241,24 @@ function ProjectRow({ project }: { project: ProjectForDashboard }) {
 
   return (
     <Link href={`/compare/${project.id}`}>
-      <div className="group flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50">
+      <div className="group flex items-center justify-between rounded-lg border border-border/60 p-3.5 transition-all duration-200 hover:bg-accent/5 hover:border-accent/30 hover:shadow-sm">
         <div className="flex items-center gap-3">
-          <StatusIcon
-            className={`h-4 w-4 ${status.color} ${
-              project.status === "processing" || project.status === "uploading"
-                ? "animate-spin"
-                : ""
-            }`}
-          />
+          <div className={`rounded-full p-1.5 ${
+            project.status === "complete" ? "bg-green-100 dark:bg-green-900/30" :
+            project.status === "error" ? "bg-red-100 dark:bg-red-900/30" :
+            project.status === "processing" || project.status === "uploading" ? "bg-blue-100 dark:bg-blue-900/30" :
+            "bg-muted"
+          }`}>
+            <StatusIcon
+              className={`h-3.5 w-3.5 ${status.color} ${
+                project.status === "processing" || project.status === "uploading"
+                  ? "animate-spin"
+                  : ""
+              }`}
+            />
+          </div>
           <div>
-            <p className="font-medium group-hover:underline">{project.name}</p>
+            <p className="font-medium group-hover:text-primary transition-colors">{project.name}</p>
             <p className="text-xs text-muted-foreground">
               {bidCount} bid{bidCount !== 1 ? 's' : ''} · {formatRelativeTime(project.created_at)}
             </p>
@@ -260,18 +267,18 @@ function ProjectRow({ project }: { project: ProjectForDashboard }) {
 
         <div className="text-right text-sm">
           {project.status === "complete" && priceRange && (
-            <p className="font-medium">{priceRange}</p>
+            <p className="font-semibold text-foreground">{priceRange}</p>
           )}
           {project.status === "complete" && project.comparison_results?.recommendation_json && (
-            <p className="text-xs text-primary">
+            <p className="text-xs text-primary font-medium">
               {project.comparison_results.recommendation_json.recommended_contractor_name}
             </p>
           )}
           {project.status === "error" && (
-            <p className="text-xs text-red-500">Failed</p>
+            <p className="text-xs font-medium text-red-500">Failed</p>
           )}
           {(project.status === "processing" || project.status === "uploading") && (
-            <p className="text-xs text-blue-500">In progress...</p>
+            <p className="text-xs font-medium text-blue-500">In progress...</p>
           )}
         </div>
       </div>

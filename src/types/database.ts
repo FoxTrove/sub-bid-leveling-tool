@@ -3,6 +3,8 @@ export type DocumentStatus = 'uploading' | 'uploaded' | 'processing' | 'processe
 export type PlanType = 'free' | 'pro' | 'team' | 'enterprise'
 export type SubscriptionStatus = 'inactive' | 'active' | 'past_due' | 'canceled' | 'trialing'
 export type BillingCycle = 'monthly' | 'annual'
+export type OrganizationRole = 'owner' | 'admin' | 'member'
+export type InviteStatus = 'pending' | 'accepted' | 'expired' | 'revoked'
 
 export interface Profile {
   id: string
@@ -40,6 +42,8 @@ export interface Profile {
   handshake_reminder_day27_sent_at: string | null
   handshake_expired_sent_at: string | null
   api_key_success_sent_at: string | null
+  // Organization/team fields
+  organization_id: string | null
   created_at: string
   updated_at: string
 }
@@ -305,4 +309,58 @@ export interface UserTrainingPreferences {
   training_data_opt_in: boolean
   training_data_opted_in_at: string | null
   training_data_contribution_count: number
+}
+
+// ============================================
+// ORGANIZATION / TEAM TYPES
+// ============================================
+
+export interface Organization {
+  id: string
+  name: string
+  slug: string
+  owner_id: string
+  logo_url: string | null
+  plan: PlanType
+  max_members: number
+  created_at: string
+  updated_at: string
+}
+
+export interface OrganizationMember {
+  id: string
+  organization_id: string
+  user_id: string
+  role: OrganizationRole
+  invited_by: string | null
+  joined_at: string
+}
+
+export interface OrganizationInvite {
+  id: string
+  organization_id: string
+  email: string
+  role: OrganizationRole
+  token: string
+  status: InviteStatus
+  invited_by: string
+  expires_at: string
+  accepted_at: string | null
+  created_at: string
+}
+
+// Extended types with relations
+export interface OrganizationWithMembers extends Organization {
+  members: (OrganizationMember & { profile: Pick<Profile, 'id' | 'email' | 'full_name'> })[]
+  invites: OrganizationInvite[]
+}
+
+export interface OrganizationMemberWithProfile extends OrganizationMember {
+  profile: Pick<Profile, 'id' | 'email' | 'full_name' | 'company_name'>
+}
+
+export interface UserOrganization {
+  organization: Organization
+  role: OrganizationRole
+  memberCount: number
 }

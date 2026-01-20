@@ -7,6 +7,7 @@ import { SubscriptionWelcomeEmail } from './templates/subscription-welcome'
 import { CreditPurchaseEmail } from './templates/credit-purchase'
 import { SubscriptionCanceledEmail } from './templates/subscription-canceled'
 import { PaymentFailedEmail } from './templates/payment-failed'
+import { TeamInviteEmail } from './templates/team-invite'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -254,6 +255,29 @@ export async function sendPaymentFailedEmail(params: {
         planName: params.planName,
         amount: params.amount,
         nextRetryDate: params.nextRetryDate,
+      }),
+    })
+  )
+}
+
+/**
+ * Send team invite email
+ */
+export async function sendTeamInviteEmail(
+  to: string,
+  organizationName: string,
+  inviterName: string,
+  inviteUrl: string
+): Promise<EmailResult> {
+  return sendWithRetry(() =>
+    resend.emails.send({
+      from: `${FROM_NAME} <${FROM_EMAIL}>`,
+      to,
+      subject: `You've been invited to join ${organizationName} on BidLevel`,
+      react: TeamInviteEmail({
+        organizationName,
+        inviterName,
+        inviteUrl,
       }),
     })
   )
