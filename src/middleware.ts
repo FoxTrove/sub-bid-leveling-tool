@@ -8,8 +8,9 @@ export async function middleware(request: NextRequest) {
     },
   })
 
-  // Set pathname header for server components to detect current route
+  // Set pathname and full URL headers for server components to detect current route
   response.headers.set("x-pathname", request.nextUrl.pathname)
+  response.headers.set("x-url", request.nextUrl.toString())
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

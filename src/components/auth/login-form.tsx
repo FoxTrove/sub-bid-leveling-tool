@@ -53,10 +53,17 @@ export function LoginForm({ promoCode, plan, interval }: LoginFormProps) {
     try {
       const supabase = createClient()
 
+      // Build redirect URL with promo code if present
+      // This ensures the promo code survives across tabs (magic link opens in new tab)
+      let redirectUrl = `${window.location.origin}/auth/callback`
+      if (promoCode) {
+        redirectUrl += `?promo=${encodeURIComponent(promoCode)}`
+      }
+
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: redirectUrl,
         },
       })
 

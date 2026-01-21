@@ -31,14 +31,27 @@ export default async function DashboardLayout({
   // Check if user is part of a team/organization
   const hasTeam = !!profile?.organization_id
 
-  // Get current path to avoid redirect loop
+  // Get current path and search params to avoid redirect loop and preserve promo code
   const headersList = await headers()
   const pathname = headersList.get("x-pathname") || ""
+  const fullUrl = headersList.get("x-url") || ""
   const isOnboardingPage = pathname.includes("/onboarding")
 
   // Redirect to onboarding if not completed (and not already on onboarding page)
+  // Preserve promo code in URL if present
   if (profile && !profile.onboarding_completed && !isOnboardingPage) {
-    redirect("/onboarding")
+    // Extract promo code from current URL if present
+    let onboardingUrl = "/onboarding"
+    try {
+      const url = new URL(fullUrl)
+      const promoCode = url.searchParams.get("promo")
+      if (promoCode) {
+        onboardingUrl = `/onboarding?promo=${encodeURIComponent(promoCode)}`
+      }
+    } catch {
+      // If URL parsing fails, just redirect without promo
+    }
+    redirect(onboardingUrl)
   }
 
   const showPasswordBanner = profile && !profile.password_set && !isOnboardingPage

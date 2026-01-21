@@ -13,7 +13,19 @@ export async function GET(request: Request) {
   // Handle code flow (PKCE)
   const code = requestUrl.searchParams.get("code")
 
+  // Extract promo code if present (passed from login form)
+  const promoCode = requestUrl.searchParams.get("promo")
+
   const supabase = await createClient()
+
+  // Build redirect URL with promo code if present
+  const buildRedirectUrl = (basePath: string) => {
+    const url = new URL(basePath, origin)
+    if (promoCode) {
+      url.searchParams.set("promo", promoCode)
+    }
+    return url.toString()
+  }
 
   // Try token_hash flow first (from custom email templates)
   if (token_hash && type) {
@@ -27,7 +39,7 @@ export async function GET(request: Request) {
       if (type === "recovery") {
         return NextResponse.redirect(`${origin}/settings?reset_password=true`)
       }
-      return NextResponse.redirect(`${origin}/dashboard`)
+      return NextResponse.redirect(buildRedirectUrl("/dashboard"))
     }
   }
 
@@ -41,7 +53,7 @@ export async function GET(request: Request) {
       if (recoveryType === "recovery") {
         return NextResponse.redirect(`${origin}/settings?reset_password=true`)
       }
-      return NextResponse.redirect(`${origin}/dashboard`)
+      return NextResponse.redirect(buildRedirectUrl("/dashboard"))
     }
   }
 

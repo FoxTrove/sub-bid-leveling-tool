@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Loader2, Gift, CheckCircle2, Key, Clock, Database, HelpCircle } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
@@ -15,6 +15,7 @@ import { trackOnboardingCompleted, trackSignUp, setUserId } from "@/lib/analytic
 
 export default function OnboardingPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [isLoading, setIsLoading] = useState(false)
   const [fullName, setFullName] = useState("")
   const [gcName, setGcName] = useState("")
@@ -22,13 +23,24 @@ export default function OnboardingPage() {
   const [promoCode, setPromoCode] = useState<string | null>(null)
   const [trainingDataOptIn, setTrainingDataOptIn] = useState(false)
 
-  // Check for promo code from session storage
+  // Check for promo code from URL params first (survives across tabs via magic link),
+  // then fall back to session storage (same-tab flow)
   useEffect(() => {
+    // First check URL params (this survives the magic link redirect across tabs)
+    const urlPromoCode = searchParams.get("promo")?.toUpperCase()
+    if (urlPromoCode && urlPromoCode in PROMO_CODES) {
+      setPromoCode(urlPromoCode)
+      // Also store in sessionStorage for consistency
+      sessionStorage.setItem("bidvet_promo_code", urlPromoCode)
+      return
+    }
+
+    // Fall back to session storage (for same-tab navigation)
     const savedPromoCode = sessionStorage.getItem("bidvet_promo_code")
     if (savedPromoCode && savedPromoCode in PROMO_CODES) {
       setPromoCode(savedPromoCode)
     }
-  }, [])
+  }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
