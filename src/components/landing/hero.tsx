@@ -71,19 +71,17 @@ export function Hero() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75"></span>
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500"></span>
               </span>
-              Fully Automated AI Bid Leveling
+              Now with Procore Integration
             </div>
 
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl text-white">
-              Level Sub Bids{" "}
-              <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">in Minutes</span>
-              <br />
-              <span className="text-slate-500">Not Hours</span>
+              Stop Leveling Bids{" "}
+              <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">By Hand</span>
             </h1>
 
             <p className="mt-6 text-lg text-slate-400 md:text-xl max-w-xl mx-auto lg:mx-0">
-              The only bid leveling tool with Procore integration and fully automated
-              normalization. Upload bids, get AI recommendations with confidence scores—no manual adjustments needed.
+              BidVet connects to Procore, extracts scope from any format, and tells you which sub to pick—with
+              confidence scores explaining why. No spreadsheets. No manual normalization.
             </p>
 
             <form
