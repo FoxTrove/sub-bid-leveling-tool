@@ -404,6 +404,229 @@ export default function PricingPage() {
             )
           })}
         </div>
+
+        {/* Feature Comparison Table */}
+        <div className="mt-20 max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h3 className="text-2xl font-bold tracking-tight text-white mb-4">Compare Plan Features</h3>
+            <p className="text-slate-400">See what&apos;s included in each subscription tier</p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-800">
+                  <th className="text-left p-4 font-medium text-slate-400">Feature</th>
+                  <th className="p-4 text-center">
+                    <div className="inline-flex flex-col items-center">
+                      <div className="h-10 w-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-2">
+                        <Zap className="h-5 w-5 text-blue-400" />
+                      </div>
+                      <span className="font-semibold text-blue-400">Pro</span>
+                    </div>
+                  </th>
+                  <th className="p-4 text-center">
+                    <div className="inline-flex flex-col items-center">
+                      <div className="h-10 w-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center mb-2">
+                        <Users className="h-5 w-5 text-violet-400" />
+                      </div>
+                      <span className="font-semibold text-violet-400">Team</span>
+                    </div>
+                  </th>
+                  <th className="p-4 text-center">
+                    <div className="inline-flex flex-col items-center">
+                      <div className="h-10 w-10 rounded-xl bg-slate-700 border border-slate-600 flex items-center justify-center mb-2">
+                        <Building2 className="h-5 w-5 text-slate-300" />
+                      </div>
+                      <span className="font-semibold text-slate-300">Enterprise</span>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {/* Core Features */}
+                <tr className="border-b border-slate-800/50">
+                  <td colSpan={4} className="p-4 pt-6">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Core Features</span>
+                  </td>
+                </tr>
+                {[
+                  { feature: "Unlimited comparisons", pro: true, team: true, enterprise: true },
+                  { feature: "AI-powered bid analysis", pro: true, team: true, enterprise: true },
+                  { feature: "Scope gap detection", pro: true, team: true, enterprise: true },
+                  { feature: "PDF & CSV exports", pro: true, team: true, enterprise: true },
+                  { feature: "Multi-format support (PDF, Excel, Word)", pro: true, team: true, enterprise: true },
+                  { feature: "Confidence scoring", pro: true, team: true, enterprise: true },
+                ].map((row, i) => (
+                  <tr key={i} className="border-b border-slate-800/50 hover:bg-slate-900/30">
+                    <td className="p-4 text-slate-300">{row.feature}</td>
+                    <td className="p-4 text-center">
+                      {row.pro ? <Check className="h-5 w-5 text-emerald-400 mx-auto" /> : <X className="h-5 w-5 text-slate-600 mx-auto" />}
+                    </td>
+                    <td className="p-4 text-center">
+                      {row.team ? <Check className="h-5 w-5 text-emerald-400 mx-auto" /> : <X className="h-5 w-5 text-slate-600 mx-auto" />}
+                    </td>
+                    <td className="p-4 text-center">
+                      {row.enterprise ? <Check className="h-5 w-5 text-emerald-400 mx-auto" /> : <X className="h-5 w-5 text-slate-600 mx-auto" />}
+                    </td>
+                  </tr>
+                ))}
+
+                {/* Integrations */}
+                <tr className="border-b border-slate-800/50">
+                  <td colSpan={4} className="p-4 pt-6">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Integrations</span>
+                  </td>
+                </tr>
+                {[
+                  { feature: "Procore integration", pro: true, team: true, enterprise: true, highlight: true },
+                  { feature: "Custom integrations", pro: false, team: false, enterprise: true },
+                  { feature: "API access", pro: false, team: false, enterprise: true },
+                ].map((row, i) => (
+                  <tr key={i} className={cn(
+                    "border-b border-slate-800/50 hover:bg-slate-900/30",
+                    row.highlight && "bg-blue-500/5"
+                  )}>
+                    <td className="p-4 text-slate-300">
+                      {row.feature}
+                      {row.highlight && <span className="ml-2 text-xs text-blue-400">NEW</span>}
+                    </td>
+                    <td className="p-4 text-center">
+                      {row.pro ? <Check className="h-5 w-5 text-emerald-400 mx-auto" /> : <X className="h-5 w-5 text-slate-600 mx-auto" />}
+                    </td>
+                    <td className="p-4 text-center">
+                      {row.team ? <Check className="h-5 w-5 text-emerald-400 mx-auto" /> : <X className="h-5 w-5 text-slate-600 mx-auto" />}
+                    </td>
+                    <td className="p-4 text-center">
+                      {row.enterprise ? <Check className="h-5 w-5 text-emerald-400 mx-auto" /> : <X className="h-5 w-5 text-slate-600 mx-auto" />}
+                    </td>
+                  </tr>
+                ))}
+
+                {/* Team & Collaboration */}
+                <tr className="border-b border-slate-800/50">
+                  <td colSpan={4} className="p-4 pt-6">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Team & Collaboration</span>
+                  </td>
+                </tr>
+                {[
+                  { feature: "Team members", pro: "1 user", team: "Up to 10", enterprise: "Unlimited" },
+                  { feature: "Team collaboration", pro: false, team: true, enterprise: true },
+                  { feature: "Shared projects", pro: false, team: true, enterprise: true },
+                  { feature: "Comments & mentions", pro: false, team: true, enterprise: true },
+                  { feature: "Usage analytics", pro: false, team: true, enterprise: true },
+                ].map((row, i) => (
+                  <tr key={i} className="border-b border-slate-800/50 hover:bg-slate-900/30">
+                    <td className="p-4 text-slate-300">{row.feature}</td>
+                    <td className="p-4 text-center">
+                      {typeof row.pro === 'string' ? (
+                        <span className="text-sm text-slate-400">{row.pro}</span>
+                      ) : row.pro ? (
+                        <Check className="h-5 w-5 text-emerald-400 mx-auto" />
+                      ) : (
+                        <X className="h-5 w-5 text-slate-600 mx-auto" />
+                      )}
+                    </td>
+                    <td className="p-4 text-center">
+                      {typeof row.team === 'string' ? (
+                        <span className="text-sm text-slate-300 font-medium">{row.team}</span>
+                      ) : row.team ? (
+                        <Check className="h-5 w-5 text-emerald-400 mx-auto" />
+                      ) : (
+                        <X className="h-5 w-5 text-slate-600 mx-auto" />
+                      )}
+                    </td>
+                    <td className="p-4 text-center">
+                      {typeof row.enterprise === 'string' ? (
+                        <span className="text-sm text-slate-300 font-medium">{row.enterprise}</span>
+                      ) : row.enterprise ? (
+                        <Check className="h-5 w-5 text-emerald-400 mx-auto" />
+                      ) : (
+                        <X className="h-5 w-5 text-slate-600 mx-auto" />
+                      )}
+                    </td>
+                  </tr>
+                ))}
+
+                {/* Branding & Customization */}
+                <tr className="border-b border-slate-800/50">
+                  <td colSpan={4} className="p-4 pt-6">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Branding & Customization</span>
+                  </td>
+                </tr>
+                {[
+                  { feature: "Branded PDF reports", pro: false, team: true, enterprise: true },
+                  { feature: "White-label solution", pro: false, team: false, enterprise: true },
+                  { feature: "Custom domain", pro: false, team: false, enterprise: true },
+                ].map((row, i) => (
+                  <tr key={i} className="border-b border-slate-800/50 hover:bg-slate-900/30">
+                    <td className="p-4 text-slate-300">{row.feature}</td>
+                    <td className="p-4 text-center">
+                      {row.pro ? <Check className="h-5 w-5 text-emerald-400 mx-auto" /> : <X className="h-5 w-5 text-slate-600 mx-auto" />}
+                    </td>
+                    <td className="p-4 text-center">
+                      {row.team ? <Check className="h-5 w-5 text-emerald-400 mx-auto" /> : <X className="h-5 w-5 text-slate-600 mx-auto" />}
+                    </td>
+                    <td className="p-4 text-center">
+                      {row.enterprise ? <Check className="h-5 w-5 text-emerald-400 mx-auto" /> : <X className="h-5 w-5 text-slate-600 mx-auto" />}
+                    </td>
+                  </tr>
+                ))}
+
+                {/* Security & Compliance */}
+                <tr className="border-b border-slate-800/50">
+                  <td colSpan={4} className="p-4 pt-6">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Security & Compliance</span>
+                  </td>
+                </tr>
+                {[
+                  { feature: "SSO / SAML", pro: false, team: false, enterprise: true },
+                  { feature: "Advanced security controls", pro: false, team: false, enterprise: true },
+                  { feature: "Audit logs", pro: false, team: false, enterprise: true },
+                ].map((row, i) => (
+                  <tr key={i} className="border-b border-slate-800/50 hover:bg-slate-900/30">
+                    <td className="p-4 text-slate-300">{row.feature}</td>
+                    <td className="p-4 text-center">
+                      {row.pro ? <Check className="h-5 w-5 text-emerald-400 mx-auto" /> : <X className="h-5 w-5 text-slate-600 mx-auto" />}
+                    </td>
+                    <td className="p-4 text-center">
+                      {row.team ? <Check className="h-5 w-5 text-emerald-400 mx-auto" /> : <X className="h-5 w-5 text-slate-600 mx-auto" />}
+                    </td>
+                    <td className="p-4 text-center">
+                      {row.enterprise ? <Check className="h-5 w-5 text-emerald-400 mx-auto" /> : <X className="h-5 w-5 text-slate-600 mx-auto" />}
+                    </td>
+                  </tr>
+                ))}
+
+                {/* Support */}
+                <tr className="border-b border-slate-800/50">
+                  <td colSpan={4} className="p-4 pt-6">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Support</span>
+                  </td>
+                </tr>
+                {[
+                  { feature: "Email support", pro: true, team: true, enterprise: true },
+                  { feature: "Priority support", pro: false, team: true, enterprise: true },
+                  { feature: "Dedicated account manager", pro: false, team: false, enterprise: true },
+                  { feature: "Custom onboarding", pro: false, team: false, enterprise: true },
+                ].map((row, i) => (
+                  <tr key={i} className="border-b border-slate-800/50 hover:bg-slate-900/30">
+                    <td className="p-4 text-slate-300">{row.feature}</td>
+                    <td className="p-4 text-center">
+                      {row.pro ? <Check className="h-5 w-5 text-emerald-400 mx-auto" /> : <X className="h-5 w-5 text-slate-600 mx-auto" />}
+                    </td>
+                    <td className="p-4 text-center">
+                      {row.team ? <Check className="h-5 w-5 text-emerald-400 mx-auto" /> : <X className="h-5 w-5 text-slate-600 mx-auto" />}
+                    </td>
+                    <td className="p-4 text-center">
+                      {row.enterprise ? <Check className="h-5 w-5 text-emerald-400 mx-auto" /> : <X className="h-5 w-5 text-slate-600 mx-auto" />}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
       {/* Comparison Helper */}
