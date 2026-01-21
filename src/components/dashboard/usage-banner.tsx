@@ -175,7 +175,7 @@ export function UsageBanner({
                   <Users className="h-4 w-4 text-accent" />
                   <p className="font-medium text-accent">Upgrade to Team</p>
                 </div>
-                <p className="text-xs text-muted-foreground">$199/mo • Up to 10 users • No API key needed</p>
+                <p className="text-xs text-muted-foreground">$399/mo • Up to 10 users • No API key needed</p>
               </div>
             </Link>
           </div>

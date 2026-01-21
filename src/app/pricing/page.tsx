@@ -37,8 +37,8 @@ const subscriptionPlans = [
   {
     name: "Team",
     description: "For growing companies",
-    monthlyPrice: 199,
-    annualPrice: 1990,
+    monthlyPrice: 399,
+    annualPrice: 3990,
     icon: Users,
     planKey: "team",
     features: [

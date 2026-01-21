@@ -54,8 +54,8 @@ export const PRICING = {
     stripePriceIdAnnual: process.env.NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID || '',
   },
   team: {
-    monthly: 199,
-    annual: 1990, // 2 months free
+    monthly: 399,
+    annual: 3990, // 2 months free
     stripePriceIdMonthly: process.env.NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_PRICE_ID || '',
     stripePriceIdAnnual: process.env.NEXT_PUBLIC_STRIPE_TEAM_ANNUAL_PRICE_ID || '',
   },

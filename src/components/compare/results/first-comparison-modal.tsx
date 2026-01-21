@@ -127,7 +127,7 @@ export function FirstComparisonModal({
                   </p>
                   <div className="flex items-center gap-2 mt-2 text-sm text-accent font-medium">
                     <CheckCircle2 className="h-4 w-4" />
-                    $199/month for the whole team
+                    $399/month for the whole team
                   </div>
                 </div>
                 <ArrowRight className="h-5 w-5 text-muted-foreground shrink-0" />
