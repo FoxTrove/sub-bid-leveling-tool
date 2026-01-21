@@ -4,6 +4,8 @@ import { getExtractionPrompt } from "./prompts/extraction"
 import { getNormalizationPrompt } from "./prompts/normalization"
 import { getRecommendationPrompt } from "./prompts/recommendation"
 import { getTradeExamples, formatExtractionExamples, formatNormalizationExamples } from "./prompts/examples"
+import { getPatternPromptSection } from "./patterns/injector"
+import { selectVariant, updateVariantMetrics, type Variant } from "./variants/manager"
 import { extractTextFromPdf } from "./processors/pdf"
 import { extractTextFromExcel } from "./processors/excel"
 import { extractTextFromWord } from "./processors/word"
@@ -129,6 +131,13 @@ export async function analyzeProject(
     const extractionExamples = formatExtractionExamples(tradeExamples)
     const normalizationExamples = formatNormalizationExamples(tradeExamples)
 
+    // Fetch learned patterns for this trade type
+    const learnedPatterns = await getPatternPromptSection(project.trade_type, 10)
+
+    // Select variants for A/B testing (non-blocking, fallback to null)
+    const extractionVariant = await selectVariant(project.trade_type, "extraction")
+    const normalizationVariant = await selectVariant(project.trade_type, "normalization")
+
     // 3. Process each document
     const extractedByDocument: Map<string, ExtractedItem[]> = new Map()
     const extractionStartTime = Date.now()
@@ -172,8 +181,14 @@ export async function analyzeProject(
           .update({ raw_text: text })
           .eq("id", doc.id)
 
-        // Run extraction (with learned examples if available)
-        const extractionPrompt = getExtractionPrompt(project.trade_type, text, extractionExamples)
+        // Run extraction (with learned examples, patterns, and variants if available)
+        const extractionPrompt = getExtractionPrompt(
+          project.trade_type,
+          text,
+          extractionExamples,
+          learnedPatterns,
+          extractionVariant?.content
+        )
         const extractionResponse = await chatCompletion(openai, [
           { role: "user", content: extractionPrompt },
         ])
@@ -247,6 +262,17 @@ export async function analyzeProject(
       confidence_scores: allConfidenceScores,
       items_needing_review: totalItemsNeedingReview,
     })
+
+    // Update variant metrics if a variant was used
+    if (extractionVariant) {
+      const avgConfidence =
+        allConfidenceScores.length > 0
+          ? allConfidenceScores.reduce((a, b) => a + b, 0) / allConfidenceScores.length
+          : 0
+      // We don't know if corrections happened yet, so mark as false
+      // Corrections are tracked when user edits items later
+      updateVariantMetrics(extractionVariant.id, avgConfidence, false, extractionDuration)
+    }
 
     // 4. Run normalization across all bids
     console.log("Running normalization...")

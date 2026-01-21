@@ -9,7 +9,7 @@ export async function POST(request: Request) {
       interval: BillingInterval
     }
 
-    if (!plan || !["pro", "team"].includes(plan)) {
+    if (!plan || !["basic", "pro", "team"].includes(plan)) {
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 })
     }
 

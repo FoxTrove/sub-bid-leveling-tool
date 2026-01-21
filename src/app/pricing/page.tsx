@@ -16,6 +16,24 @@ import { trackPricingPageViewed } from "@/lib/analytics"
 
 const subscriptionPlans = [
   {
+    name: "Basic",
+    description: "For occasional users",
+    monthlyPrice: 49,
+    annualPrice: 490,
+    icon: Zap,
+    planKey: "basic",
+    features: [
+      { text: "25 comparisons/month", included: true },
+      { text: "PDF & CSV exports", included: true },
+      { text: "AI-powered analysis", included: true },
+      { text: "Scope gap detection", included: true },
+      { text: "Standard processing", included: true },
+      { text: "Email support", included: true },
+    ],
+    cta: "Start Basic",
+    popular: false,
+  },
+  {
     name: "Pro",
     description: "For busy estimators",
     monthlyPrice: 79,
@@ -24,11 +42,11 @@ const subscriptionPlans = [
     planKey: "pro",
     features: [
       { text: "Unlimited comparisons", included: true },
+      { text: "Procore integration", included: true },
       { text: "PDF & CSV exports", included: true },
       { text: "AI-powered analysis", included: true },
-      { text: "Scope gap detection", included: true },
       { text: "Priority processing", included: true },
-      { text: "Email support", included: true },
+      { text: "Priority support", included: true },
     ],
     cta: "Start Pro",
     popular: true,
@@ -186,20 +204,20 @@ export default function PricingPage() {
                 </div>
               </div>
               <p className="text-slate-400 mb-4">
-                Flat monthly rate for unlimited comparisons. Best value for 10+ comparisons/month.
+                Predictable monthly pricing for regular users. Includes Procore integration on Pro+.
               </p>
               <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-3xl font-bold text-white">$79</span>
+                <span className="text-3xl font-bold text-white">From $49</span>
                 <span className="text-slate-400">/month</span>
               </div>
               <ul className="space-y-2 text-sm mb-6">
                 <li className="flex items-center gap-2 text-slate-300">
                   <Check className="h-4 w-4 text-emerald-400" />
-                  Unlimited comparisons
+                  25 to unlimited comparisons
                 </li>
                 <li className="flex items-center gap-2 text-slate-300">
                   <Check className="h-4 w-4 text-emerald-400" />
-                  Priority support
+                  Procore integration (Pro+)
                 </li>
                 <li className="flex items-center gap-2 text-slate-300">
                   <Check className="h-4 w-4 text-emerald-400" />
@@ -297,7 +315,7 @@ export default function PricingPage() {
         </div>
 
         {/* Subscription Cards */}
-        <div className="grid gap-6 md:grid-cols-3 max-w-5xl mx-auto">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto">
           {subscriptionPlans.map((plan) => {
             const price = isAnnual ? plan.annualPrice : plan.monthlyPrice
             const Icon = plan.icon
@@ -406,7 +424,7 @@ export default function PricingPage() {
         </div>
 
         {/* Feature Comparison Table */}
-        <div className="mt-20 max-w-5xl mx-auto">
+        <div className="mt-20 max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h3 className="text-2xl font-bold tracking-tight text-white mb-4">Compare Plan Features</h3>
             <p className="text-slate-400">See what&apos;s included in each subscription tier</p>
@@ -417,6 +435,14 @@ export default function PricingPage() {
               <thead>
                 <tr className="border-b border-slate-800">
                   <th className="text-left p-4 font-medium text-slate-400">Feature</th>
+                  <th className="p-4 text-center">
+                    <div className="inline-flex flex-col items-center">
+                      <div className="h-10 w-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center mb-2">
+                        <Zap className="h-5 w-5 text-slate-400" />
+                      </div>
+                      <span className="font-semibold text-slate-400">Basic</span>
+                    </div>
+                  </th>
                   <th className="p-4 text-center">
                     <div className="inline-flex flex-col items-center">
                       <div className="h-10 w-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-2">
@@ -446,43 +472,75 @@ export default function PricingPage() {
               <tbody>
                 {/* Core Features */}
                 <tr className="border-b border-slate-800/50">
-                  <td colSpan={4} className="p-4 pt-6">
+                  <td colSpan={5} className="p-4 pt-6">
                     <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Core Features</span>
                   </td>
                 </tr>
                 {[
-                  { feature: "Unlimited comparisons", pro: true, team: true, enterprise: true },
-                  { feature: "AI-powered bid analysis", pro: true, team: true, enterprise: true },
-                  { feature: "Scope gap detection", pro: true, team: true, enterprise: true },
-                  { feature: "PDF & CSV exports", pro: true, team: true, enterprise: true },
-                  { feature: "Multi-format support (PDF, Excel, Word)", pro: true, team: true, enterprise: true },
-                  { feature: "Confidence scoring", pro: true, team: true, enterprise: true },
+                  { feature: "Comparisons", basic: "25/month", pro: "Unlimited", team: "Unlimited", enterprise: "Unlimited" },
+                  { feature: "AI-powered bid analysis", basic: true, pro: true, team: true, enterprise: true },
+                  { feature: "Scope gap detection", basic: true, pro: true, team: true, enterprise: true },
+                  { feature: "PDF & CSV exports", basic: true, pro: true, team: true, enterprise: true },
+                  { feature: "Multi-format support (PDF, Excel, Word)", basic: true, pro: true, team: true, enterprise: true },
+                  { feature: "Confidence scoring", basic: true, pro: true, team: true, enterprise: true },
                 ].map((row, i) => (
                   <tr key={i} className="border-b border-slate-800/50 hover:bg-slate-900/30">
                     <td className="p-4 text-slate-300">{row.feature}</td>
                     <td className="p-4 text-center">
-                      {row.pro ? <Check className="h-5 w-5 text-emerald-400 mx-auto" /> : <X className="h-5 w-5 text-slate-600 mx-auto" />}
+                      {typeof row.basic === 'string' ? (
+                        <span className="text-sm text-slate-400">{row.basic}</span>
+                      ) : row.basic ? (
+                        <Check className="h-5 w-5 text-emerald-400 mx-auto" />
+                      ) : (
+                        <X className="h-5 w-5 text-slate-600 mx-auto" />
+                      )}
                     </td>
                     <td className="p-4 text-center">
-                      {row.team ? <Check className="h-5 w-5 text-emerald-400 mx-auto" /> : <X className="h-5 w-5 text-slate-600 mx-auto" />}
+                      {typeof row.pro === 'string' ? (
+                        <span className="text-sm text-blue-400 font-medium">{row.pro}</span>
+                      ) : row.pro ? (
+                        <Check className="h-5 w-5 text-emerald-400 mx-auto" />
+                      ) : (
+                        <X className="h-5 w-5 text-slate-600 mx-auto" />
+                      )}
                     </td>
                     <td className="p-4 text-center">
-                      {row.enterprise ? <Check className="h-5 w-5 text-emerald-400 mx-auto" /> : <X className="h-5 w-5 text-slate-600 mx-auto" />}
+                      {typeof row.team === 'string' ? (
+                        <span className="text-sm text-violet-400 font-medium">{row.team}</span>
+                      ) : row.team ? (
+                        <Check className="h-5 w-5 text-emerald-400 mx-auto" />
+                      ) : (
+                        <X className="h-5 w-5 text-slate-600 mx-auto" />
+                      )}
+                    </td>
+                    <td className="p-4 text-center">
+                      {typeof row.enterprise === 'string' ? (
+                        <span className="text-sm text-slate-300 font-medium">{row.enterprise}</span>
+                      ) : row.enterprise ? (
+                        <Check className="h-5 w-5 text-emerald-400 mx-auto" />
+                      ) : (
+                        <X className="h-5 w-5 text-slate-600 mx-auto" />
+                      )}
                     </td>
                   </tr>
                 ))}
 
                 {/* Integrations */}
                 <tr className="border-b border-slate-800/50">
-                  <td colSpan={4} className="p-4 pt-6">
+                  <td colSpan={5} className="p-4 pt-6">
                     <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Integrations</span>
                   </td>
                 </tr>
-                {[
-                  { feature: "Procore integration", pro: true, team: true, enterprise: true, highlight: true },
-                  { feature: "Custom integrations", pro: false, team: false, enterprise: true },
-                  { feature: "API access", pro: false, team: false, enterprise: true },
-                ].map((row, i) => (
+                {([
+                  { feature: "Procore integration", basic: false, pro: true, team: true, enterprise: true, highlight: true },
+                  { feature: "BuildingConnected", basic: false, pro: "soon", team: "soon", enterprise: true },
+                  { feature: "Bluebeam", basic: false, pro: "soon", team: "soon", enterprise: true },
+                  { feature: "Google Drive", basic: false, pro: "soon", team: "soon", enterprise: true },
+                  { feature: "Autodesk Construction Cloud", basic: false, pro: false, team: "soon", enterprise: true },
+                  { feature: "Sage 300 CRE", basic: false, pro: false, team: "soon", enterprise: true },
+                  { feature: "Custom integrations", basic: false, pro: false, team: false, enterprise: true },
+                  { feature: "API access", basic: false, pro: false, team: false, enterprise: true },
+                ] as Array<{ feature: string; basic: boolean | string; pro: boolean | string; team: boolean | string; enterprise: boolean | string; highlight?: boolean }>).map((row, i) => (
                   <tr key={i} className={cn(
                     "border-b border-slate-800/50 hover:bg-slate-900/30",
                     row.highlight && "bg-blue-500/5"
@@ -492,32 +550,68 @@ export default function PricingPage() {
                       {row.highlight && <span className="ml-2 text-xs text-blue-400">NEW</span>}
                     </td>
                     <td className="p-4 text-center">
-                      {row.pro ? <Check className="h-5 w-5 text-emerald-400 mx-auto" /> : <X className="h-5 w-5 text-slate-600 mx-auto" />}
+                      {row.basic === "soon" ? (
+                        <span className="text-xs bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full">Soon</span>
+                      ) : row.basic ? (
+                        <Check className="h-5 w-5 text-emerald-400 mx-auto" />
+                      ) : (
+                        <X className="h-5 w-5 text-slate-600 mx-auto" />
+                      )}
                     </td>
                     <td className="p-4 text-center">
-                      {row.team ? <Check className="h-5 w-5 text-emerald-400 mx-auto" /> : <X className="h-5 w-5 text-slate-600 mx-auto" />}
+                      {row.pro === "soon" ? (
+                        <span className="text-xs bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full">Soon</span>
+                      ) : row.pro ? (
+                        <Check className="h-5 w-5 text-emerald-400 mx-auto" />
+                      ) : (
+                        <X className="h-5 w-5 text-slate-600 mx-auto" />
+                      )}
                     </td>
                     <td className="p-4 text-center">
-                      {row.enterprise ? <Check className="h-5 w-5 text-emerald-400 mx-auto" /> : <X className="h-5 w-5 text-slate-600 mx-auto" />}
+                      {row.team === "soon" ? (
+                        <span className="text-xs bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full">Soon</span>
+                      ) : row.team ? (
+                        <Check className="h-5 w-5 text-emerald-400 mx-auto" />
+                      ) : (
+                        <X className="h-5 w-5 text-slate-600 mx-auto" />
+                      )}
+                    </td>
+                    <td className="p-4 text-center">
+                      {row.enterprise === "soon" ? (
+                        <span className="text-xs bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full">Soon</span>
+                      ) : row.enterprise ? (
+                        <Check className="h-5 w-5 text-emerald-400 mx-auto" />
+                      ) : (
+                        <X className="h-5 w-5 text-slate-600 mx-auto" />
+                      )}
                     </td>
                   </tr>
                 ))}
 
                 {/* Team & Collaboration */}
                 <tr className="border-b border-slate-800/50">
-                  <td colSpan={4} className="p-4 pt-6">
+                  <td colSpan={5} className="p-4 pt-6">
                     <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Team & Collaboration</span>
                   </td>
                 </tr>
                 {[
-                  { feature: "Team members", pro: "1 user", team: "Up to 10", enterprise: "Unlimited" },
-                  { feature: "Team collaboration", pro: false, team: true, enterprise: true },
-                  { feature: "Shared projects", pro: false, team: true, enterprise: true },
-                  { feature: "Comments & mentions", pro: false, team: true, enterprise: true },
-                  { feature: "Usage analytics", pro: false, team: true, enterprise: true },
+                  { feature: "Team members", basic: "1 user", pro: "1 user", team: "Up to 10", enterprise: "Unlimited" },
+                  { feature: "Team collaboration", basic: false, pro: false, team: true, enterprise: true },
+                  { feature: "Shared projects", basic: false, pro: false, team: true, enterprise: true },
+                  { feature: "Comments & mentions", basic: false, pro: false, team: true, enterprise: true },
+                  { feature: "Usage analytics", basic: false, pro: false, team: true, enterprise: true },
                 ].map((row, i) => (
                   <tr key={i} className="border-b border-slate-800/50 hover:bg-slate-900/30">
                     <td className="p-4 text-slate-300">{row.feature}</td>
+                    <td className="p-4 text-center">
+                      {typeof row.basic === 'string' ? (
+                        <span className="text-sm text-slate-400">{row.basic}</span>
+                      ) : row.basic ? (
+                        <Check className="h-5 w-5 text-emerald-400 mx-auto" />
+                      ) : (
+                        <X className="h-5 w-5 text-slate-600 mx-auto" />
+                      )}
+                    </td>
                     <td className="p-4 text-center">
                       {typeof row.pro === 'string' ? (
                         <span className="text-sm text-slate-400">{row.pro}</span>
@@ -529,7 +623,7 @@ export default function PricingPage() {
                     </td>
                     <td className="p-4 text-center">
                       {typeof row.team === 'string' ? (
-                        <span className="text-sm text-slate-300 font-medium">{row.team}</span>
+                        <span className="text-sm text-violet-400 font-medium">{row.team}</span>
                       ) : row.team ? (
                         <Check className="h-5 w-5 text-emerald-400 mx-auto" />
                       ) : (
@@ -550,17 +644,20 @@ export default function PricingPage() {
 
                 {/* Branding & Customization */}
                 <tr className="border-b border-slate-800/50">
-                  <td colSpan={4} className="p-4 pt-6">
+                  <td colSpan={5} className="p-4 pt-6">
                     <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Branding & Customization</span>
                   </td>
                 </tr>
                 {[
-                  { feature: "Branded PDF reports", pro: false, team: true, enterprise: true },
-                  { feature: "White-label solution", pro: false, team: false, enterprise: true },
-                  { feature: "Custom domain", pro: false, team: false, enterprise: true },
+                  { feature: "Branded PDF reports", basic: false, pro: false, team: true, enterprise: true },
+                  { feature: "White-label solution", basic: false, pro: false, team: false, enterprise: true },
+                  { feature: "Custom domain", basic: false, pro: false, team: false, enterprise: true },
                 ].map((row, i) => (
                   <tr key={i} className="border-b border-slate-800/50 hover:bg-slate-900/30">
                     <td className="p-4 text-slate-300">{row.feature}</td>
+                    <td className="p-4 text-center">
+                      {row.basic ? <Check className="h-5 w-5 text-emerald-400 mx-auto" /> : <X className="h-5 w-5 text-slate-600 mx-auto" />}
+                    </td>
                     <td className="p-4 text-center">
                       {row.pro ? <Check className="h-5 w-5 text-emerald-400 mx-auto" /> : <X className="h-5 w-5 text-slate-600 mx-auto" />}
                     </td>
@@ -575,17 +672,20 @@ export default function PricingPage() {
 
                 {/* Security & Compliance */}
                 <tr className="border-b border-slate-800/50">
-                  <td colSpan={4} className="p-4 pt-6">
+                  <td colSpan={5} className="p-4 pt-6">
                     <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Security & Compliance</span>
                   </td>
                 </tr>
                 {[
-                  { feature: "SSO / SAML", pro: false, team: false, enterprise: true },
-                  { feature: "Advanced security controls", pro: false, team: false, enterprise: true },
-                  { feature: "Audit logs", pro: false, team: false, enterprise: true },
+                  { feature: "SSO / SAML", basic: false, pro: false, team: false, enterprise: true },
+                  { feature: "Advanced security controls", basic: false, pro: false, team: false, enterprise: true },
+                  { feature: "Audit logs", basic: false, pro: false, team: false, enterprise: true },
                 ].map((row, i) => (
                   <tr key={i} className="border-b border-slate-800/50 hover:bg-slate-900/30">
                     <td className="p-4 text-slate-300">{row.feature}</td>
+                    <td className="p-4 text-center">
+                      {row.basic ? <Check className="h-5 w-5 text-emerald-400 mx-auto" /> : <X className="h-5 w-5 text-slate-600 mx-auto" />}
+                    </td>
                     <td className="p-4 text-center">
                       {row.pro ? <Check className="h-5 w-5 text-emerald-400 mx-auto" /> : <X className="h-5 w-5 text-slate-600 mx-auto" />}
                     </td>
@@ -600,18 +700,21 @@ export default function PricingPage() {
 
                 {/* Support */}
                 <tr className="border-b border-slate-800/50">
-                  <td colSpan={4} className="p-4 pt-6">
+                  <td colSpan={5} className="p-4 pt-6">
                     <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Support</span>
                   </td>
                 </tr>
                 {[
-                  { feature: "Email support", pro: true, team: true, enterprise: true },
-                  { feature: "Priority support", pro: false, team: true, enterprise: true },
-                  { feature: "Dedicated account manager", pro: false, team: false, enterprise: true },
-                  { feature: "Custom onboarding", pro: false, team: false, enterprise: true },
+                  { feature: "Email support", basic: true, pro: true, team: true, enterprise: true },
+                  { feature: "Priority support", basic: false, pro: true, team: true, enterprise: true },
+                  { feature: "Dedicated account manager", basic: false, pro: false, team: false, enterprise: true },
+                  { feature: "Custom onboarding", basic: false, pro: false, team: false, enterprise: true },
                 ].map((row, i) => (
                   <tr key={i} className="border-b border-slate-800/50 hover:bg-slate-900/30">
                     <td className="p-4 text-slate-300">{row.feature}</td>
+                    <td className="p-4 text-center">
+                      {row.basic ? <Check className="h-5 w-5 text-emerald-400 mx-auto" /> : <X className="h-5 w-5 text-slate-600 mx-auto" />}
+                    </td>
                     <td className="p-4 text-center">
                       {row.pro ? <Check className="h-5 w-5 text-emerald-400 mx-auto" /> : <X className="h-5 w-5 text-slate-600 mx-auto" />}
                     </td>
@@ -648,26 +751,26 @@ export default function PricingPage() {
                     <Sparkles className="h-5 w-5 text-blue-400" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-white">Unlimited Subscription</h3>
+                    <h3 className="text-lg font-semibold text-white">Subscription Plans</h3>
                     <p className="text-sm text-slate-400">Best for regular users</p>
                   </div>
                 </div>
                 <ul className="space-y-3 text-sm">
                   <li className="flex items-start gap-2 text-slate-300">
                     <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>12+ comparisons per month (break-even point)</span>
+                    <span><strong>Basic ($49/mo):</strong> 25 comparisons/month</span>
                   </li>
                   <li className="flex items-start gap-2 text-slate-300">
                     <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>Consistent, predictable workflow</span>
+                    <span><strong>Pro ($79/mo):</strong> Unlimited + Procore</span>
                   </li>
                   <li className="flex items-start gap-2 text-slate-300">
                     <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>Never worry about running out</span>
+                    <span><strong>Team ($399/mo):</strong> Unlimited + 10 users</span>
                   </li>
                   <li className="flex items-start gap-2 text-slate-300">
                     <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>Priority support included</span>
+                    <span>Predictable monthly cost, cancel anytime</span>
                   </li>
                 </ul>
               </div>
@@ -685,19 +788,19 @@ export default function PricingPage() {
                 <ul className="space-y-3 text-sm">
                   <li className="flex items-start gap-2 text-slate-300">
                     <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>Fewer than 10-12 comparisons per month</span>
+                    <span><strong>15 Pack:</strong> $100 (~$6.67/comparison)</span>
                   </li>
                   <li className="flex items-start gap-2 text-slate-300">
                     <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>Unpredictable or seasonal workload</span>
+                    <span><strong>40 Pack:</strong> $250 (~$6.25/comparison)</span>
                   </li>
                   <li className="flex items-start gap-2 text-slate-300">
                     <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>No commitment—buy only when needed</span>
+                    <span><strong>90 Pack:</strong> $500 (~$5.56/comparison)</span>
                   </li>
                   <li className="flex items-start gap-2 text-slate-300">
                     <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>Credits never expire</span>
+                    <span>Credits never expire, no commitment</span>
                   </li>
                 </ul>
               </div>
@@ -706,8 +809,8 @@ export default function PricingPage() {
             <div className="mt-8 p-4 rounded-xl bg-slate-800/50 border border-slate-700 text-center">
               <p className="text-sm text-slate-400">
                 <span className="font-medium text-white">Rule of thumb:</span>{" "}
-                If you run 10+ comparisons per month consistently, a subscription offers better value.
-                For occasional or seasonal use, credit packs give you flexibility.
+                Basic ($49/mo) beats credit packs at 8+ comparisons/month.
+                Pro ($79/mo) adds Procore integration and unlimited volume.
               </p>
             </div>
           </div>

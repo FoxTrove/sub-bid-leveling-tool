@@ -31,10 +31,10 @@ export default async function ComparisonPage({
     redirect("/login")
   }
 
-  // Fetch user profile for upsell modal
+  // Fetch user profile for upsell modal and training data opt-in
   const { data: profile } = await supabase
     .from("profiles")
-    .select("comparisons_used, credit_balance, openai_api_key_encrypted, subscription_status, promo_code")
+    .select("comparisons_used, credit_balance, openai_api_key_encrypted, subscription_status, promo_code, training_data_opt_in")
     .eq("id", user.id)
     .single()
 
@@ -233,6 +233,9 @@ export default async function ComparisonPage({
           <ComparisonGrid
             documents={project.bid_documents}
             results={project.comparison_results}
+            projectId={projectId}
+            tradeType={project.trade_type}
+            userOptedIn={profile?.training_data_opt_in ?? false}
           />
 
           <ContractorDetailCards

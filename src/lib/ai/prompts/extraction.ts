@@ -1,9 +1,13 @@
 export function getExtractionPrompt(
   tradeType: string,
   documentText: string,
-  learnedExamples?: string
+  learnedExamples?: string,
+  learnedPatterns?: string,
+  variantContent?: string
 ): string {
   const examplesSection = learnedExamples || ''
+  const patternsSection = learnedPatterns || ''
+  const variantSection = variantContent || ''
 
   return `You are an expert construction estimator analyzing a ${tradeType} subcontractor bid.
 
@@ -37,7 +41,7 @@ IMPORTANT EXTRACTION RULES:
 
 Common ${tradeType} scope items to look for:
 ${getTradeSpecificItems(tradeType)}
-${examplesSection}
+${patternsSection}${examplesSection}${variantSection}
 Document text:
 ---
 ${documentText}

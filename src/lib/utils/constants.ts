@@ -21,9 +21,30 @@ export const MAX_BIDS = 5
 // OpenAI model to use
 export const OPENAI_MODEL = 'gpt-4o'
 
-// Confidence thresholds
+// Default confidence thresholds (can be overridden per-trade via calibration)
 export const CONFIDENCE_THRESHOLD_LOW = 0.6
 export const CONFIDENCE_THRESHOLD_MEDIUM = 0.8
+
+// Type for dynamic thresholds
+export interface ConfidenceThresholds {
+  low: number
+  medium: number
+  isCalibrated: boolean
+}
+
+/**
+ * Get default confidence thresholds (for client-side or when calibration unavailable).
+ *
+ * For server-side code that needs calibrated thresholds, use:
+ * `import { getConfidenceThresholds } from '@/lib/ai/calibration/thresholds.server'`
+ */
+export function getDefaultConfidenceThresholds(): ConfidenceThresholds {
+  return {
+    low: CONFIDENCE_THRESHOLD_LOW,
+    medium: CONFIDENCE_THRESHOLD_MEDIUM,
+    isCalibrated: false,
+  }
+}
 
 // Tooltips for bid analysis metrics
 export const METRIC_TOOLTIPS = {
@@ -40,13 +61,20 @@ export const FREE_COMPARISON_LIMIT = 5
 export const SIGNUP_BONUS_CREDITS = 5 // Free comparisons on signup
 
 export const PLAN_LIMITS = {
-  free: { comparisons: 5, users: 1, brandedReports: false },
-  pro: { comparisons: Infinity, users: 1, brandedReports: false },
-  team: { comparisons: Infinity, users: 10, brandedReports: true },
-  enterprise: { comparisons: Infinity, users: Infinity, brandedReports: true },
+  free: { comparisons: 5, users: 1, brandedReports: false, procoreIntegration: false },
+  basic: { comparisons: 25, users: 1, brandedReports: false, procoreIntegration: false }, // 25/month, resets monthly, no rollover
+  pro: { comparisons: Infinity, users: 1, brandedReports: false, procoreIntegration: true },
+  team: { comparisons: Infinity, users: 10, brandedReports: true, procoreIntegration: true },
+  enterprise: { comparisons: Infinity, users: Infinity, brandedReports: true, procoreIntegration: true },
 } as const
 
 export const PRICING = {
+  basic: {
+    monthly: 49,
+    annual: 490, // 2 months free
+    stripePriceIdMonthly: process.env.NEXT_PUBLIC_STRIPE_BASIC_MONTHLY_PRICE_ID || '',
+    stripePriceIdAnnual: process.env.NEXT_PUBLIC_STRIPE_BASIC_ANNUAL_PRICE_ID || '',
+  },
   pro: {
     monthly: 79,
     annual: 790, // 2 months free
@@ -64,21 +92,21 @@ export const PRICING = {
 // Credit Packs (pay-as-you-go)
 export const CREDIT_PACKS = {
   starter: {
-    name: 'Starter',
+    name: '15 Pack',
     price: 100, // $100
     estimatedComparisons: 15, // Estimated based on typical API usage
     bonus: null,
     stripePriceId: process.env.NEXT_PUBLIC_STRIPE_STARTER_PACK_PRICE_ID || '',
   },
   professional: {
-    name: 'Professional',
+    name: '40 Pack',
     price: 250, // $250
     estimatedComparisons: 40, // Estimated, includes ~6% bonus value
     bonus: '6% more',
     stripePriceId: process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PACK_PRICE_ID || '',
   },
   enterprise: {
-    name: 'Enterprise',
+    name: '90 Pack',
     price: 500, // $500
     estimatedComparisons: 90, // Estimated, includes ~17% bonus value
     bonus: '17% more',

@@ -245,7 +245,7 @@ async function handleSubscriptionUpdate(
   subscription: Stripe.Subscription
 ) {
   const userId = subscription.metadata.supabase_user_id
-  const plan = subscription.metadata.plan as "pro" | "team" | undefined
+  const plan = subscription.metadata.plan as "basic" | "pro" | "team" | undefined
 
   if (!userId) {
     console.error("No user ID in subscription metadata")

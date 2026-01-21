@@ -1,9 +1,8 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Select,
   SelectContent,
@@ -20,20 +19,39 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CheckCircle2, XCircle, HelpCircle, AlertTriangle } from "lucide-react"
-import { formatCurrency } from "@/lib/utils/format"
-import type { ComparisonResult, BidDocumentWithItems, ScopeGap } from "@/types"
+import { AlertTriangle, CheckCircle2, XCircle, HelpCircle, Pencil } from "lucide-react"
+import { EditableCell, type CellData, type CorrectionInput } from "./editable-cell"
+import type { ComparisonResult, BidDocumentWithItems, ScopeGap, ExtractedItem } from "@/types"
 
 interface ComparisonGridProps {
   documents: BidDocumentWithItems[]
   results: ComparisonResult
+  projectId: string
+  tradeType: string
+  userOptedIn: boolean
 }
 
 type FilterType = "all" | "gaps" | "exclusions"
 
-export function ComparisonGrid({ documents, results }: ComparisonGridProps) {
+export function ComparisonGrid({
+  documents,
+  results,
+  projectId,
+  tradeType,
+  userOptedIn,
+}: ComparisonGridProps) {
+  const router = useRouter()
   const [filter, setFilter] = useState<FilterType>("all")
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
+
+  // Handle correction callback
+  const handleCorrection = useCallback(
+    (correction: CorrectionInput) => {
+      // Refresh the page to show updated data
+      router.refresh()
+    },
+    [router]
+  )
 
   // Build normalized comparison data
   const comparisonData = useMemo(() => {
@@ -63,6 +81,8 @@ export function ComparisonGrid({ documents, results }: ComparisonGridProps) {
             isExclusion: boolean
             confidence: number
             originalDescription: string
+            itemId: string
+            fullItem: ExtractedItem
           }
         >
         isGap: boolean
@@ -82,6 +102,8 @@ export function ComparisonGrid({ documents, results }: ComparisonGridProps) {
             isExclusion: item.is_exclusion,
             confidence: item.confidence_score,
             originalDescription: item.description,
+            itemId: item.id,
+            fullItem: item,
           })
         } else {
           const byContractor = new Map()
@@ -90,6 +112,8 @@ export function ComparisonGrid({ documents, results }: ComparisonGridProps) {
             isExclusion: item.is_exclusion,
             confidence: item.confidence_score,
             originalDescription: item.description,
+            itemId: item.id,
+            fullItem: item,
           })
 
           const gapInfo = scopeGaps.find(
@@ -117,20 +141,12 @@ export function ComparisonGrid({ documents, results }: ComparisonGridProps) {
           isExclusion: boolean
           confidence: number
           originalDescription: string
+          itemId: string
+          fullItem: ExtractedItem
         }>()
 
         // Mark contractors as having/not having this item
-        for (const doc of documents) {
-          const hasItem = gap.present_in.includes(doc.id)
-          if (hasItem) {
-            byContractor.set(doc.id, {
-              price: gap.estimated_value,
-              isExclusion: false,
-              confidence: 0.7,
-              originalDescription: gap.description,
-            })
-          }
-        }
+        // Note: Scope gaps without items cannot be edited (no item to update)
 
         itemsByDescription.set(gap.description, {
           description: gap.description,
@@ -167,42 +183,33 @@ export function ComparisonGrid({ documents, results }: ComparisonGridProps) {
     return items
   }, [comparisonData.items, filter, selectedCategory])
 
-  const getStatusIcon = (
+  // Get document type for the first document (used for training contributions)
+  const documentType = useMemo(() => {
+    const firstDoc = documents[0]
+    return firstDoc?.file_name?.split('.').pop() || 'pdf'
+  }, [documents])
+
+  // Helper to get cell data for a contractor
+  const getCellData = (
     contractorId: string,
     item: (typeof comparisonData.items)[0]
-  ) => {
-    const data = item.byContractor.get(contractorId)
+  ): { data: CellData | undefined; fullItem: ExtractedItem | undefined } => {
+    const contractorData = item.byContractor.get(contractorId)
 
-    if (!data) {
-      // Not mentioned
-      return (
-        <div className="flex items-center gap-1 text-muted-foreground">
-          <HelpCircle className="h-4 w-4" />
-          <span className="text-sm">Not mentioned</span>
-        </div>
-      )
+    if (!contractorData) {
+      return { data: undefined, fullItem: undefined }
     }
 
-    if (data.isExclusion) {
-      return (
-        <div className="flex items-center gap-1 text-red-600">
-          <XCircle className="h-4 w-4" />
-          <span className="text-sm">Excluded</span>
-        </div>
-      )
+    return {
+      data: {
+        price: contractorData.price,
+        isExclusion: contractorData.isExclusion,
+        confidence: contractorData.confidence,
+        originalDescription: contractorData.originalDescription,
+        itemId: contractorData.itemId,
+      },
+      fullItem: contractorData.fullItem,
     }
-
-    return (
-      <div className="flex flex-col">
-        <div className="flex items-center gap-1 text-green-600">
-          <CheckCircle2 className="h-4 w-4" />
-          <span className="font-medium">{formatCurrency(data.price)}</span>
-        </div>
-        {data.confidence < 0.8 && (
-          <span className="text-xs text-amber-600">Low confidence</span>
-        )}
-      </div>
-    )
   }
 
   return (
@@ -283,11 +290,25 @@ export function ComparisonGrid({ documents, results }: ComparisonGridProps) {
                         </div>
                       </div>
                     </TableCell>
-                    {documents.map((doc) => (
-                      <TableCell key={doc.id} className="text-center">
-                        {getStatusIcon(doc.id, item)}
-                      </TableCell>
-                    ))}
+                    {documents.map((doc) => {
+                      const { data, fullItem } = getCellData(doc.id, item)
+                      return (
+                        <TableCell key={doc.id} className="text-center">
+                          <EditableCell
+                            data={data}
+                            documentId={doc.id}
+                            projectId={projectId}
+                            tradeType={tradeType}
+                            documentType={documentType}
+                            normalizedDescription={item.description}
+                            category={item.category}
+                            userOptedIn={userOptedIn}
+                            onCorrection={handleCorrection}
+                            fullItem={fullItem}
+                          />
+                        </TableCell>
+                      )
+                    })}
                   </TableRow>
                 ))
               )}
@@ -312,6 +333,10 @@ export function ComparisonGrid({ documents, results }: ComparisonGridProps) {
           <div className="flex items-center gap-1">
             <AlertTriangle className="h-4 w-4 text-amber-600" />
             <span>Scope gap</span>
+          </div>
+          <div className="flex items-center gap-1 text-muted-foreground">
+            <Pencil className="h-4 w-4" />
+            <span>Hover to edit</span>
           </div>
         </div>
       </CardContent>
