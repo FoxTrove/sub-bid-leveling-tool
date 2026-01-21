@@ -13,8 +13,19 @@ export async function GET(request: Request) {
   // Handle code flow (PKCE)
   const code = requestUrl.searchParams.get("code")
 
-  // Extract promo code if present (passed from login form)
-  const promoCode = requestUrl.searchParams.get("promo")
+  // Extract promo code - check direct param first, then parse from 'next' URL
+  let promoCode = requestUrl.searchParams.get("promo")
+
+  // If promo not directly in URL, check the 'next' param (from email template's RedirectTo)
+  const nextUrl = requestUrl.searchParams.get("next")
+  if (!promoCode && nextUrl) {
+    try {
+      const parsedNext = new URL(nextUrl)
+      promoCode = parsedNext.searchParams.get("promo")
+    } catch {
+      // Invalid URL, ignore
+    }
+  }
 
   const supabase = await createClient()
 
