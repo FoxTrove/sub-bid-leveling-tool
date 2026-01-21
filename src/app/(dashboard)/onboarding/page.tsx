@@ -26,23 +26,42 @@ export default function OnboardingPage() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
 
-  // Check for promo code from URL params first (survives across tabs via magic link),
-  // then fall back to session storage (same-tab flow)
+  // Check for promo code from multiple sources (in order of priority):
+  // 1. URL params (from callback redirect)
+  // 2. User metadata (stored during signup via signInWithOtp)
+  // 3. Session storage (same-tab flow fallback)
   useEffect(() => {
-    // First check URL params (this survives the magic link redirect across tabs)
-    const urlPromoCode = searchParams.get("promo")?.toUpperCase()
-    if (urlPromoCode && urlPromoCode in PROMO_CODES) {
-      setPromoCode(urlPromoCode)
-      // Also store in sessionStorage for consistency
-      sessionStorage.setItem("bidvet_promo_code", urlPromoCode)
-      return
+    const checkPromoCode = async () => {
+      // First check URL params
+      const urlPromoCode = searchParams.get("promo")?.toUpperCase()
+      if (urlPromoCode && urlPromoCode in PROMO_CODES) {
+        setPromoCode(urlPromoCode)
+        sessionStorage.setItem("bidvet_promo_code", urlPromoCode)
+        return
+      }
+
+      // Check user metadata (most reliable for cross-tab magic links)
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        const metadataPromo = user?.user_metadata?.promo_code?.toUpperCase()
+        if (metadataPromo && metadataPromo in PROMO_CODES) {
+          setPromoCode(metadataPromo)
+          sessionStorage.setItem("bidvet_promo_code", metadataPromo)
+          return
+        }
+      } catch (error) {
+        console.error("Error checking user metadata for promo:", error)
+      }
+
+      // Fall back to session storage
+      const savedPromoCode = sessionStorage.getItem("bidvet_promo_code")
+      if (savedPromoCode && savedPromoCode in PROMO_CODES) {
+        setPromoCode(savedPromoCode)
+      }
     }
 
-    // Fall back to session storage (for same-tab navigation)
-    const savedPromoCode = sessionStorage.getItem("bidvet_promo_code")
-    if (savedPromoCode && savedPromoCode in PROMO_CODES) {
-      setPromoCode(savedPromoCode)
-    }
+    checkPromoCode()
   }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {

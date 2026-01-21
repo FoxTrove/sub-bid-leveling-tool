@@ -64,6 +64,8 @@ export function LoginForm({ promoCode, plan, interval }: LoginFormProps) {
         email,
         options: {
           emailRedirectTo: redirectUrl,
+          // Store promo code in user metadata - this survives across tabs/browsers
+          data: promoCode ? { promo_code: promoCode } : undefined,
         },
       })
 
