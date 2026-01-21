@@ -57,6 +57,14 @@ export async function GET(request: Request) {
     }
   }
 
+  // Check if user is already authenticated (session may have been set by Supabase's /verify endpoint)
+  // This handles cases where PKCE code exchange fails due to cross-tab/browser issues
+  // but Supabase already authenticated the user
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user) {
+    return NextResponse.redirect(buildRedirectUrl("/dashboard"))
+  }
+
   // If there's no valid auth params or an error, redirect to login with error
   return NextResponse.redirect(`${origin}/login?error=auth_failed`)
 }
