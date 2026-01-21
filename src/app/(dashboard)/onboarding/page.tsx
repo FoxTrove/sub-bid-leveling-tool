@@ -53,6 +53,18 @@ export default function OnboardingPage() {
       return
     }
 
+    // Validate password if provided
+    if (password) {
+      if (password.length < 8) {
+        toast.error("Password must be at least 8 characters")
+        return
+      }
+      if (password !== confirmPassword) {
+        toast.error("Passwords do not match")
+        return
+      }
+    }
+
     setIsLoading(true)
 
     try {
@@ -64,6 +76,20 @@ export default function OnboardingPage() {
 
       if (!user) {
         throw new Error("Not authenticated")
+      }
+
+      // Set password if provided
+      if (password) {
+        const passwordResponse = await fetch("/api/auth/set-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password }),
+        })
+
+        if (!passwordResponse.ok) {
+          const data = await passwordResponse.json()
+          throw new Error(data.error || "Failed to set password")
+        }
       }
 
       // Build update object with promo code if present
@@ -114,7 +140,7 @@ export default function OnboardingPage() {
       router.push("/dashboard")
       router.refresh()
     } catch (error) {
-      toast.error("Failed to save profile")
+      toast.error(error instanceof Error ? error.message : "Failed to save profile")
       console.error(error)
     } finally {
       setIsLoading(false)
@@ -221,6 +247,62 @@ export default function OnboardingPage() {
               <p className="text-xs text-muted-foreground pl-8">
                 You can change this anytime in Settings.
               </p>
+            </div>
+
+            {/* Password Setup */}
+            <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
+              <div className="flex items-start gap-3">
+                <Lock className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                <div className="space-y-1">
+                  <p className="font-medium text-sm">Set a Password (Recommended)</p>
+                  <p className="text-xs text-muted-foreground">
+                    Create a password for faster sign-in next time. You can skip this and sign in with a magic link instead.
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-3 pl-8">
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="At least 8 characters"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      disabled={isLoading}
+                      minLength={8}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-full px-3"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+                {password && (
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirm Password</Label>
+                    <Input
+                      id="confirmPassword"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Re-enter your password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      disabled={isLoading}
+                      minLength={8}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>
