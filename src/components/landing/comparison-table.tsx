@@ -5,64 +5,73 @@ import { cn } from "@/lib/utils"
 
 const features = [
   {
+    name: "Procore integration",
+    bidvet: true,
+    otherAI: false,
+    manual: false,
+    highlight: true,
+  },
+  {
+    name: "Fully automated normalization",
+    bidvet: true,
+    otherAI: "Semi-manual",
+    manual: false,
+    highlight: true,
+  },
+  {
+    name: "AI recommendations with reasoning",
+    bidvet: true,
+    otherAI: false,
+    manual: false,
+    highlight: true,
+  },
+  {
+    name: "Confidence scores",
+    bidvet: true,
+    otherAI: false,
+    manual: false,
+  },
+  {
     name: "Time to compare 4 bids",
     bidvet: "~2 minutes",
+    otherAI: "5-10 min + review",
     manual: "3-4 hours",
-    intern: "1-2 hours",
   },
   {
     name: "Automatic scope extraction",
     bidvet: true,
+    otherAI: true,
     manual: false,
-    intern: false,
   },
   {
-    name: "Exclusion detection",
+    name: "Scope gap detection",
     bidvet: true,
+    otherAI: true,
     manual: "Maybe",
-    intern: "Varies",
-  },
-  {
-    name: "Scope gap analysis",
-    bidvet: true,
-    manual: false,
-    intern: false,
-  },
-  {
-    name: "AI recommendations",
-    bidvet: true,
-    manual: false,
-    intern: false,
-  },
-  {
-    name: "Consistent formatting",
-    bidvet: true,
-    manual: false,
-    intern: "Varies",
   },
   {
     name: "PDF/Word/Excel support",
     bidvet: true,
+    otherAI: "PDF only",
     manual: true,
-    intern: true,
+  },
+  {
+    name: "Team collaboration",
+    bidvet: true,
+    otherAI: false,
+    manual: false,
   },
   {
     name: "Professional PDF export",
     bidvet: true,
+    otherAI: "Excel only",
     manual: false,
-    intern: "Basic",
-  },
-  {
-    name: "Learn your preferences",
-    bidvet: "Coming soon",
-    manual: false,
-    intern: "Over time",
   },
   {
     name: "Cost per comparison",
     bidvet: "~$6",
+    otherAI: "Beta/Unknown",
     manual: "$150-300*",
-    intern: "$30-60*",
     note: "*Based on labor cost",
   },
 ]
@@ -88,7 +97,7 @@ function FeatureValue({ value }: { value: boolean | string }) {
     )
   }
 
-  if (value === "Maybe" || value === "Varies" || value === "Basic" || value === "Over time") {
+  if (value === "Maybe" || value === "Varies" || value === "Basic" || value === "Over time" || value === "Semi-manual" || value === "PDF only" || value === "Excel only" || value === "5-10 min + review" || value === "Beta/Unknown") {
     return (
       <div className="flex justify-center">
         <span className="text-sm text-amber-400">{value}</span>
@@ -124,7 +133,7 @@ export function ComparisonTable() {
             BidVet vs. The Alternatives
           </h2>
           <p className="mt-4 text-lg text-slate-400">
-            See how BidVet stacks up against manual spreadsheets and hiring help
+            See how BidVet compares to other AI tools and manual methods
           </p>
         </div>
 
@@ -145,17 +154,17 @@ export function ComparisonTable() {
                   <th className="p-4 text-center">
                     <div className="inline-flex flex-col items-center">
                       <div className="h-12 w-12 rounded-xl bg-slate-800 flex items-center justify-center mb-2 text-2xl">
-                        📊
+                        🤖
                       </div>
-                      <span className="font-medium text-slate-400">Spreadsheets</span>
+                      <span className="font-medium text-slate-400">Other AI Tools</span>
                     </div>
                   </th>
                   <th className="p-4 text-center">
                     <div className="inline-flex flex-col items-center">
                       <div className="h-12 w-12 rounded-xl bg-slate-800 flex items-center justify-center mb-2 text-2xl">
-                        👤
+                        📊
                       </div>
-                      <span className="font-medium text-slate-400">Hire Help</span>
+                      <span className="font-medium text-slate-400">Spreadsheets</span>
                     </div>
                   </th>
                 </tr>
@@ -166,12 +175,22 @@ export function ComparisonTable() {
                     key={feature.name}
                     className={cn(
                       "border-t border-slate-800",
-                      index % 2 === 0 ? "bg-slate-900/50" : ""
+                      "highlight" in feature && feature.highlight
+                        ? "bg-blue-500/10 border-l-2 border-l-blue-500"
+                        : index % 2 === 0 ? "bg-slate-900/50" : ""
                     )}
                   >
                     <td className="p-4">
-                      <span className="font-medium text-white">{feature.name}</span>
-                      {feature.note && (
+                      <span className={cn(
+                        "font-medium",
+                        "highlight" in feature && feature.highlight ? "text-blue-300" : "text-white"
+                      )}>
+                        {feature.name}
+                        {"highlight" in feature && feature.highlight && (
+                          <span className="ml-2 text-xs text-blue-400">★</span>
+                        )}
+                      </span>
+                      {"note" in feature && feature.note && (
                         <span className="block text-xs text-slate-500 mt-1">
                           {feature.note}
                         </span>
@@ -181,10 +200,10 @@ export function ComparisonTable() {
                       <FeatureValue value={feature.bidvet} />
                     </td>
                     <td className="p-4">
-                      <FeatureValue value={feature.manual} />
+                      <FeatureValue value={feature.otherAI} />
                     </td>
                     <td className="p-4">
-                      <FeatureValue value={feature.intern} />
+                      <FeatureValue value={feature.manual} />
                     </td>
                   </tr>
                 ))}

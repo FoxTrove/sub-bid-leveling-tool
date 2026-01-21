@@ -71,7 +71,7 @@ export function Hero() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75"></span>
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500"></span>
               </span>
-              AI-Powered Bid Leveling
+              Fully Automated AI Bid Leveling
             </div>
 
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl text-white">
@@ -82,8 +82,8 @@ export function Hero() {
             </h1>
 
             <p className="mt-6 text-lg text-slate-400 md:text-xl max-w-xl mx-auto lg:mx-0">
-              Upload subcontractor bids and let AI normalize them apples-to-apples.
-              See scope gaps, exclusions, and get a recommendation instantly.
+              The only bid leveling tool with Procore integration and fully automated
+              normalization. Upload bids, get AI recommendations with confidence scores—no manual adjustments needed.
             </p>
 
             <form
@@ -110,10 +110,10 @@ export function Hero() {
             {/* Trust indicators */}
             <div className="mt-10 flex flex-wrap justify-center lg:justify-start gap-x-6 gap-y-3">
               {[
-                "Compare 3-5 bids",
-                "AI analysis",
-                "PDF export",
-                "Scope gaps",
+                "Procore integration",
+                "Auto-normalization",
+                "AI recommendations",
+                "PDF/Excel/Word",
               ].map((feature) => (
                 <div key={feature} className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-blue-500" />

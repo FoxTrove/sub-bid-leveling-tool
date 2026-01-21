@@ -7,50 +7,55 @@ import {
   FileText,
   Target,
   Zap,
+  Link2,
+  Sparkles,
+  Shield,
 } from "lucide-react"
 
 const features = [
   {
-    icon: Target,
-    title: "Scope Gap Detection",
+    icon: Link2,
+    title: "Procore Integration",
     description:
-      "Instantly see which items are missing from each bid. Never miss an exclusion again.",
+      "Import projects and bids directly from Procore. No more manual file downloads and uploads.",
+    color: "violet",
+    badge: "Exclusive",
+  },
+  {
+    icon: Sparkles,
+    title: "Fully Automated Normalization",
+    description:
+      "AI normalizes bids automatically—no manual adjustments needed. Other tools require you to do this yourself.",
     color: "blue",
-  },
-  {
-    icon: AlertTriangle,
-    title: "Exclusion Flagging",
-    description:
-      "AI identifies and highlights exclusions that could blow your budget later.",
-    color: "amber",
-  },
-  {
-    icon: BarChart3,
-    title: "True Price Comparison",
-    description:
-      "Compare bids on equal footing by accounting for what's actually included.",
-    color: "emerald",
+    badge: "Key Differentiator",
   },
   {
     icon: Zap,
     title: "AI Recommendations",
     description:
-      "Get intelligent suggestions on which contractor to choose and why.",
-    color: "violet",
+      "Get intelligent contractor recommendations with confidence scores explaining why, not just raw data.",
+    color: "emerald",
   },
   {
-    icon: Clock,
-    title: "Save Hours of Work",
+    icon: Target,
+    title: "Scope Gap Detection",
     description:
-      "What used to take 2-4 hours in spreadsheets now takes minutes.",
-    color: "blue",
+      "Instantly see which items are missing from each bid. Never miss an exclusion again.",
+    color: "amber",
   },
   {
-    icon: FileText,
-    title: "PDF Export",
+    icon: BarChart3,
+    title: "Multi-Format Support",
     description:
-      "Generate professional comparison reports to share with your team or clients.",
+      "Upload PDFs, Excel spreadsheets, and Word documents. Compare bids regardless of format.",
     color: "indigo",
+  },
+  {
+    icon: Shield,
+    title: "Confidence Scoring",
+    description:
+      "Every extracted item includes a confidence score so you know what needs manual review.",
+    color: "blue",
   },
 ]
 
@@ -91,6 +96,11 @@ export function Features() {
                 key={feature.title}
                 className="group relative rounded-2xl bg-slate-900/50 border border-slate-800 p-6 hover:border-slate-700 transition-all duration-300 hover:shadow-lg hover:shadow-slate-900/50"
               >
+                {"badge" in feature && feature.badge && (
+                  <div className="absolute -top-2 -right-2 px-2 py-0.5 text-xs font-medium bg-gradient-to-r from-blue-500 to-violet-500 text-white rounded-full shadow-lg">
+                    {feature.badge}
+                  </div>
+                )}
                 <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${colors.bg} border ${colors.border} transition-colors`}>
                   <feature.icon className={`h-6 w-6 ${colors.text}`} />
                 </div>
