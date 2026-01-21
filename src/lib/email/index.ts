@@ -323,6 +323,7 @@ export async function sendAdminNewSignupEmail(params: {
           day: 'numeric',
           hour: 'numeric',
           minute: '2-digit',
+          timeZone: 'America/Denver',
         }),
       }),
     })
@@ -361,6 +362,7 @@ export async function sendAdminTeamSubscriptionEmail(params: {
           day: 'numeric',
           hour: 'numeric',
           minute: '2-digit',
+          timeZone: 'America/Denver',
         }),
       }),
     })
@@ -395,6 +397,7 @@ export async function sendAdminApiKeyAddedEmail(params: {
           day: 'numeric',
           hour: 'numeric',
           minute: '2-digit',
+          timeZone: 'America/Denver',
         }),
       }),
     })
@@ -433,6 +436,7 @@ export async function sendAdminCreditPurchaseEmail(params: {
           day: 'numeric',
           hour: 'numeric',
           minute: '2-digit',
+          timeZone: 'America/Denver',
         }),
       }),
     })
