@@ -7,6 +7,7 @@ import { UsageBanner } from "@/components/dashboard/usage-banner"
 import { EmptyState } from "@/components/dashboard/empty-state"
 import { FolderCard } from "@/components/dashboard/folder-card"
 import { CreateFolderDialog } from "@/components/dashboard/create-folder-dialog"
+import { CheckoutRedirect } from "@/components/dashboard/checkout-redirect"
 import type { FolderWithProjects } from "@/types"
 
 export default async function DashboardPage() {
@@ -63,6 +64,7 @@ export default async function DashboardPage() {
 
   return (
     <div>
+      <CheckoutRedirect />
       <div className="mb-8 flex items-start justify-between">
         <div>
           <h1 className="text-3xl font-bold">Your Projects</h1>

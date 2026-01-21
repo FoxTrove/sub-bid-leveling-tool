@@ -22,6 +22,7 @@ const subscriptionPlans = [
     monthlyPrice: 79,
     annualPrice: 790,
     icon: Zap,
+    planKey: "pro",
     features: [
       { text: "Unlimited comparisons", included: true },
       { text: "PDF & CSV exports", included: true },
@@ -31,7 +32,6 @@ const subscriptionPlans = [
       { text: "Email support", included: true },
     ],
     cta: "Start Pro",
-    ctaLink: "/login?plan=pro",
     popular: true,
   },
   {
@@ -40,6 +40,7 @@ const subscriptionPlans = [
     monthlyPrice: 199,
     annualPrice: 1990,
     icon: Users,
+    planKey: "team",
     features: [
       { text: "Everything in Pro", included: true },
       { text: "Up to 10 team members", included: true },
@@ -49,8 +50,8 @@ const subscriptionPlans = [
       { text: "Usage analytics", included: true },
     ],
     cta: "Start Team",
-    ctaLink: "/login?plan=team",
     popular: false,
+    highlight: true,
   },
   {
     name: "Enterprise",
@@ -58,6 +59,7 @@ const subscriptionPlans = [
     monthlyPrice: null,
     annualPrice: null,
     icon: Building2,
+    planKey: "enterprise",
     features: [
       { text: "Everything in Team", included: true },
       { text: "Unlimited team members", included: true },
@@ -441,12 +443,19 @@ export default function PricingPage() {
                   "relative flex flex-col border-2 transition-all",
                   plan.popular
                     ? "border-primary shadow-lg shadow-primary/10 scale-105 z-10"
+                    : plan.highlight
+                    ? "border-accent shadow-lg shadow-accent/10"
                     : "border-border/50 hover:border-primary/50"
                 )}
               >
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                     <Badge className="bg-primary shadow-lg">Most Popular</Badge>
+                  </div>
+                )}
+                {plan.highlight && !plan.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <Badge className="bg-accent shadow-lg">Best for Teams</Badge>
                   </div>
                 )}
 
@@ -492,13 +501,17 @@ export default function PricingPage() {
                 </CardContent>
 
                 <CardFooter>
-                  <Link href={plan.ctaLink} className="w-full">
+                  <Link
+                    href={plan.ctaLink || `/login?plan=${plan.planKey}&interval=${isAnnual ? "annual" : "monthly"}`}
+                    className="w-full"
+                  >
                     <Button
                       className={cn(
                         "w-full",
-                        plan.popular && "shadow-lg shadow-primary/20"
+                        plan.popular && "shadow-lg shadow-primary/20",
+                        plan.highlight && !plan.popular && "bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg shadow-accent/20"
                       )}
-                      variant={plan.popular ? "default" : "outline"}
+                      variant={plan.popular ? "default" : plan.highlight ? "default" : "outline"}
                     >
                       {plan.cta}
                       <ArrowRight className="ml-2 h-4 w-4" />

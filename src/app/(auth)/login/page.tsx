@@ -12,13 +12,15 @@ import { Badge } from "@/components/ui/badge"
 import { PROMO_CODES } from "@/lib/utils/constants"
 
 interface LoginPageProps {
-  searchParams: Promise<{ code?: string; redirect?: string }>
+  searchParams: Promise<{ code?: string; redirect?: string; plan?: string; interval?: string }>
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams
   const promoCode = params.code?.toUpperCase()
   const isValidPromo = promoCode && promoCode in PROMO_CODES
+  const plan = params.plan as "pro" | "team" | undefined
+  const interval = (params.interval || "monthly") as "monthly" | "annual"
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-muted/30 p-4">
@@ -47,7 +49,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <LoginForm promoCode={isValidPromo ? promoCode : undefined} />
+          <LoginForm
+            promoCode={isValidPromo ? promoCode : undefined}
+            plan={plan}
+            interval={interval}
+          />
         </CardContent>
       </Card>
 

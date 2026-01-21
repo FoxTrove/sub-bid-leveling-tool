@@ -14,9 +14,11 @@ import { toast } from "sonner"
 
 interface LoginFormProps {
   promoCode?: string
+  plan?: "pro" | "team"
+  interval?: "monthly" | "annual"
 }
 
-export function LoginForm({ promoCode }: LoginFormProps) {
+export function LoginForm({ promoCode, plan, interval }: LoginFormProps) {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -24,7 +26,7 @@ export function LoginForm({ promoCode }: LoginFormProps) {
   const [isSent, setIsSent] = useState(false)
   const [activeTab, setActiveTab] = useState<"magic" | "password">("magic")
 
-  // Pre-fill email from landing page and store promo code
+  // Pre-fill email from landing page and store promo code/plan
   useEffect(() => {
     const savedEmail = sessionStorage.getItem("bidvet_email")
     if (savedEmail) {
@@ -36,7 +38,13 @@ export function LoginForm({ promoCode }: LoginFormProps) {
     if (promoCode) {
       sessionStorage.setItem("bidvet_promo_code", promoCode)
     }
-  }, [promoCode])
+
+    // Store plan selection for checkout redirect after auth
+    if (plan) {
+      sessionStorage.setItem("bidvet_checkout_plan", plan)
+      sessionStorage.setItem("bidvet_checkout_interval", interval || "monthly")
+    }
+  }, [promoCode, plan, interval])
 
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault()
