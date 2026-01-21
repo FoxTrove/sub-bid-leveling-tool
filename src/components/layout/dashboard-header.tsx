@@ -120,7 +120,15 @@ export function DashboardHeader({ userEmail, planInfo }: DashboardHeaderProps) {
             alt="BidVet"
             width={140}
             height={40}
-            className="h-8 w-auto"
+            className="h-8 w-auto dark:hidden"
+            priority
+          />
+          <Image
+            src="/bidvet-logo-light.png"
+            alt="BidVet"
+            width={140}
+            height={40}
+            className="h-8 w-auto hidden dark:block"
             priority
           />
         </Link>

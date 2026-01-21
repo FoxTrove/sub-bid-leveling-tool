@@ -56,7 +56,7 @@ export function Hero() {
             {/* Logo */}
             <div className="mb-6">
               <Image
-                src="/bidvet-logo.png"
+                src="/bidvet-logo-light.png"
                 alt="BidVet"
                 width={200}
                 height={56}
