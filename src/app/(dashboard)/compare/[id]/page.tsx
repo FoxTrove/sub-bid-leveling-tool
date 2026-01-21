@@ -12,6 +12,8 @@ import { ContractorDetailCards } from "@/components/compare/results/contractor-d
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { ReanalyzeButton } from "@/components/compare/results/reanalyze-button"
 import { ResultsTracker, TrackedExportLink } from "@/components/compare/results/results-tracker"
+import { FirstComparisonModal } from "@/components/compare/results/first-comparison-modal"
+import { FREE_COMPARISON_LIMIT } from "@/lib/utils/constants"
 
 export default async function ComparisonPage({
   params,
@@ -28,6 +30,13 @@ export default async function ComparisonPage({
   if (!user) {
     redirect("/login")
   }
+
+  // Fetch user profile for upsell modal
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("comparisons_used, credit_balance, openai_api_key_encrypted, subscription_status, promo_code")
+    .eq("id", user.id)
+    .single()
 
   // Fetch project with all related data
   const { data: project, error } = await supabase
@@ -231,6 +240,17 @@ export default async function ComparisonPage({
             results={project.comparison_results}
           />
         </div>
+      )}
+
+      {/* First Comparison Upsell Modal */}
+      {isComplete && profile && (
+        <FirstComparisonModal
+          comparisonsUsed={profile.comparisons_used || 0}
+          hasApiKey={!!profile.openai_api_key_encrypted}
+          isSubscriptionActive={profile.subscription_status === "active"}
+          promoCode={profile.promo_code}
+          freeRemaining={Math.max(FREE_COMPARISON_LIMIT - (profile.comparisons_used || 0), 0)}
+        />
       )}
     </div>
   )
