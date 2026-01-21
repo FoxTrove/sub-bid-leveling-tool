@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client"
 import { LogOut, Settings, Key, Sparkles, Coins, CreditCard } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { MobileNav } from "@/components/layout/mobile-nav"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,9 +32,10 @@ interface PlanInfo {
 interface DashboardHeaderProps {
   userEmail?: string
   planInfo?: PlanInfo
+  hasTeam?: boolean
 }
 
-export function DashboardHeader({ userEmail, planInfo }: DashboardHeaderProps) {
+export function DashboardHeader({ userEmail, planInfo, hasTeam = false }: DashboardHeaderProps) {
   const router = useRouter()
 
   const handleSignOut = async () => {
@@ -114,24 +116,27 @@ export function DashboardHeader({ userEmail, planInfo }: DashboardHeaderProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
-        <Link href="/dashboard" className="flex items-center group transition-opacity hover:opacity-80">
-          <Image
-            src="/bidvet-logo.png"
-            alt="BidVet"
-            width={140}
-            height={40}
-            className="h-8 w-auto dark:hidden"
-            priority
-          />
-          <Image
-            src="/bidvet-logo-light.png"
-            alt="BidVet"
-            width={140}
-            height={40}
-            className="h-8 w-auto hidden dark:block"
-            priority
-          />
-        </Link>
+        <div className="flex items-center gap-2">
+          <MobileNav hasTeam={hasTeam} />
+          <Link href="/dashboard" className="flex items-center group transition-opacity hover:opacity-80">
+            <Image
+              src="/bidvet-logo.png"
+              alt="BidVet"
+              width={140}
+              height={40}
+              className="h-8 w-auto dark:hidden"
+              priority
+            />
+            <Image
+              src="/bidvet-logo-light.png"
+              alt="BidVet"
+              width={140}
+              height={40}
+              className="h-8 w-auto hidden dark:block"
+              priority
+            />
+          </Link>
+        </div>
 
         <div className="flex items-center gap-3">
           {/* Credit balance pill - visible when user has credits */}

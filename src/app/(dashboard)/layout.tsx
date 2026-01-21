@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { headers } from "next/headers"
 import { createClient } from "@/lib/supabase/server"
 import { DashboardHeader } from "@/components/layout/dashboard-header"
+import { SidebarNav } from "@/components/layout/sidebar-nav"
 import { PasswordSetupBanner } from "@/components/dashboard/password-setup-banner"
 import { LowCreditsBanner } from "@/components/shared/low-credits-banner"
 
@@ -23,9 +24,12 @@ export default async function DashboardLayout({
   // Fetch profile to check onboarding status and plan
   const { data: profile } = await supabase
     .from("profiles")
-    .select("onboarding_completed, password_set, plan, subscription_status, openai_api_key_encrypted, comparisons_used, credit_balance")
+    .select("onboarding_completed, password_set, plan, subscription_status, openai_api_key_encrypted, comparisons_used, credit_balance, organization_id")
     .eq("id", user.id)
     .single()
+
+  // Check if user is part of a team/organization
+  const hasTeam = !!profile?.organization_id
 
   // Get current path to avoid redirect loop
   const headersList = await headers()
@@ -55,10 +59,13 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <DashboardHeader userEmail={user.email} planInfo={planInfo} />
+      <DashboardHeader userEmail={user.email} planInfo={planInfo} hasTeam={hasTeam} />
+      <SidebarNav hasTeam={hasTeam} />
       {showPasswordBanner && <PasswordSetupBanner />}
       {showLowCreditsBanner && <LowCreditsBanner creditBalance={creditBalance} />}
-      <main className="container py-8">{children}</main>
+      <main className="md:pl-16 transition-all duration-200">
+        <div className="container py-8">{children}</div>
+      </main>
     </div>
   )
 }
