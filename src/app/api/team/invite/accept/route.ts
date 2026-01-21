@@ -70,13 +70,20 @@ export async function POST(request: NextRequest) {
     // Check if user is already in an organization
     const { data: existingMembership } = await supabase
       .from("organization_members")
-      .select("id")
+      .select("id, organization_id")
       .eq("user_id", user.id)
       .single()
 
     if (existingMembership) {
+      // User is already in an organization
+      if (existingMembership.organization_id === invite.organization_id) {
+        return NextResponse.json(
+          { error: "You are already a member of this organization" },
+          { status: 400 }
+        )
+      }
       return NextResponse.json(
-        { error: "You are already part of an organization" },
+        { error: "You are already part of another organization. Please contact support to transfer." },
         { status: 400 }
       )
     }
@@ -111,6 +118,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to join organization" }, { status: 500 })
     }
 
+    // Migrate existing project folders to the organization
+    // This allows existing users to bring their projects into the team
+    const { data: existingFolders, error: foldersError } = await supabase
+      .from("project_folders")
+      .select("id")
+      .eq("user_id", user.id)
+      .is("organization_id", null)
+
+    if (existingFolders && existingFolders.length > 0) {
+      const folderIds = existingFolders.map(f => f.id)
+      const { error: migrateError } = await supabase
+        .from("project_folders")
+        .update({ organization_id: invite.organization_id })
+        .in("id", folderIds)
+
+      if (migrateError) {
+        console.error("Error migrating folders:", migrateError)
+        // Don't fail the join, just log the error
+      }
+    }
+
     // Update user's profile with organization_id
     await supabase
       .from("profiles")
@@ -132,6 +160,7 @@ export async function POST(request: NextRequest) {
         id: org.id,
         name: org.name,
       },
+      migratedProjects: existingFolders?.length || 0,
     })
   } catch (error) {
     console.error("Accept invite error:", error)
@@ -197,6 +226,35 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Check if the current user is logged in and has existing projects
+    let userContext = null
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (user) {
+      // Check if user already in an organization
+      const { data: existingMembership } = await supabase
+        .from("organization_members")
+        .select("organization_id")
+        .eq("user_id", user.id)
+        .single()
+
+      // Count existing project folders
+      const { count: folderCount } = await supabase
+        .from("project_folders")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .is("organization_id", null)
+
+      userContext = {
+        isLoggedIn: true,
+        email: user.email,
+        isEmailMatch: user.email?.toLowerCase() === invite.email.toLowerCase(),
+        hasExistingOrg: !!existingMembership,
+        existingOrgSame: existingMembership?.organization_id === (invite.organization as any)?.id,
+        existingProjectCount: folderCount || 0,
+      }
+    }
+
     return NextResponse.json({
       invite: {
         email: invite.email,
@@ -204,6 +262,7 @@ export async function GET(request: NextRequest) {
         organization: invite.organization,
         expiresAt: invite.expires_at,
       },
+      userContext,
     })
   } catch (error) {
     console.error("Get invite error:", error)

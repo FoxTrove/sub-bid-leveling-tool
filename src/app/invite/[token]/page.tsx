@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
-import { Users, Building2, CheckCircle2, XCircle, Loader2, Scale } from "lucide-react"
+import { Users, Building2, CheckCircle2, XCircle, Loader2, Scale, FolderOpen, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { toast } from "sonner"
 
 interface InviteDetails {
@@ -18,6 +19,15 @@ interface InviteDetails {
   expiresAt: string
 }
 
+interface UserContext {
+  isLoggedIn: boolean
+  email: string
+  isEmailMatch: boolean
+  hasExistingOrg: boolean
+  existingOrgSame: boolean
+  existingProjectCount: number
+}
+
 export default function InviteAcceptPage() {
   const router = useRouter()
   const params = useParams()
@@ -26,8 +36,10 @@ export default function InviteAcceptPage() {
   const [loading, setLoading] = useState(true)
   const [accepting, setAccepting] = useState(false)
   const [invite, setInvite] = useState<InviteDetails | null>(null)
+  const [userContext, setUserContext] = useState<UserContext | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [migratedCount, setMigratedCount] = useState(0)
 
   useEffect(() => {
     async function fetchInvite() {
@@ -41,6 +53,7 @@ export default function InviteAcceptPage() {
         }
 
         setInvite(data.invite)
+        setUserContext(data.userContext)
       } catch {
         setError("Failed to load invite details")
       } finally {
@@ -73,12 +86,13 @@ export default function InviteAcceptPage() {
       }
 
       setSuccess(true)
+      setMigratedCount(data.migratedProjects || 0)
       toast.success(`Welcome to ${data.organization.name}!`)
 
       // Redirect to dashboard after a short delay
       setTimeout(() => {
         router.push("/dashboard")
-      }, 2000)
+      }, 2500)
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to accept invite")
     } finally {
@@ -133,8 +147,18 @@ export default function InviteAcceptPage() {
               You've successfully joined {invite?.organization.name}
             </CardDescription>
           </CardHeader>
-          <CardContent className="text-center">
-            <p className="text-sm text-muted-foreground mb-4">
+          <CardContent className="text-center space-y-4">
+            {migratedCount > 0 && (
+              <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3">
+                <div className="flex items-center justify-center gap-2 text-blue-700 dark:text-blue-300">
+                  <FolderOpen className="h-4 w-4" />
+                  <span className="text-sm font-medium">
+                    {migratedCount} existing project{migratedCount !== 1 ? 's' : ''} added to team
+                  </span>
+                </div>
+              </div>
+            )}
+            <p className="text-sm text-muted-foreground">
               Redirecting to dashboard...
             </p>
             <Loader2 className="h-5 w-5 animate-spin mx-auto text-primary" />
@@ -194,6 +218,43 @@ export default function InviteAcceptPage() {
               </div>
             </div>
 
+            {/* User context warnings */}
+            {userContext && !userContext.isEmailMatch && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  This invite was sent to <strong>{invite?.email}</strong>, but you're logged in as <strong>{userContext.email}</strong>.
+                  Please log in with the correct email to accept this invite.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {userContext && userContext.hasExistingOrg && !userContext.existingOrgSame && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  You're already part of another organization. Please contact support to transfer to this team.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Existing projects info */}
+            {userContext && userContext.existingProjectCount > 0 && !userContext.hasExistingOrg && (
+              <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3">
+                <div className="flex items-start gap-3">
+                  <FolderOpen className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-medium text-blue-800 dark:text-blue-200">
+                      Your {userContext.existingProjectCount} existing project{userContext.existingProjectCount !== 1 ? 's' : ''} will be added to the team
+                    </p>
+                    <p className="text-blue-600 dark:text-blue-400 mt-0.5">
+                      All your bid comparisons will be shared with team members.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <p className="text-sm text-center text-muted-foreground">
               By accepting this invite, you'll be able to collaborate with your
               team on bid comparisons and share projects.
@@ -203,7 +264,7 @@ export default function InviteAcceptPage() {
               className="w-full"
               size="lg"
               onClick={handleAccept}
-              disabled={accepting}
+              disabled={accepting || (userContext && !userContext.isEmailMatch) || (userContext?.hasExistingOrg && !userContext.existingOrgSame)}
             >
               {accepting ? (
                 <>
