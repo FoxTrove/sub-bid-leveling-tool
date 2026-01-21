@@ -12,6 +12,9 @@ import { AdminNewSignupEmail } from './templates/admin-new-signup'
 import { AdminTeamSubscriptionEmail } from './templates/admin-team-subscription'
 import { AdminApiKeyAddedEmail } from './templates/admin-api-key-added'
 import { AdminCreditPurchaseEmail } from './templates/admin-credit-purchase'
+import { MentionNotificationEmail } from './templates/mention-notification'
+import { CommentNotificationEmail } from './templates/comment-notification'
+import { ProjectSharedEmail } from './templates/project-shared'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -431,6 +434,91 @@ export async function sendAdminCreditPurchaseEmail(params: {
           hour: 'numeric',
           minute: '2-digit',
         }),
+      }),
+    })
+  )
+}
+
+// ============================================
+// Team Collaboration Notification Emails
+// ============================================
+
+/**
+ * Send email notification when user is mentioned in a comment
+ */
+export async function sendMentionNotificationEmail(params: {
+  to: string
+  recipientName: string
+  mentionedBy: string
+  projectName: string
+  commentPreview: string
+  projectUrl: string
+}): Promise<EmailResult> {
+  return sendWithRetry(() =>
+    resend.emails.send({
+      from: `${FROM_NAME} <${FROM_EMAIL}>`,
+      to: params.to,
+      subject: `${params.mentionedBy} mentioned you in "${params.projectName}"`,
+      react: MentionNotificationEmail({
+        recipientName: params.recipientName,
+        mentionedBy: params.mentionedBy,
+        projectName: params.projectName,
+        commentPreview: params.commentPreview,
+        projectUrl: params.projectUrl,
+      }),
+    })
+  )
+}
+
+/**
+ * Send email notification when someone comments on a project
+ */
+export async function sendCommentNotificationEmail(params: {
+  to: string
+  recipientName: string
+  commenterName: string
+  projectName: string
+  commentPreview: string
+  projectUrl: string
+}): Promise<EmailResult> {
+  return sendWithRetry(() =>
+    resend.emails.send({
+      from: `${FROM_NAME} <${FROM_EMAIL}>`,
+      to: params.to,
+      subject: `New comment on "${params.projectName}"`,
+      react: CommentNotificationEmail({
+        recipientName: params.recipientName,
+        commenterName: params.commenterName,
+        projectName: params.projectName,
+        commentPreview: params.commentPreview,
+        projectUrl: params.projectUrl,
+      }),
+    })
+  )
+}
+
+/**
+ * Send email notification when a project is shared with user
+ */
+export async function sendProjectSharedEmail(params: {
+  to: string
+  recipientName: string
+  sharedBy: string
+  projectName: string
+  permission: 'view' | 'comment' | 'edit'
+  projectUrl: string
+}): Promise<EmailResult> {
+  return sendWithRetry(() =>
+    resend.emails.send({
+      from: `${FROM_NAME} <${FROM_EMAIL}>`,
+      to: params.to,
+      subject: `${params.sharedBy} shared "${params.projectName}" with you`,
+      react: ProjectSharedEmail({
+        recipientName: params.recipientName,
+        sharedBy: params.sharedBy,
+        projectName: params.projectName,
+        permission: params.permission,
+        projectUrl: params.projectUrl,
       }),
     })
   )

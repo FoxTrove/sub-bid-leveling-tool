@@ -26,7 +26,7 @@ export async function GET() {
       return NextResponse.json({ error: "Not part of an organization" }, { status: 404 })
     }
 
-    // Get all members with profile info
+    // Get all members with profile info including last_active_at
     const { data: members, error: membersError } = await supabase
       .from("organization_members")
       .select(`
@@ -38,7 +38,8 @@ export async function GET() {
           id,
           email,
           full_name,
-          company_name
+          company_name,
+          last_active_at
         )
       `)
       .eq("organization_id", membership.organization_id)

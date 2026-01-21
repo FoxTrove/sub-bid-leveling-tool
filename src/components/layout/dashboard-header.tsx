@@ -5,6 +5,7 @@ import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { LogOut, Settings, Key, Sparkles, Coins, CreditCard } from "lucide-react"
+import { NotificationBell } from "@/components/notifications/notification-bell"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { MobileNav } from "@/components/layout/mobile-nav"
@@ -157,6 +158,7 @@ export function DashboardHeader({ userEmail, planInfo, hasTeam = false }: Dashbo
             </Link>
           )}
 
+          <NotificationBell />
           <ThemeToggle />
 
           <Link href="/compare/new">

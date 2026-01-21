@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import {
   Users,
   UserPlus,
@@ -14,6 +15,8 @@ import {
   Loader2,
   Building2,
   X,
+  Camera,
+  ImageIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -63,6 +66,7 @@ interface TeamMember {
     email: string
     full_name: string | null
     company_name: string | null
+    last_active_at: string | null
   }
 }
 
@@ -80,6 +84,7 @@ interface Organization {
   name: string
   slug: string
   max_members: number
+  logo_url?: string | null
 }
 
 interface TeamSettingsProps {
@@ -112,6 +117,8 @@ export function TeamSettings({ organization, userRole, currentUserId }: TeamSett
   const [createOrgOpen, setCreateOrgOpen] = useState(false)
   const [orgName, setOrgName] = useState("")
   const [creating, setCreating] = useState(false)
+  const [logoUrl, setLogoUrl] = useState<string | null>(organization?.logo_url || null)
+  const [uploadingLogo, setUploadingLogo] = useState(false)
 
   const isAdmin = userRole === "owner" || userRole === "admin"
   const isOwner = userRole === "owner"
@@ -227,6 +234,55 @@ export function TeamSettings({ organization, userRole, currentUserId }: TeamSett
     }
   }
 
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setUploadingLogo(true)
+    try {
+      const formData = new FormData()
+      formData.append("logo", file)
+
+      const response = await fetch("/api/team/logo", {
+        method: "POST",
+        body: formData,
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to upload logo")
+      }
+
+      setLogoUrl(data.logo_url)
+      toast.success("Team logo updated")
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to upload logo")
+    } finally {
+      setUploadingLogo(false)
+    }
+  }
+
+  const handleLogoRemove = async () => {
+    if (!confirm("Are you sure you want to remove the team logo?")) return
+
+    try {
+      const response = await fetch("/api/team/logo", {
+        method: "DELETE",
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || "Failed to remove logo")
+      }
+
+      setLogoUrl(null)
+      toast.success("Team logo removed")
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to remove logo")
+    }
+  }
+
   const handleCreateOrganization = async () => {
     if (!orgName.trim()) return
 
@@ -263,6 +319,30 @@ export function TeamSettings({ organization, userRole, currentUserId }: TeamSett
       .map((n) => n[0])
       .join("")
       .toUpperCase()
+  }
+
+  const getLastActiveText = (lastActiveAt: string | null) => {
+    if (!lastActiveAt) return "Never"
+
+    const now = new Date()
+    const lastActive = new Date(lastActiveAt)
+    const diffMs = now.getTime() - lastActive.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMins / 60)
+    const diffDays = Math.floor(diffHours / 24)
+
+    if (diffMins < 5) return "Active now"
+    if (diffMins < 60) return `${diffMins}m ago`
+    if (diffHours < 24) return `${diffHours}h ago`
+    if (diffDays === 1) return "Yesterday"
+    if (diffDays < 7) return `${diffDays}d ago`
+    return lastActive.toLocaleDateString()
+  }
+
+  const isActiveNow = (lastActiveAt: string | null) => {
+    if (!lastActiveAt) return false
+    const diffMs = new Date().getTime() - new Date(lastActiveAt).getTime()
+    return diffMs < 5 * 60 * 1000 // Active in last 5 minutes
   }
 
   // No organization - show create option (only for team plan users)
@@ -403,6 +483,63 @@ export function TeamSettings({ organization, userRole, currentUserId }: TeamSett
           </div>
         ) : (
           <>
+            {/* Team Logo */}
+            {isAdmin && (
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium text-muted-foreground">Team Logo</h4>
+                <div className="flex items-center gap-4">
+                  <div className="relative group">
+                    <div className="h-20 w-20 rounded-lg border-2 border-dashed border-muted-foreground/25 flex items-center justify-center bg-muted/30 overflow-hidden">
+                      {logoUrl ? (
+                        <Image
+                          src={logoUrl}
+                          alt="Team logo"
+                          width={80}
+                          height={80}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <ImageIcon className="h-8 w-8 text-muted-foreground/50" />
+                      )}
+                    </div>
+                    <label className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg cursor-pointer">
+                      {uploadingLogo ? (
+                        <Loader2 className="h-5 w-5 animate-spin text-white" />
+                      ) : (
+                        <Camera className="h-5 w-5 text-white" />
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleLogoUpload}
+                        disabled={uploadingLogo}
+                      />
+                    </label>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">
+                      Upload a logo for your team. It will appear in headers and exports.
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Max 2MB. JPEG, PNG, GIF, WebP, or SVG.
+                    </p>
+                    {logoUrl && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs text-destructive hover:text-destructive"
+                        onClick={handleLogoRemove}
+                      >
+                        <Trash2 className="mr-1 h-3 w-3" />
+                        Remove logo
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Members List */}
             <div className="space-y-3">
               <h4 className="text-sm font-medium text-muted-foreground">Members</h4>
@@ -417,9 +554,14 @@ export function TeamSettings({ organization, userRole, currentUserId }: TeamSett
                     className="flex items-center justify-between rounded-lg border p-3"
                   >
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarFallback>{getInitials(member)}</AvatarFallback>
-                      </Avatar>
+                      <div className="relative">
+                        <Avatar className="h-10 w-10">
+                          <AvatarFallback>{getInitials(member)}</AvatarFallback>
+                        </Avatar>
+                        {isActiveNow(member.profiles.last_active_at) && (
+                          <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 border-2 border-background" />
+                        )}
+                      </div>
                       <div>
                         <p className="font-medium">
                           {member.profiles.full_name || member.profiles.email}
@@ -427,7 +569,13 @@ export function TeamSettings({ organization, userRole, currentUserId }: TeamSett
                             <span className="text-muted-foreground text-sm ml-2">(you)</span>
                           )}
                         </p>
-                        <p className="text-sm text-muted-foreground">{member.profiles.email}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {member.profiles.email}
+                          <span className="mx-1.5">·</span>
+                          <span className={isActiveNow(member.profiles.last_active_at) ? "text-green-600 dark:text-green-400" : ""}>
+                            {getLastActiveText(member.profiles.last_active_at)}
+                          </span>
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
