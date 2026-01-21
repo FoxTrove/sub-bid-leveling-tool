@@ -8,11 +8,16 @@ import { CreditPurchaseEmail } from './templates/credit-purchase'
 import { SubscriptionCanceledEmail } from './templates/subscription-canceled'
 import { PaymentFailedEmail } from './templates/payment-failed'
 import { TeamInviteEmail } from './templates/team-invite'
+import { AdminNewSignupEmail } from './templates/admin-new-signup'
+import { AdminTeamSubscriptionEmail } from './templates/admin-team-subscription'
+import { AdminApiKeyAddedEmail } from './templates/admin-api-key-added'
+import { AdminCreditPurchaseEmail } from './templates/admin-credit-purchase'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 const FROM_EMAIL = process.env.NOTIFICATION_EMAIL || 'hello@foxtrove.ai'
 const FROM_NAME = 'BidVet'
+const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || 'kyle@foxtrove.ai'
 
 // Retry configuration
 const MAX_RETRIES = 3
@@ -278,6 +283,154 @@ export async function sendTeamInviteEmail(
         organizationName,
         inviterName,
         inviteUrl,
+      }),
+    })
+  )
+}
+
+// ============================================
+// Admin Notification Emails
+// ============================================
+
+/**
+ * Send admin notification when a new user signs up
+ */
+export async function sendAdminNewSignupEmail(params: {
+  userName: string
+  userEmail: string
+  companyName: string
+  promoCode?: string | null
+  trainingDataOptIn: boolean
+}): Promise<EmailResult> {
+  return sendWithRetry(() =>
+    resend.emails.send({
+      from: `${FROM_NAME} <${FROM_EMAIL}>`,
+      to: ADMIN_EMAIL,
+      subject: `New BidVet Signup: ${params.userName} from ${params.companyName}`,
+      react: AdminNewSignupEmail({
+        userName: params.userName,
+        userEmail: params.userEmail,
+        companyName: params.companyName,
+        promoCode: params.promoCode,
+        trainingDataOptIn: params.trainingDataOptIn,
+        signupDate: new Date().toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+        }),
+      }),
+    })
+  )
+}
+
+/**
+ * Send admin notification when a user subscribes to Team plan
+ */
+export async function sendAdminTeamSubscriptionEmail(params: {
+  userName: string
+  userEmail: string
+  companyName: string
+  organizationName: string
+  planType: 'monthly' | 'annual'
+  amount: number
+  memberCount: number
+}): Promise<EmailResult> {
+  return sendWithRetry(() =>
+    resend.emails.send({
+      from: `${FROM_NAME} <${FROM_EMAIL}>`,
+      to: ADMIN_EMAIL,
+      subject: `New Team Subscription: ${params.organizationName} - $${params.amount}/${params.planType === 'monthly' ? 'mo' : 'yr'}`,
+      react: AdminTeamSubscriptionEmail({
+        userName: params.userName,
+        userEmail: params.userEmail,
+        companyName: params.companyName,
+        organizationName: params.organizationName,
+        planType: params.planType,
+        amount: params.amount,
+        memberCount: params.memberCount,
+        subscriptionDate: new Date().toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+        }),
+      }),
+    })
+  )
+}
+
+/**
+ * Send admin notification when a user adds their API key
+ */
+export async function sendAdminApiKeyAddedEmail(params: {
+  userName: string
+  userEmail: string
+  companyName: string
+  isHandshakeUser: boolean
+  daysIntoTrial?: number
+}): Promise<EmailResult> {
+  return sendWithRetry(() =>
+    resend.emails.send({
+      from: `${FROM_NAME} <${FROM_EMAIL}>`,
+      to: ADMIN_EMAIL,
+      subject: `API Key Added: ${params.userName} from ${params.companyName}`,
+      react: AdminApiKeyAddedEmail({
+        userName: params.userName,
+        userEmail: params.userEmail,
+        companyName: params.companyName,
+        isHandshakeUser: params.isHandshakeUser,
+        daysIntoTrial: params.daysIntoTrial,
+        addedDate: new Date().toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+        }),
+      }),
+    })
+  )
+}
+
+/**
+ * Send admin notification when a user purchases credits
+ */
+export async function sendAdminCreditPurchaseEmail(params: {
+  userName: string
+  userEmail: string
+  companyName: string
+  packName: string
+  creditsAmount: number
+  amountPaid: number
+  newBalance: number
+}): Promise<EmailResult> {
+  return sendWithRetry(() =>
+    resend.emails.send({
+      from: `${FROM_NAME} <${FROM_EMAIL}>`,
+      to: ADMIN_EMAIL,
+      subject: `Credit Purchase: ${params.userName} bought ${params.packName} ($${params.amountPaid})`,
+      react: AdminCreditPurchaseEmail({
+        userName: params.userName,
+        userEmail: params.userEmail,
+        companyName: params.companyName,
+        packName: params.packName,
+        creditsAmount: params.creditsAmount,
+        amountPaid: params.amountPaid,
+        newBalance: params.newBalance,
+        purchaseDate: new Date().toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+        }),
       }),
     })
   )

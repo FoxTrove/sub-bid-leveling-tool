@@ -82,6 +82,9 @@ export default function OnboardingPage() {
         fetch("/api/email/welcome", { method: "POST" }).catch(console.error)
       }
 
+      // Send admin notification about new signup (fire and forget)
+      fetch("/api/email/admin-signup", { method: "POST" }).catch(console.error)
+
       // Track analytics events
       setUserId(user.id)
       trackSignUp({ method: 'magic_link', promo_code: promoCode || undefined })

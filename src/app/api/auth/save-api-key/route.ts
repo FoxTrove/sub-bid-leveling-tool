@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { encrypt } from "@/lib/utils/encryption"
-import { sendApiKeySuccessEmail } from "@/lib/email"
+import { sendApiKeySuccessEmail, sendAdminApiKeyAddedEmail } from "@/lib/email"
 
 export async function POST(request: Request) {
   try {
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     // Get user profile to check if this is a first-time key save
     const { data: profile } = await supabase
       .from("profiles")
-      .select("email, full_name, promo_code, openai_api_key_encrypted, api_key_success_sent_at")
+      .select("email, full_name, company_name, promo_code, promo_applied_at, openai_api_key_encrypted, api_key_success_sent_at")
       .eq("id", user.id)
       .single()
 
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
       const firstName = profile.full_name?.split(" ")[0] || "there"
       const isHandshakeUser = profile.promo_code === "HANDSHAKE"
 
-      // Send email (fire and forget)
+      // Send user email (fire and forget)
       sendApiKeySuccessEmail({
         to: profile.email,
         firstName,
@@ -71,6 +71,23 @@ export async function POST(request: Request) {
           }
         })
         .catch(console.error)
+
+      // Calculate days into trial for HANDSHAKE users
+      let daysIntoTrial: number | undefined
+      if (isHandshakeUser && profile.promo_applied_at) {
+        const appliedDate = new Date(profile.promo_applied_at)
+        const now = new Date()
+        daysIntoTrial = Math.floor((now.getTime() - appliedDate.getTime()) / (1000 * 60 * 60 * 24))
+      }
+
+      // Send admin notification (fire and forget)
+      sendAdminApiKeyAddedEmail({
+        userName: profile.full_name || "Unknown",
+        userEmail: profile.email,
+        companyName: profile.company_name || "Unknown",
+        isHandshakeUser,
+        daysIntoTrial,
+      }).catch(console.error)
     }
 
     return NextResponse.json({ success: true })

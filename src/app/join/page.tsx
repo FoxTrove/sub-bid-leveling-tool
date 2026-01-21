@@ -3,10 +3,11 @@
 import { Suspense, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { Scale, Gift, Key, ArrowRight, DollarSign, Shield, HelpCircle, ChevronDown, XCircle, Loader2 } from "lucide-react"
+import Image from "next/image"
+import { Gift, Key, ArrowRight, DollarSign, Shield, HelpCircle, ChevronDown, XCircle, Loader2, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { INVITE_TOKENS } from "@/lib/utils/constants"
+import { INVITE_TOKENS, PRICING } from "@/lib/utils/constants"
 import { trackInviteLinkViewed } from "@/lib/analytics"
 
 function FAQItem({ question, answer }: { question: string; answer: string }) {
@@ -43,9 +44,15 @@ function InvalidInvitePage() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-950/20 dark:to-background">
       <header className="border-b bg-white/80 backdrop-blur-sm dark:bg-background/80">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link href="/" className="flex items-center gap-2">
-            <Scale className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">BidVet</span>
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/bidvet-logo.png"
+              alt="BidVet"
+              width={140}
+              height={40}
+              className="h-8 w-auto"
+              priority
+            />
           </Link>
         </div>
       </header>
@@ -117,9 +124,15 @@ function JoinPageContent() {
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm dark:bg-background/80">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link href="/" className="flex items-center gap-2">
-            <Scale className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">BidVet</span>
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/bidvet-logo.png"
+              alt="BidVet"
+              width={140}
+              height={40}
+              className="h-8 w-auto"
+              priority
+            />
           </Link>
         </div>
       </header>
@@ -209,6 +222,47 @@ function JoinPageContent() {
                   </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Team Option */}
+          <Card className="mb-12 border-2 border-primary/30 dark:border-primary/50">
+            <CardContent className="p-8">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                  <Users className="h-6 w-6 text-primary" />
+                </div>
+                <h2 className="text-2xl font-bold">Want BidVet for Your Team?</h2>
+              </div>
+
+              <p className="mb-6 text-muted-foreground max-w-xl mx-auto">
+                If multiple estimators will use BidVet, consider our Team plan.
+                No API keys to manage—your team just logs in and uses it.
+              </p>
+
+              <div className="grid gap-4 sm:grid-cols-3 mb-6">
+                <div className="text-center p-4 rounded-lg bg-muted/50">
+                  <div className="text-2xl font-bold text-primary">${PRICING.team.monthly}</div>
+                  <div className="text-sm text-muted-foreground">per month</div>
+                </div>
+                <div className="text-center p-4 rounded-lg bg-muted/50">
+                  <div className="text-2xl font-bold text-primary">10</div>
+                  <div className="text-sm text-muted-foreground">team members</div>
+                </div>
+                <div className="text-center p-4 rounded-lg bg-muted/50">
+                  <div className="text-2xl font-bold text-primary">∞</div>
+                  <div className="text-sm text-muted-foreground">comparisons</div>
+                </div>
+              </div>
+
+              <p className="text-sm text-muted-foreground mb-4">
+                Start with your free 30 days first. If your team finds it useful,
+                you can upgrade anytime from your dashboard.
+              </p>
+
+              <Link href="/pricing" className="text-primary hover:underline text-sm font-medium">
+                Learn more about Team pricing →
+              </Link>
             </CardContent>
           </Card>
 

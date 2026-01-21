@@ -7,6 +7,8 @@ import {
   sendCreditPurchaseEmail,
   sendSubscriptionCanceledEmail,
   sendPaymentFailedEmail,
+  sendAdminCreditPurchaseEmail,
+  sendAdminTeamSubscriptionEmail,
 } from "@/lib/email"
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
@@ -125,23 +127,38 @@ async function handleCheckoutCompleted(
 
     console.log(`Added ${creditsAmount} credits for user ${userId}:`, data)
 
-    // Send credit purchase email
+    // Send credit purchase emails
     const { data: profile } = await supabase
       .from("profiles")
-      .select("email, first_name, credits")
+      .select("email, full_name, company_name, credits")
       .eq("id", userId)
       .single()
 
     if (profile?.email) {
+      const firstName = profile.full_name?.split(" ")[0] || ""
+
+      // Send user email
       await sendCreditPurchaseEmail({
         to: profile.email,
-        firstName: profile.first_name || "",
+        firstName,
         packName,
         creditsAmount,
         amountPaid,
         newBalance: profile.credits || creditsAmount,
       })
       console.log(`Credit purchase email sent to ${profile.email}`)
+
+      // Send admin notification
+      await sendAdminCreditPurchaseEmail({
+        userName: profile.full_name || "Unknown",
+        userEmail: profile.email,
+        companyName: profile.company_name || "Unknown",
+        packName,
+        creditsAmount,
+        amountPaid,
+        newBalance: profile.credits || creditsAmount,
+      })
+      console.log(`Admin credit purchase notification sent`)
     }
     return
   }
@@ -174,20 +191,49 @@ async function handleCheckoutCompleted(
     // Send subscription welcome email
     const { data: profile } = await supabase
       .from("profiles")
-      .select("email, first_name")
+      .select("email, full_name, company_name, organization_id")
       .eq("id", userId)
       .single()
 
     if (profile?.email) {
+      const firstName = profile.full_name?.split(" ")[0] || ""
+
       await sendSubscriptionWelcomeEmail({
         to: profile.email,
-        firstName: profile.first_name || "",
+        firstName,
         planName: plan.charAt(0).toUpperCase() + plan.slice(1),
         billingCycle: billingCycle as "monthly" | "annual",
         amount,
         nextBillingDate,
       })
       console.log(`Subscription welcome email sent to ${profile.email}`)
+
+      // Send admin notification for team subscriptions
+      if (plan.toLowerCase() === "team" && profile.organization_id) {
+        // Get organization info
+        const { data: org } = await supabase
+          .from("organizations")
+          .select("name")
+          .eq("id", profile.organization_id)
+          .single()
+
+        // Get member count
+        const { count: memberCount } = await supabase
+          .from("organization_members")
+          .select("*", { count: "exact", head: true })
+          .eq("organization_id", profile.organization_id)
+
+        await sendAdminTeamSubscriptionEmail({
+          userName: profile.full_name || "Unknown",
+          userEmail: profile.email,
+          companyName: profile.company_name || "Unknown",
+          organizationName: org?.name || profile.company_name || "Unknown",
+          planType: billingCycle as "monthly" | "annual",
+          amount,
+          memberCount: memberCount || 1,
+        })
+        console.log(`Admin team subscription notification sent`)
+      }
     }
 
     console.log(`Subscription checkout completed for user ${userId}`)
