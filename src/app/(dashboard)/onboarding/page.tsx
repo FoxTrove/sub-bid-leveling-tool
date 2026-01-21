@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, Gift, CheckCircle2, Key, Clock } from "lucide-react"
+import { Loader2, Gift, CheckCircle2, Key, Clock, Database, HelpCircle } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
 import { toast } from "sonner"
 import { PROMO_CODES } from "@/lib/utils/constants"
 import { trackOnboardingCompleted, trackSignUp, setUserId } from "@/lib/analytics"
@@ -19,6 +20,7 @@ export default function OnboardingPage() {
   const [gcName, setGcName] = useState("")
   const [companyName, setCompanyName] = useState("")
   const [promoCode, setPromoCode] = useState<string | null>(null)
+  const [trainingDataOptIn, setTrainingDataOptIn] = useState(false)
 
   // Check for promo code from session storage
   useEffect(() => {
@@ -55,6 +57,8 @@ export default function OnboardingPage() {
         gc_name: gcName.trim() || null,
         company_name: companyName.trim(),
         onboarding_completed: true,
+        training_data_opt_in: trainingDataOptIn,
+        training_data_opted_in_at: trainingDataOptIn ? new Date().toISOString() : null,
       }
 
       // Add promo code if valid
@@ -170,6 +174,34 @@ export default function OnboardingPage() {
               />
               <p className="text-xs text-muted-foreground">
                 If you work with a specific GC, enter their name here
+              </p>
+            </div>
+
+            {/* Training Data Opt-In */}
+            <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
+              <div className="flex items-start gap-3">
+                <Database className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                <div className="space-y-1">
+                  <p className="font-medium text-sm">Help Improve BidVet</p>
+                  <p className="text-xs text-muted-foreground">
+                    Allow us to use anonymized data from your comparisons to improve our AI.
+                    Your company info and bid details are never shared—only patterns help train better models.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 pl-8">
+                <Checkbox
+                  id="trainingData"
+                  checked={trainingDataOptIn}
+                  onCheckedChange={(checked) => setTrainingDataOptIn(checked === true)}
+                  disabled={isLoading}
+                />
+                <Label htmlFor="trainingData" className="text-sm font-normal cursor-pointer">
+                  Yes, I consent to contribute anonymized data to improve BidVet
+                </Label>
+              </div>
+              <p className="text-xs text-muted-foreground pl-8">
+                You can change this anytime in Settings.
               </p>
             </div>
 
