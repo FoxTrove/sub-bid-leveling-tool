@@ -13,15 +13,23 @@ export async function GET(request: Request) {
   // Handle code flow (PKCE)
   const code = requestUrl.searchParams.get("code")
 
-  // Extract promo code - check direct param first, then parse from 'next' URL
+  // Extract promo code and checkout info - check direct param first, then parse from 'next' URL
   let promoCode = requestUrl.searchParams.get("promo")
+  let checkoutPlan = requestUrl.searchParams.get("plan")
+  let checkoutInterval = requestUrl.searchParams.get("interval") || "monthly"
 
-  // If promo not directly in URL, check the 'next' param (from email template's RedirectTo)
+  // If params not directly in URL, check the 'next' param (from email template's RedirectTo)
   const nextUrl = requestUrl.searchParams.get("next")
-  if (!promoCode && nextUrl) {
+  if (nextUrl) {
     try {
       const parsedNext = new URL(nextUrl)
-      promoCode = parsedNext.searchParams.get("promo")
+      if (!promoCode) {
+        promoCode = parsedNext.searchParams.get("promo")
+      }
+      if (!checkoutPlan) {
+        checkoutPlan = parsedNext.searchParams.get("plan")
+        checkoutInterval = parsedNext.searchParams.get("interval") || "monthly"
+      }
     } catch {
       // Invalid URL, ignore
     }
@@ -38,6 +46,17 @@ export async function GET(request: Request) {
     return url.toString()
   }
 
+  // Build checkout redirect URL if plan is specified
+  const getCheckoutRedirectUrl = () => {
+    if (checkoutPlan) {
+      const url = new URL("/dashboard", origin)
+      url.searchParams.set("checkout_plan", checkoutPlan)
+      url.searchParams.set("checkout_interval", checkoutInterval)
+      return url.toString()
+    }
+    return null
+  }
+
   // Try token_hash flow first (from custom email templates)
   if (token_hash && type) {
     const { error } = await supabase.auth.verifyOtp({
@@ -50,7 +69,9 @@ export async function GET(request: Request) {
       if (type === "recovery") {
         return NextResponse.redirect(`${origin}/settings?reset_password=true`)
       }
-      return NextResponse.redirect(buildRedirectUrl("/dashboard"))
+      // Check if user was trying to checkout a plan
+      const checkoutUrl = getCheckoutRedirectUrl()
+      return NextResponse.redirect(checkoutUrl || buildRedirectUrl("/dashboard"))
     }
   }
 
@@ -64,7 +85,9 @@ export async function GET(request: Request) {
       if (recoveryType === "recovery") {
         return NextResponse.redirect(`${origin}/settings?reset_password=true`)
       }
-      return NextResponse.redirect(buildRedirectUrl("/dashboard"))
+      // Check if user was trying to checkout a plan
+      const checkoutUrl = getCheckoutRedirectUrl()
+      return NextResponse.redirect(checkoutUrl || buildRedirectUrl("/dashboard"))
     }
   }
 
@@ -73,7 +96,9 @@ export async function GET(request: Request) {
   // but Supabase already authenticated the user
   const { data: { user } } = await supabase.auth.getUser()
   if (user) {
-    return NextResponse.redirect(buildRedirectUrl("/dashboard"))
+    // Check if user was trying to checkout a plan
+    const checkoutUrl = getCheckoutRedirectUrl()
+    return NextResponse.redirect(checkoutUrl || buildRedirectUrl("/dashboard"))
   }
 
   // If there's no valid auth params or an error, redirect to login with error

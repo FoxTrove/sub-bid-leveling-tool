@@ -49,7 +49,17 @@ export async function middleware(request: NextRequest) {
 
   // Redirect logged-in users away from login page
   if (user && request.nextUrl.pathname === "/login") {
-    return NextResponse.redirect(new URL("/dashboard", request.url))
+    const dashboardUrl = new URL("/dashboard", request.url)
+
+    // Preserve checkout plan params if present (user came from pricing page)
+    const plan = request.nextUrl.searchParams.get("plan")
+    const interval = request.nextUrl.searchParams.get("interval")
+    if (plan) {
+      dashboardUrl.searchParams.set("checkout_plan", plan)
+      dashboardUrl.searchParams.set("checkout_interval", interval || "monthly")
+    }
+
+    return NextResponse.redirect(dashboardUrl)
   }
 
   return response

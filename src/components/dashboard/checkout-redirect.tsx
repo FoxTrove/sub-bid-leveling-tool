@@ -1,18 +1,28 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Loader2 } from "lucide-react"
 
 export function CheckoutRedirect() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [isRedirecting, setIsRedirecting] = useState(false)
 
   useEffect(() => {
-    const plan = sessionStorage.getItem("bidvet_checkout_plan")
-    const interval = sessionStorage.getItem("bidvet_checkout_interval") || "monthly"
+    // Check URL params first (from magic link callback), then sessionStorage (from password login)
+    let plan = searchParams.get("checkout_plan") || sessionStorage.getItem("bidvet_checkout_plan")
+    let interval = searchParams.get("checkout_interval") || sessionStorage.getItem("bidvet_checkout_interval") || "monthly"
 
-    if (plan && (plan === "pro" || plan === "team")) {
+    // Clear URL params if present
+    if (searchParams.get("checkout_plan")) {
+      const url = new URL(window.location.href)
+      url.searchParams.delete("checkout_plan")
+      url.searchParams.delete("checkout_interval")
+      window.history.replaceState({}, "", url.toString())
+    }
+
+    if (plan && (plan === "pro" || plan === "team" || plan === "basic")) {
       setIsRedirecting(true)
 
       // Clear the stored plan
@@ -39,7 +49,7 @@ export function CheckoutRedirect() {
           router.push("/pricing?error=checkout_failed")
         })
     }
-  }, [router])
+  }, [router, searchParams])
 
   if (isRedirecting) {
     return (

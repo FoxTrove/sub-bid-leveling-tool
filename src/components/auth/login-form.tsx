@@ -53,12 +53,17 @@ export function LoginForm({ promoCode, plan, interval }: LoginFormProps) {
     try {
       const supabase = createClient()
 
-      // Build redirect URL with promo code if present
-      // This ensures the promo code survives across tabs (magic link opens in new tab)
-      let redirectUrl = `${window.location.origin}/auth/callback`
+      // Build redirect URL with promo code and plan info if present
+      // This ensures the data survives across tabs (magic link opens in new tab)
+      const redirectParams = new URLSearchParams()
       if (promoCode) {
-        redirectUrl += `?promo=${encodeURIComponent(promoCode)}`
+        redirectParams.set("promo", promoCode)
       }
+      if (plan) {
+        redirectParams.set("plan", plan)
+        redirectParams.set("interval", interval || "monthly")
+      }
+      const redirectUrl = `${window.location.origin}/auth/callback${redirectParams.toString() ? `?${redirectParams.toString()}` : ""}`
 
       const { error } = await supabase.auth.signInWithOtp({
         email,
@@ -102,6 +107,36 @@ export function LoginForm({ promoCode, plan, interval }: LoginFormProps) {
       }
 
       toast.success("Signed in successfully!")
+
+      // Check if user was trying to checkout a plan
+      const checkoutPlan = sessionStorage.getItem("bidvet_checkout_plan")
+      const checkoutInterval = sessionStorage.getItem("bidvet_checkout_interval") || "monthly"
+
+      if (checkoutPlan) {
+        // Clear stored checkout info
+        sessionStorage.removeItem("bidvet_checkout_plan")
+        sessionStorage.removeItem("bidvet_checkout_interval")
+
+        // Redirect to checkout API
+        try {
+          const response = await fetch("/api/stripe/checkout", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ plan: checkoutPlan, interval: checkoutInterval }),
+          })
+
+          if (response.ok) {
+            const { url } = await response.json()
+            if (url) {
+              window.location.href = url
+              return
+            }
+          }
+        } catch (e) {
+          console.error("Checkout redirect failed:", e)
+        }
+      }
+
       router.push("/dashboard")
       router.refresh()
     } catch (error) {
