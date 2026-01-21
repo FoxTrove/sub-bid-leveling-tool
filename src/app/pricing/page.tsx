@@ -167,50 +167,6 @@ export default function PricingPage() {
       {/* Side-by-side Options Overview */}
       <section className="container relative pb-16">
         <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-          {/* Credit Packs Option */}
-          <div className="relative rounded-2xl bg-slate-900/50 border-2 border-amber-500/30 p-6 overflow-hidden hover:border-amber-500/50 transition-all">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
-            <div className="relative">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="h-12 w-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-                  <Coins className="h-6 w-6 text-amber-400" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-white">Credit Packs</h3>
-                  <p className="text-sm text-slate-400">Pay as you go</p>
-                </div>
-              </div>
-              <p className="text-slate-400 mb-4">
-                Buy credits upfront, use them whenever. Perfect for occasional or seasonal use.
-              </p>
-              <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-3xl font-bold text-white">From $100</span>
-              </div>
-              <ul className="space-y-2 text-sm mb-6">
-                <li className="flex items-center gap-2 text-slate-300">
-                  <Check className="h-4 w-4 text-emerald-400" />
-                  Credits never expire
-                </li>
-                <li className="flex items-center gap-2 text-slate-300">
-                  <Check className="h-4 w-4 text-emerald-400" />
-                  No monthly commitment
-                </li>
-                <li className="flex items-center gap-2 text-slate-300">
-                  <Check className="h-4 w-4 text-emerald-400" />
-                  Buy more anytime
-                </li>
-              </ul>
-              <Button
-                variant="outline"
-                className="w-full border-amber-500/30 text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/50"
-                onClick={() => document.getElementById('credit-packs')?.scrollIntoView({ behavior: 'smooth' })}
-              >
-                View Credit Packs
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
           {/* Subscription Option */}
           <div className="relative rounded-2xl bg-slate-900/50 border-2 border-blue-500/30 p-6 overflow-hidden hover:border-blue-500/50 transition-all">
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
@@ -259,134 +215,48 @@ export default function PricingPage() {
               </Button>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* Credit Packs Section */}
-      <section id="credit-packs" className="container relative pb-20 scroll-mt-20">
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 rounded-full bg-amber-500/10 border border-amber-500/20 px-4 py-1.5 text-sm font-medium text-amber-400 mb-4">
-            <Coins className="h-4 w-4" />
-            Pay As You Go
-          </div>
-          <h2 className="text-3xl font-bold tracking-tight mb-4 text-white">Credit Packs</h2>
-          <p className="text-lg text-slate-400 max-w-xl mx-auto">
-            Perfect for occasional use. Buy once, use anytime. Credits never expire.
-          </p>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-3 max-w-4xl mx-auto">
-          <CreditPackCard
-            name={CREDIT_PACKS.starter.name}
-            price={CREDIT_PACKS.starter.price}
-            estimatedComparisons={CREDIT_PACKS.starter.estimatedComparisons}
-            onPurchase={() => handlePurchasePack("starter")}
-            isLoading={loadingPack === "starter"}
-          />
-          <CreditPackCard
-            name={CREDIT_PACKS.professional.name}
-            price={CREDIT_PACKS.professional.price}
-            estimatedComparisons={CREDIT_PACKS.professional.estimatedComparisons}
-            bonus={CREDIT_PACKS.professional.bonus}
-            isPopular
-            onPurchase={() => handlePurchasePack("professional")}
-            isLoading={loadingPack === "professional"}
-          />
-          <CreditPackCard
-            name={CREDIT_PACKS.enterprise.name}
-            price={CREDIT_PACKS.enterprise.price}
-            estimatedComparisons={CREDIT_PACKS.enterprise.estimatedComparisons}
-            bonus={CREDIT_PACKS.enterprise.bonus}
-            onPurchase={() => handlePurchasePack("enterprise")}
-            isLoading={loadingPack === "enterprise"}
-          />
-        </div>
-
-        <p className="text-center text-xs text-slate-500 mt-6 max-w-lg mx-auto">
-          *Comparison estimates are based on typical document sizes. Actual usage may vary depending on the length and complexity of your bid documents.
-        </p>
-      </section>
-
-      {/* Comparison Helper */}
-      <section className="border-t border-b border-slate-800 bg-slate-900/50 py-16 relative">
-        <div className="container relative">
-          <div className="max-w-3xl mx-auto">
-            <div className="text-center mb-10">
-              <div className="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-4 py-1.5 text-sm font-medium text-indigo-400 mb-4">
-                <Calculator className="h-4 w-4" />
-                Which option is right for you?
-              </div>
-              <h2 className="text-2xl font-bold tracking-tight text-white">Credits vs. Subscription</h2>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="rounded-2xl bg-slate-900/80 border-2 border-amber-500/30 p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-10 w-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-                    <Coins className="h-5 w-5 text-amber-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">Credit Packs</h3>
-                    <p className="text-sm text-slate-400">Best for occasional users</p>
-                  </div>
+          {/* Credit Packs Option */}
+          <div className="relative rounded-2xl bg-slate-900/50 border-2 border-amber-500/30 p-6 overflow-hidden hover:border-amber-500/50 transition-all">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
+            <div className="relative">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-12 w-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                  <Coins className="h-6 w-6 text-amber-400" />
                 </div>
-                <ul className="space-y-3 text-sm">
-                  <li className="flex items-start gap-2 text-slate-300">
-                    <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>Fewer than 10-12 comparisons per month</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-slate-300">
-                    <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>Unpredictable or seasonal workload</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-slate-300">
-                    <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>No commitment—buy only when needed</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-slate-300">
-                    <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>Credits never expire</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="rounded-2xl bg-slate-900/80 border-2 border-blue-500/30 p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-10 w-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-                    <Sparkles className="h-5 w-5 text-blue-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">Unlimited Subscription</h3>
-                    <p className="text-sm text-slate-400">Best for regular users</p>
-                  </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-white">Credit Packs</h3>
+                  <p className="text-sm text-slate-400">Pay as you go</p>
                 </div>
-                <ul className="space-y-3 text-sm">
-                  <li className="flex items-start gap-2 text-slate-300">
-                    <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>12+ comparisons per month (break-even point)</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-slate-300">
-                    <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>Consistent, predictable workflow</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-slate-300">
-                    <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>Never worry about running out</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-slate-300">
-                    <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>Priority support included</span>
-                  </li>
-                </ul>
               </div>
-            </div>
-
-            <div className="mt-8 p-4 rounded-xl bg-slate-800/50 border border-slate-700 text-center">
-              <p className="text-sm text-slate-400">
-                <span className="font-medium text-white">Rule of thumb:</span>{" "}
-                If you run 10+ comparisons per month consistently, a subscription offers better value.
-                For occasional or seasonal use, credit packs give you flexibility.
+              <p className="text-slate-400 mb-4">
+                Buy credits upfront, use them whenever. Perfect for occasional or seasonal use.
               </p>
+              <div className="flex items-baseline gap-1 mb-4">
+                <span className="text-3xl font-bold text-white">From $100</span>
+              </div>
+              <ul className="space-y-2 text-sm mb-6">
+                <li className="flex items-center gap-2 text-slate-300">
+                  <Check className="h-4 w-4 text-emerald-400" />
+                  Credits never expire
+                </li>
+                <li className="flex items-center gap-2 text-slate-300">
+                  <Check className="h-4 w-4 text-emerald-400" />
+                  No monthly commitment
+                </li>
+                <li className="flex items-center gap-2 text-slate-300">
+                  <Check className="h-4 w-4 text-emerald-400" />
+                  Buy more anytime
+                </li>
+              </ul>
+              <Button
+                variant="outline"
+                className="w-full border-amber-500/30 text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/50"
+                onClick={() => document.getElementById('credit-packs')?.scrollIntoView({ behavior: 'smooth' })}
+              >
+                View Credit Packs
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
             </div>
           </div>
         </div>
@@ -534,6 +404,136 @@ export default function PricingPage() {
             )
           })}
         </div>
+      </section>
+
+      {/* Comparison Helper */}
+      <section className="border-t border-b border-slate-800 bg-slate-900/50 py-16 relative">
+        <div className="container relative">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-10">
+              <div className="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-4 py-1.5 text-sm font-medium text-indigo-400 mb-4">
+                <Calculator className="h-4 w-4" />
+                Which option is right for you?
+              </div>
+              <h2 className="text-2xl font-bold tracking-tight text-white">Subscription vs. Credits</h2>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="rounded-2xl bg-slate-900/80 border-2 border-blue-500/30 p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-10 w-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                    <Sparkles className="h-5 w-5 text-blue-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">Unlimited Subscription</h3>
+                    <p className="text-sm text-slate-400">Best for regular users</p>
+                  </div>
+                </div>
+                <ul className="space-y-3 text-sm">
+                  <li className="flex items-start gap-2 text-slate-300">
+                    <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <span>12+ comparisons per month (break-even point)</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-slate-300">
+                    <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <span>Consistent, predictable workflow</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-slate-300">
+                    <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <span>Never worry about running out</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-slate-300">
+                    <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <span>Priority support included</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="rounded-2xl bg-slate-900/80 border-2 border-amber-500/30 p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-10 w-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                    <Coins className="h-5 w-5 text-amber-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">Credit Packs</h3>
+                    <p className="text-sm text-slate-400">Best for occasional users</p>
+                  </div>
+                </div>
+                <ul className="space-y-3 text-sm">
+                  <li className="flex items-start gap-2 text-slate-300">
+                    <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <span>Fewer than 10-12 comparisons per month</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-slate-300">
+                    <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <span>Unpredictable or seasonal workload</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-slate-300">
+                    <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <span>No commitment—buy only when needed</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-slate-300">
+                    <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <span>Credits never expire</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="mt-8 p-4 rounded-xl bg-slate-800/50 border border-slate-700 text-center">
+              <p className="text-sm text-slate-400">
+                <span className="font-medium text-white">Rule of thumb:</span>{" "}
+                If you run 10+ comparisons per month consistently, a subscription offers better value.
+                For occasional or seasonal use, credit packs give you flexibility.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Credit Packs Section */}
+      <section id="credit-packs" className="container relative py-20 scroll-mt-20">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 rounded-full bg-amber-500/10 border border-amber-500/20 px-4 py-1.5 text-sm font-medium text-amber-400 mb-4">
+            <Coins className="h-4 w-4" />
+            Pay As You Go
+          </div>
+          <h2 className="text-3xl font-bold tracking-tight mb-4 text-white">Credit Packs</h2>
+          <p className="text-lg text-slate-400 max-w-xl mx-auto">
+            Perfect for occasional use. Buy once, use anytime. Credits never expire.
+          </p>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-3 max-w-4xl mx-auto">
+          <CreditPackCard
+            name={CREDIT_PACKS.starter.name}
+            price={CREDIT_PACKS.starter.price}
+            estimatedComparisons={CREDIT_PACKS.starter.estimatedComparisons}
+            onPurchase={() => handlePurchasePack("starter")}
+            isLoading={loadingPack === "starter"}
+          />
+          <CreditPackCard
+            name={CREDIT_PACKS.professional.name}
+            price={CREDIT_PACKS.professional.price}
+            estimatedComparisons={CREDIT_PACKS.professional.estimatedComparisons}
+            bonus={CREDIT_PACKS.professional.bonus}
+            isPopular
+            onPurchase={() => handlePurchasePack("professional")}
+            isLoading={loadingPack === "professional"}
+          />
+          <CreditPackCard
+            name={CREDIT_PACKS.enterprise.name}
+            price={CREDIT_PACKS.enterprise.price}
+            estimatedComparisons={CREDIT_PACKS.enterprise.estimatedComparisons}
+            bonus={CREDIT_PACKS.enterprise.bonus}
+            onPurchase={() => handlePurchasePack("enterprise")}
+            isLoading={loadingPack === "enterprise"}
+          />
+        </div>
+
+        <p className="text-center text-xs text-slate-500 mt-6 max-w-lg mx-auto">
+          *Comparison estimates are based on typical document sizes. Actual usage may vary depending on the length and complexity of your bid documents.
+        </p>
       </section>
 
       {/* FAQ Section */}
