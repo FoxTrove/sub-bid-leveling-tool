@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
-import { ArrowLeft, ArrowRight, Loader2, FolderPlus } from "lucide-react"
+import { ArrowLeft, ArrowRight, Loader2, FolderPlus, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -35,6 +35,7 @@ import {
   trackComparisonAbandoned,
   trackSubmissionError,
 } from "@/lib/analytics"
+import { ProcoreImportModal } from "@/components/compare/procore/procore-import-modal"
 
 const STEPS = [
   { id: 1, name: "Project Details" },
@@ -65,6 +66,10 @@ export default function NewComparisonPage() {
   // Usage tracking
   const [usageStatus, setUsageStatus] = useState<UsageStatus | null>(null)
   const [isLoadingUsage, setIsLoadingUsage] = useState(true)
+
+  // Procore integration
+  const [isProcoreConnected, setIsProcoreConnected] = useState(false)
+  const [showProcoreModal, setShowProcoreModal] = useState(false)
 
   // Form data
   const [folderId, setFolderId] = useState<string>(preselectedFolderId || "")
@@ -101,7 +106,7 @@ export default function NewComparisonPage() {
         setFolderId(preselectedFolderId)
       }
 
-      // Load profile for usage status
+      // Load profile for usage status and Procore connection
       const { data: profile } = await supabase
         .from("profiles")
         .select("*")
@@ -110,6 +115,8 @@ export default function NewComparisonPage() {
 
       if (profile) {
         setUsageStatus(getUsageStatus(profile as Profile))
+        // Check if Procore is connected
+        setIsProcoreConnected(!!profile.procore_connected_at)
       }
       setIsLoadingUsage(false)
     }
@@ -359,9 +366,45 @@ export default function NewComparisonPage() {
         )}
       </div>
 
+      {/* Procore Import Option */}
+      {isProcoreConnected && (
+        <div className="mb-8 rounded-lg border border-dashed p-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <div className="rounded-full bg-primary/10 p-2">
+                <svg viewBox="0 0 24 24" className="h-5 w-5 text-primary" fill="currentColor">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-medium">Import from Procore</p>
+                <p className="text-sm text-muted-foreground">
+                  Pull bids directly from your Procore projects
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setShowProcoreModal(true)}
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              Import Bids
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="mb-12">
         <StepIndicator steps={STEPS} currentStep={currentStep} />
       </div>
+
+      {/* Procore Import Modal */}
+      <ProcoreImportModal
+        open={showProcoreModal}
+        onOpenChange={setShowProcoreModal}
+        folders={folders}
+        preselectedFolderId={preselectedFolderId || undefined}
+      />
 
       <Card>
         <CardHeader>

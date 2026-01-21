@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Loader2, Gift, CheckCircle2, Key, Clock, Database, HelpCircle } from "lucide-react"
+import { Loader2, Gift, CheckCircle2, Key, Clock, Database, Eye, EyeOff, Lock } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -22,6 +22,9 @@ export default function OnboardingPage() {
   const [companyName, setCompanyName] = useState("")
   const [promoCode, setPromoCode] = useState<string | null>(null)
   const [trainingDataOptIn, setTrainingDataOptIn] = useState(false)
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
 
   // Check for promo code from URL params first (survives across tabs via magic link),
   // then fall back to session storage (same-tab flow)

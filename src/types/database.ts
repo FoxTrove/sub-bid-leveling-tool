@@ -44,6 +44,14 @@ export interface Profile {
   api_key_success_sent_at: string | null
   // Organization/team fields
   organization_id: string | null
+  // Procore integration fields
+  procore_access_token_encrypted: string | null
+  procore_refresh_token_encrypted: string | null
+  procore_company_id: string | null
+  procore_company_name: string | null
+  procore_user_id: string | null
+  procore_token_expires_at: string | null
+  procore_connected_at: string | null
   created_at: string
   updated_at: string
 }
@@ -75,6 +83,8 @@ export interface ProjectFolder {
   updated_at: string
 }
 
+export type SourceSystem = 'manual' | 'procore'
+
 export interface Project {
   id: string
   user_id: string
@@ -87,9 +97,15 @@ export interface Project {
   notes: string | null
   status: ProjectStatus
   error_message: string | null
+  // Procore integration fields
+  procore_project_id: string | null
+  procore_project_name: string | null
+  source_system: SourceSystem
   created_at: string
   updated_at: string
 }
+
+export type DocumentSourceSystem = 'upload' | 'procore'
 
 export interface BidDocument {
   id: string
@@ -102,6 +118,10 @@ export interface BidDocument {
   upload_status: DocumentStatus
   raw_text: string | null
   error_message: string | null
+  // Procore integration fields
+  procore_bid_id: string | null
+  procore_vendor_id: string | null
+  source_system: DocumentSourceSystem
   created_at: string
   updated_at: string
 }

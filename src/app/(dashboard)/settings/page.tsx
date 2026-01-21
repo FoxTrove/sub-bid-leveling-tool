@@ -5,6 +5,7 @@ import { PasswordSetupForm } from "@/components/settings/password-setup-form"
 import { BillingSection } from "@/components/settings/billing-section"
 import { TrainingDataSettings } from "@/components/settings/training-data-settings"
 import { TeamSettings } from "@/components/settings/team-settings"
+import { ProcoreIntegration } from "@/components/settings/procore-integration"
 import {
   Card,
   CardContent,
@@ -94,6 +95,13 @@ export default async function SettingsPage() {
             currentUserId={user.id}
           />
         )}
+
+        {/* Procore Integration */}
+        <ProcoreIntegration
+          isConnected={!!profile?.procore_connected_at}
+          companyName={profile?.procore_company_name || null}
+          connectedAt={profile?.procore_connected_at || null}
+        />
 
         {/* API Key Form - Only show to HANDSHAKE users or grandfathered BYOK users */}
         {showByokSection && (

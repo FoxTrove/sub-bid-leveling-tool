@@ -2,8 +2,6 @@
 // PROCORE INTEGRATION TYPES
 // ============================================
 
-import type { DocumentSourceSystem } from './database'
-
 export type ProcoreSourceSystem = 'manual' | 'procore'
 
 // OAuth Types
@@ -161,7 +159,7 @@ export interface ProjectProcoreFields {
 export interface BidDocumentProcoreFields {
   procore_bid_id: string | null
   procore_vendor_id: string | null
-  source_system: DocumentSourceSystem
+  source_system: 'upload' | 'procore'
 }
 
 // Connection status for UI
