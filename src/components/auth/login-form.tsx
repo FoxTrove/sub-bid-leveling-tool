@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Turnstile, useTurnstile } from "@/components/ui/turnstile"
 import { Loader2, Mail, CheckCircle2, Lock } from "lucide-react"
 import { toast } from "sonner"
 
@@ -25,6 +26,8 @@ export function LoginForm({ promoCode, plan, interval }: LoginFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [isSent, setIsSent] = useState(false)
   const [activeTab, setActiveTab] = useState<"magic" | "password">("magic")
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const { isCaptchaEnabled, shouldAllowSubmit } = useTurnstile()
 
   // Pre-fill email from landing page and store promo code/plan
   useEffect(() => {
@@ -48,6 +51,13 @@ export function LoginForm({ promoCode, plan, interval }: LoginFormProps) {
 
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Verify CAPTCHA if enabled
+    if (!shouldAllowSubmit(captchaToken)) {
+      toast.error("Please complete the CAPTCHA verification")
+      return
+    }
+
     setIsLoading(true)
 
     try {
@@ -71,6 +81,7 @@ export function LoginForm({ promoCode, plan, interval }: LoginFormProps) {
           emailRedirectTo: redirectUrl,
           // Store promo code in user metadata - this survives across tabs/browsers
           data: promoCode ? { promo_code: promoCode } : undefined,
+          captchaToken: captchaToken || undefined,
         },
       })
 
@@ -89,6 +100,13 @@ export function LoginForm({ promoCode, plan, interval }: LoginFormProps) {
 
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Verify CAPTCHA if enabled
+    if (!shouldAllowSubmit(captchaToken)) {
+      toast.error("Please complete the CAPTCHA verification")
+      return
+    }
+
     setIsLoading(true)
 
     try {
@@ -97,6 +115,9 @@ export function LoginForm({ promoCode, plan, interval }: LoginFormProps) {
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
+        options: {
+          captchaToken: captchaToken || undefined,
+        },
       })
 
       if (error) {
@@ -176,8 +197,14 @@ export function LoginForm({ promoCode, plan, interval }: LoginFormProps) {
     )
   }
 
+  // Reset captcha token when switching tabs
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as "magic" | "password")
+    setCaptchaToken(null)
+  }
+
   return (
-    <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "magic" | "password")} className="w-full">
+    <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
       <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="magic">Magic Link</TabsTrigger>
         <TabsTrigger value="password">Password</TabsTrigger>
@@ -202,7 +229,18 @@ export function LoginForm({ promoCode, plan, interval }: LoginFormProps) {
             </div>
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Turnstile
+            onVerify={setCaptchaToken}
+            onExpire={() => setCaptchaToken(null)}
+            onError={() => setCaptchaToken(null)}
+            className="mb-4"
+          />
+
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={isLoading || (isCaptchaEnabled && !captchaToken)}
+          >
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -257,7 +295,18 @@ export function LoginForm({ promoCode, plan, interval }: LoginFormProps) {
             </div>
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Turnstile
+            onVerify={setCaptchaToken}
+            onExpire={() => setCaptchaToken(null)}
+            onError={() => setCaptchaToken(null)}
+            className="mb-4"
+          />
+
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={isLoading || (isCaptchaEnabled && !captchaToken)}
+          >
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

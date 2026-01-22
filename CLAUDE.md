@@ -75,3 +75,6 @@ Required in `.env.local`:
 - `OPENAI_API_KEY`
 - `NEXT_PUBLIC_APP_URL`
 - `ENCRYPTION_SECRET` (32-byte hex for API key encryption)
+
+Optional (CAPTCHA protection):
+- `NEXT_PUBLIC_TURNSTILE_SITE_KEY` - Cloudflare Turnstile site key for bot protection on auth forms

@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Turnstile, useTurnstile } from "@/components/ui/turnstile"
 import { Loader2, Mail, CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -12,9 +13,18 @@ export function ResetPasswordForm() {
   const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [isSent, setIsSent] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const { isCaptchaEnabled, shouldAllowSubmit } = useTurnstile()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Verify CAPTCHA if enabled
+    if (!shouldAllowSubmit(captchaToken)) {
+      toast.error("Please complete the CAPTCHA verification")
+      return
+    }
+
     setIsLoading(true)
 
     try {
@@ -22,6 +32,7 @@ export function ResetPasswordForm() {
 
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/callback?type=recovery`,
+        captchaToken: captchaToken || undefined,
       })
 
       if (error) throw error
@@ -84,7 +95,18 @@ export function ResetPasswordForm() {
         </div>
       </div>
 
-      <Button type="submit" className="w-full" disabled={isLoading}>
+      <Turnstile
+        onVerify={setCaptchaToken}
+        onExpire={() => setCaptchaToken(null)}
+        onError={() => setCaptchaToken(null)}
+        className="mb-4"
+      />
+
+      <Button
+        type="submit"
+        className="w-full"
+        disabled={isLoading || (isCaptchaEnabled && !captchaToken)}
+      >
         {isLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
