@@ -235,6 +235,9 @@ export function trackFormFieldInteraction(
 export function trackSignUp(params: {
   method: 'magic_link' | 'password' | 'oauth'
   promo_code?: string
+  email_id?: string // Which email in sequence (1-6)
+  campaign?: string // Campaign name (e.g., 'handshake')
+  source?: string // Traffic source (e.g., 'instantly')
 }) {
   trackEvent(AnalyticsEvents.SIGN_UP, params)
 }
@@ -270,6 +273,9 @@ export function trackOnboardingCompleted(promoCode?: string) {
 export function trackInviteLinkViewed(params: {
   invite_token?: string
   promo_code?: string
+  email_id?: string // Which email in sequence (1-6)
+  campaign?: string // Campaign name (e.g., 'handshake')
+  source?: string // Traffic source (e.g., 'instantly')
 }) {
   trackEvent(AnalyticsEvents.INVITE_LINK_VIEWED, params)
 }

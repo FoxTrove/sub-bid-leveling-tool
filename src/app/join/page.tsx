@@ -135,14 +135,29 @@ function JoinPageContent() {
   const promoCode = inviteToken ? INVITE_TOKENS[inviteToken] : null
   const isValidInvite = promoCode !== undefined && promoCode !== null
 
-  // Store the promo code when page loads with valid invite
+  // Store the promo code and check for attribution when page loads
   useEffect(() => {
     if (isValidInvite && promoCode) {
       sessionStorage.setItem("bidvet_promo_code", promoCode)
-      // Track invite link view
+
+      // Check for attribution data (set by /vip/[id] redirect)
+      const attributionData = sessionStorage.getItem("bidvet_attribution")
+      let attribution = null
+      if (attributionData) {
+        try {
+          attribution = JSON.parse(attributionData)
+        } catch {
+          // Invalid JSON, ignore
+        }
+      }
+
+      // Track invite link view with attribution
       trackInviteLinkViewed({
         invite_token: inviteToken || undefined,
         promo_code: promoCode,
+        email_id: attribution?.emailId,
+        campaign: attribution?.campaign,
+        source: attribution?.source,
       })
     }
   }, [isValidInvite, promoCode, inviteToken])

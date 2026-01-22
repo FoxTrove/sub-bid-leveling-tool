@@ -25,6 +25,12 @@ export default function OnboardingPage() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
+  const [attribution, setAttribution] = useState<{
+    source?: string
+    campaign?: string
+    emailId?: string
+    timestamp?: string
+  } | null>(null)
 
   // Check for promo code from multiple sources (in order of priority):
   // 1. URL params (from callback redirect)
@@ -62,6 +68,16 @@ export default function OnboardingPage() {
     }
 
     checkPromoCode()
+
+    // Load attribution data from sessionStorage (set by /vip/[id] redirect)
+    const attributionData = sessionStorage.getItem("bidvet_attribution")
+    if (attributionData) {
+      try {
+        setAttribution(JSON.parse(attributionData))
+      } catch {
+        // Invalid JSON, ignore
+      }
+    }
   }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -127,6 +143,14 @@ export default function OnboardingPage() {
         updateData.promo_applied_at = new Date().toISOString()
       }
 
+      // Add attribution data for email campaign tracking
+      if (attribution) {
+        updateData.attribution_source = attribution.source || null
+        updateData.attribution_campaign = attribution.campaign || null
+        updateData.attribution_email_id = attribution.emailId || null
+        updateData.attribution_timestamp = attribution.timestamp || null
+      }
+
       const { error } = await supabase
         .from("profiles")
         .update(updateData)
@@ -134,8 +158,9 @@ export default function OnboardingPage() {
 
       if (error) throw error
 
-      // Clear promo code from session storage
+      // Clear promo code and attribution from session storage
       sessionStorage.removeItem("bidvet_promo_code")
+      sessionStorage.removeItem("bidvet_attribution")
 
       // Send welcome email for HANDSHAKE users (fire and forget)
       if (promoCode === "HANDSHAKE") {
@@ -145,9 +170,15 @@ export default function OnboardingPage() {
       // Send admin notification about new signup (fire and forget)
       fetch("/api/email/admin-signup", { method: "POST" }).catch(console.error)
 
-      // Track analytics events
+      // Track analytics events with attribution data
       setUserId(user.id)
-      trackSignUp({ method: 'magic_link', promo_code: promoCode || undefined })
+      trackSignUp({
+        method: 'magic_link',
+        promo_code: promoCode || undefined,
+        email_id: attribution?.emailId,
+        campaign: attribution?.campaign,
+        source: attribution?.source,
+      })
       trackOnboardingCompleted(promoCode || undefined)
 
       if (promoCode === "HANDSHAKE") {
