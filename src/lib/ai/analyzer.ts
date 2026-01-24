@@ -213,6 +213,10 @@ export async function analyzeProject(
             raw_text: item.raw_text,
             ai_notes: item.notes,
             user_modified: false,
+            // Position tracking fields (populated later during position matching)
+            text_position: null,
+            // Breakdown category (populated after breakdown selection)
+            breakdown_category: null,
           })
         )
 
