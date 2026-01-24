@@ -101,6 +101,10 @@ export interface Project {
   procore_project_id: string | null
   procore_project_name: string | null
   source_system: SourceSystem
+  // Breakdown selection fields
+  breakdown_type: string | null
+  breakdown_structure: Record<string, unknown> | null
+  breakdown_source: 'ai' | 'custom' | 'template' | null
   created_at: string
   updated_at: string
 }
@@ -122,6 +126,8 @@ export interface BidDocument {
   procore_bid_id: string | null
   procore_vendor_id: string | null
   source_system: DocumentSourceSystem
+  // Position tracking for document viewer
+  text_positions: Record<string, unknown> | null
   created_at: string
   updated_at: string
 }
@@ -143,6 +149,10 @@ export interface ExtractedItem {
   raw_text: string | null
   ai_notes: string | null
   user_modified: boolean
+  // Position tracking for document viewer
+  text_position: Record<string, unknown> | null
+  // Breakdown category assignment
+  breakdown_category: string | null
   created_at: string
   updated_at: string
 }
@@ -383,4 +393,130 @@ export interface UserOrganization {
   organization: Organization
   role: OrganizationRole
   memberCount: number
+}
+
+// ============================================
+// BREAKDOWN SELECTION TYPES
+// ============================================
+
+export type BreakdownType =
+  | 'by_location'
+  | 'by_material'
+  | 'by_phase'
+  | 'by_unit'
+  | 'by_system'
+  | 'by_floor'
+  | 'by_area'
+  | 'custom'
+
+export type BreakdownSource = 'ai' | 'custom' | 'template'
+
+export interface BreakdownStructureNode {
+  id: string
+  name: string
+  children?: BreakdownStructureNode[]
+}
+
+export interface BreakdownStructure {
+  type: BreakdownType
+  nodes: BreakdownStructureNode[]
+}
+
+export interface BreakdownOption {
+  id: string
+  project_id: string
+  option_index: number
+  breakdown_type: BreakdownType
+  breakdown_structure: BreakdownStructure
+  confidence_score: number
+  explanation: string | null
+  is_recommended: boolean
+  created_at: string
+}
+
+export interface BreakdownTemplate {
+  id: string
+  user_id: string
+  trade_type: string
+  name: string
+  description: string | null
+  breakdown_structure: BreakdownStructure
+  use_count: number
+  created_at: string
+  updated_at: string
+}
+
+// ============================================
+// POSITION TRACKING TYPES (Document Viewer)
+// ============================================
+
+export interface PdfTextPosition {
+  type: 'pdf'
+  page: number
+  x: number
+  y: number
+  width: number
+  height: number
+  fontName?: string
+}
+
+export interface ExcelTextPosition {
+  type: 'excel'
+  sheet: string
+  row: number
+  col: number
+  cellRef: string
+}
+
+export interface WordTextPosition {
+  type: 'word'
+  paragraph: number
+  charStart: number
+  charEnd: number
+}
+
+export type TextPosition = PdfTextPosition | ExcelTextPosition | WordTextPosition
+
+export interface TextBlockWithPosition {
+  text: string
+  position: TextPosition
+}
+
+// For storing multiple text blocks from a document
+export interface DocumentTextPositions {
+  documentId: string
+  fileType: 'pdf' | 'excel' | 'word'
+  blocks: TextBlockWithPosition[]
+}
+
+// ============================================
+// ITEM EDIT HISTORY TYPES
+// ============================================
+
+export type EditHistoryFieldName =
+  | 'description'
+  | 'quantity'
+  | 'unit'
+  | 'unit_price'
+  | 'total_price'
+  | 'category'
+  | 'normalized_category'
+  | 'is_exclusion'
+  | 'is_inclusion'
+  | 'breakdown_category'
+
+export interface ItemEditHistory {
+  id: string
+  item_id: string
+  user_id: string
+  field_name: EditHistoryFieldName
+  old_value: unknown
+  new_value: unknown
+  change_reason: string | null
+  batch_id: string | null
+  created_at: string
+}
+
+export interface ItemEditHistoryWithUser extends ItemEditHistory {
+  user: Pick<Profile, 'id' | 'email' | 'full_name'>
 }
