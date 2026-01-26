@@ -8,6 +8,7 @@ import {
   sendCreditPurchaseEmail,
   sendSubscriptionCanceledEmail,
   sendPaymentFailedEmail,
+  sendSigninReminderEmail,
 } from '@/lib/email'
 
 // Test endpoint - only enabled in development
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (!type) {
-    return NextResponse.json({ error: 'Missing "type" parameter. Options: welcome, reminder-day7, reminder-day21, reminder-day27, expired, api-key-success, subscription-welcome, credit-purchase, subscription-canceled, payment-failed' }, { status: 400 })
+    return NextResponse.json({ error: 'Missing "type" parameter. Options: welcome, reminder-day7, reminder-day21, reminder-day27, expired, api-key-success, subscription-welcome, credit-purchase, subscription-canceled, payment-failed, signin-reminder' }, { status: 400 })
   }
 
   const firstName = 'Test User'
@@ -119,9 +120,13 @@ export async function POST(request: NextRequest) {
       })
       break
 
+    case 'signin-reminder':
+      result = await sendSigninReminderEmail({ to })
+      break
+
     default:
       return NextResponse.json({
-        error: `Unknown type "${type}". Options: welcome, reminder-day7, reminder-day21, reminder-day27, expired, api-key-success, subscription-welcome, credit-purchase, subscription-canceled, payment-failed`,
+        error: `Unknown type "${type}". Options: welcome, reminder-day7, reminder-day21, reminder-day27, expired, api-key-success, subscription-welcome, credit-purchase, subscription-canceled, payment-failed, signin-reminder`,
       }, { status: 400 })
   }
 

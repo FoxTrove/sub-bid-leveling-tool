@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/handshake-reminders",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/signin-reminders",
+      "schedule": "0 10 * * 1,3,5"
     }
   ]
 }

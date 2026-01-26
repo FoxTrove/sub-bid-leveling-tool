@@ -15,6 +15,7 @@ import { AdminCreditPurchaseEmail } from './templates/admin-credit-purchase'
 import { MentionNotificationEmail } from './templates/mention-notification'
 import { CommentNotificationEmail } from './templates/comment-notification'
 import { ProjectSharedEmail } from './templates/project-shared'
+import { SigninReminderEmail } from './templates/signin-reminder'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -523,6 +524,28 @@ export async function sendProjectSharedEmail(params: {
         projectName: params.projectName,
         permission: params.permission,
         projectUrl: params.projectUrl,
+      }),
+    })
+  )
+}
+
+// ============================================
+// Onboarding Reminder Emails
+// ============================================
+
+/**
+ * Send reminder email to users who created account but haven't signed in
+ */
+export async function sendSigninReminderEmail(params: {
+  to: string
+}): Promise<EmailResult> {
+  return sendWithRetry(() =>
+    resend.emails.send({
+      from: `${FROM_NAME} <${FROM_EMAIL}>`,
+      to: params.to,
+      subject: 'Complete your BidVet signup - Your account is waiting',
+      react: SigninReminderEmail({
+        email: params.to,
       }),
     })
   )
