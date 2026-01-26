@@ -32,7 +32,8 @@ export function ResetPasswordForm() {
 
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/callback?type=recovery`,
-        captchaToken: captchaToken || undefined,
+        // Only include captchaToken if CAPTCHA is enabled and token exists
+        ...(isCaptchaEnabled && captchaToken ? { captchaToken } : {}),
       })
 
       if (error) throw error

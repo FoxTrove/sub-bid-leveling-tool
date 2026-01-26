@@ -81,7 +81,8 @@ export function LoginForm({ promoCode, plan, interval }: LoginFormProps) {
           emailRedirectTo: redirectUrl,
           // Store promo code in user metadata - this survives across tabs/browsers
           data: promoCode ? { promo_code: promoCode } : undefined,
-          captchaToken: captchaToken || undefined,
+          // Only include captchaToken if CAPTCHA is enabled and token exists
+          ...(isCaptchaEnabled && captchaToken ? { captchaToken } : {}),
         },
       })
 
@@ -116,7 +117,8 @@ export function LoginForm({ promoCode, plan, interval }: LoginFormProps) {
         email,
         password,
         options: {
-          captchaToken: captchaToken || undefined,
+          // Only include captchaToken if CAPTCHA is enabled and token exists
+          ...(isCaptchaEnabled && captchaToken ? { captchaToken } : {}),
         },
       })
 
