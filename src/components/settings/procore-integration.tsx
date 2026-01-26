@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import Image from "next/image"
 import { Loader2, CheckCircle2, ExternalLink, Unplug } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -126,13 +127,13 @@ export function ProcoreIntegration({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <svg
-            viewBox="0 0 24 24"
-            className="h-5 w-5"
-            fill="currentColor"
-          >
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-          </svg>
+          <Image
+            src="/procore-logo.png"
+            alt="Procore"
+            width={28}
+            height={28}
+            className="h-7 w-auto"
+          />
           Procore Integration
         </CardTitle>
         <CardDescription>

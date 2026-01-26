@@ -13,6 +13,14 @@ export async function GET(request: Request) {
   // Handle code flow (PKCE)
   const code = requestUrl.searchParams.get("code")
 
+  // Debug logging
+  console.log("[Auth Callback] Received params:", {
+    hasTokenHash: !!token_hash,
+    type,
+    hasCode: !!code,
+    fullUrl: request.url,
+  })
+
   // Extract promo code and checkout info - check direct param first, then parse from 'next' URL
   let promoCode = requestUrl.searchParams.get("promo")
   let checkoutPlan = requestUrl.searchParams.get("plan")
@@ -64,6 +72,10 @@ export async function GET(request: Request) {
       token_hash,
     })
 
+    if (error) {
+      console.error("[Auth Callback] token_hash verification failed:", error.message)
+    }
+
     if (!error) {
       // For password recovery, redirect to settings to set new password
       if (type === "recovery") {
@@ -78,6 +90,10 @@ export async function GET(request: Request) {
   // Try code flow (PKCE - default Supabase flow)
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
+
+    if (error) {
+      console.error("[Auth Callback] code exchange failed:", error.message)
+    }
 
     if (!error) {
       // Check if this is a recovery flow
