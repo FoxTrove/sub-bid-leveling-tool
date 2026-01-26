@@ -4,15 +4,12 @@ import Link from "next/link"
 import { ArrowLeft, Download, AlertTriangle, RefreshCw, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { SummaryCards } from "@/components/compare/results/summary-cards"
-import { ComparisonGrid } from "@/components/compare/results/comparison-grid"
-import { RecommendationPanel } from "@/components/compare/results/recommendation-panel"
 import { ProcessingState } from "@/components/compare/results/processing-state"
-import { ContractorDetailCards } from "@/components/compare/results/contractor-detail-cards"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { ReanalyzeButton } from "@/components/compare/results/reanalyze-button"
 import { ResultsTracker, TrackedExportLink } from "@/components/compare/results/results-tracker"
 import { FirstComparisonModal } from "@/components/compare/results/first-comparison-modal"
+import { ResultsWithViewer } from "@/components/compare/results/results-with-viewer"
 import { FREE_COMPARISON_LIMIT } from "@/lib/utils/constants"
 
 export default async function ComparisonPage({
@@ -219,30 +216,13 @@ export default async function ComparisonPage({
 
       {/* Results */}
       {isComplete && project.comparison_results && (
-        <div className="space-y-8">
-          <SummaryCards
-            results={project.comparison_results}
-            documents={project.bid_documents}
-          />
-
-          <RecommendationPanel
-            recommendation={project.comparison_results.recommendation_json}
-            documents={project.bid_documents}
-          />
-
-          <ComparisonGrid
-            documents={project.bid_documents}
-            results={project.comparison_results}
-            projectId={projectId}
-            tradeType={project.trade_type}
-            userOptedIn={profile?.training_data_opt_in ?? false}
-          />
-
-          <ContractorDetailCards
-            documents={project.bid_documents}
-            results={project.comparison_results}
-          />
-        </div>
+        <ResultsWithViewer
+          documents={project.bid_documents}
+          results={project.comparison_results}
+          projectId={projectId}
+          tradeType={project.trade_type}
+          userOptedIn={profile?.training_data_opt_in ?? false}
+        />
       )}
 
       {/* First Comparison Upsell Modal */}

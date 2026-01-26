@@ -128,6 +128,9 @@ export interface BidDocument {
   source_system: DocumentSourceSystem
   // Position tracking for document viewer
   text_positions: Record<string, unknown> | null
+  // Quality scoring
+  quality_score: number | null
+  red_flags: RedFlag[] | null
   created_at: string
   updated_at: string
 }
@@ -153,6 +156,9 @@ export interface ExtractedItem {
   text_position: Record<string, unknown> | null
   // Breakdown category assignment
   breakdown_category: string | null
+  // Leveling support
+  is_baseline: boolean
+  leveled_price: number | null
   created_at: string
   updated_at: string
 }
@@ -173,6 +179,69 @@ export interface ScopeGap {
   present_in: string[]
   missing_from: string[]
   estimated_value: number | null
+}
+
+// ============================================
+// BID QUALITY & RED FLAGS TYPES
+// ============================================
+
+export type RedFlagType =
+  | 'price_outlier_low'
+  | 'price_outlier_high'
+  | 'excessive_lump_sums'
+  | 'excessive_allowances'
+  | 'missing_expected_items'
+  | 'low_extraction_confidence'
+  | 'vague_descriptions'
+
+export type RedFlagSeverity = 'warning' | 'critical'
+
+export interface RedFlag {
+  type: RedFlagType
+  severity: RedFlagSeverity
+  description: string
+  affectedItems?: string[]
+  value?: number
+}
+
+export interface BidQualityFactors {
+  lineItemDetailScore: number      // 0-30 pts: Has quantities, units, unit prices
+  exclusionsClarityScore: number   // 0-20 pts: Explicit exclusion list
+  scopeCoverageScore: number       // 0-30 pts: % of expected trade items
+  pricingCompletenessScore: number // 0-20 pts: All items have prices
+}
+
+export interface BidQualityAnalysis {
+  completenessScore: number        // 0-100 total score
+  factors: BidQualityFactors
+  redFlags: RedFlag[]
+  riskLevel: 'low' | 'medium' | 'high'
+}
+
+// ============================================
+// BID LEVELING TYPES
+// ============================================
+
+export interface ItemBaseline {
+  normalizedDescription: string
+  baselineContractorId: string
+  baselineQuantity: number
+  baselineUnit: string
+}
+
+export interface ContractorLeveledTotals {
+  contractorId: string
+  asBidTotal: number
+  leveledTotal: number
+  difference: number
+  percentDifference: number
+}
+
+export interface LevelingConfig {
+  isEnabled: boolean
+  baselines: ItemBaseline[]
+  leveledTotals: ContractorLeveledTotals[]
+  lastUpdated: string
 }
 
 export interface ComparisonSummary {
@@ -216,6 +285,8 @@ export interface ComparisonResult {
   gap_items: number
   summary_json: ComparisonSummary
   recommendation_json: Recommendation
+  // Leveling configuration
+  leveling_json: LevelingConfig | null
   generated_at: string
   updated_at: string
 }
@@ -519,4 +590,16 @@ export interface ItemEditHistory {
 
 export interface ItemEditHistoryWithUser extends ItemEditHistory {
   user: Pick<Profile, 'id' | 'email' | 'full_name'>
+}
+
+export interface ItemEditHistoryGrouped {
+  batch_id: string
+  created_at: string
+  user: Pick<Profile, 'email' | 'full_name'> | null
+  change_reason: string | null
+  changes: Array<{
+    field_name: EditHistoryFieldName
+    old_value: unknown
+    new_value: unknown
+  }>
 }

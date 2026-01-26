@@ -217,6 +217,9 @@ export async function analyzeProject(
             text_position: null,
             // Breakdown category (populated after breakdown selection)
             breakdown_category: null,
+            // Leveling fields (populated during bid leveling)
+            is_baseline: false,
+            leveled_price: null,
           })
         )
 

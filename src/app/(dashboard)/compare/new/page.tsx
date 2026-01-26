@@ -22,10 +22,11 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { StepIndicator } from "@/components/compare/wizard/step-indicator"
+import { BreakdownSelectionStep } from "@/components/compare/wizard/breakdown-selection-step"
 import { FileDropzone, UploadedFile } from "@/components/shared/file-dropzone"
 import { UpgradePrompt } from "@/components/shared/upgrade-prompt"
 import { toast } from "sonner"
-import { TRADE_TYPES, type ProjectFolder, type Profile } from "@/types"
+import { TRADE_TYPES, type ProjectFolder, type Profile, type BreakdownStructure, type BreakdownSource } from "@/types"
 import { MIN_BIDS, MAX_BIDS } from "@/lib/utils/constants"
 import { getUsageStatus, type UsageStatus } from "@/lib/utils/subscription"
 import {
@@ -41,8 +42,9 @@ const STEPS = [
   { id: 1, name: "Project Details" },
   { id: 2, name: "Trade Type" },
   { id: 3, name: "Upload Bids" },
-  { id: 4, name: "Name Contractors" },
-  { id: 5, name: "Review" },
+  { id: 4, name: "Breakdown" },
+  { id: 5, name: "Name Contractors" },
+  { id: 6, name: "Review" },
 ]
 
 interface ContractorInfo {
@@ -77,6 +79,16 @@ export default function NewComparisonPage() {
   const [tradeType, setTradeType] = useState("")
   const [files, setFiles] = useState<UploadedFile[]>([])
   const [contractors, setContractors] = useState<ContractorInfo[]>([])
+
+  // Breakdown selection
+  const [breakdownStructure, setBreakdownStructure] = useState<BreakdownStructure | null>(null)
+  const [breakdownSource, setBreakdownSource] = useState<BreakdownSource | null>(null)
+  const [breakdownTemplateId, setBreakdownTemplateId] = useState<string | undefined>(undefined)
+
+  // Early project creation (for text extraction before breakdown selection)
+  const [earlyProjectId, setEarlyProjectId] = useState<string | null>(null)
+  const [isExtractingText, setIsExtractingText] = useState(false)
+  const [textExtractionComplete, setTextExtractionComplete] = useState(false)
 
   // Tracking refs
   const hasTrackedStart = useRef(false)
@@ -171,7 +183,9 @@ export default function NewComparisonPage() {
   const isStep1Valid = projectName.trim().length > 0 && folderId.length > 0
   const isStep2Valid = tradeType.length > 0
   const isStep3Valid = files.length >= MIN_BIDS && files.length <= MAX_BIDS
-  const isStep4Valid = contractors.every((c) => c.contractorName.trim().length > 0)
+  // Step 4 (Breakdown) is always valid - users can skip or select AI mode
+  const isStep4Valid = true
+  const isStep5Valid = contractors.every((c) => c.contractorName.trim().length > 0)
 
   // When files change, update contractors list
   const handleFilesChange = (newFiles: UploadedFile[]) => {
@@ -197,7 +211,117 @@ export default function NewComparisonPage() {
     )
   }
 
-  const handleNext = () => {
+  const handleBreakdownChange = (selection: {
+    structure: BreakdownStructure | null
+    source: BreakdownSource | null
+    templateId?: string
+  }) => {
+    setBreakdownStructure(selection.structure)
+    setBreakdownSource(selection.source)
+    setBreakdownTemplateId(selection.templateId)
+  }
+
+  // Create project early and extract text (for breakdown selection with AI options)
+  const createProjectAndExtractText = async () => {
+    if (earlyProjectId) return earlyProjectId // Already created
+
+    setIsExtractingText(true)
+
+    try {
+      const supabase = createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) {
+        toast.error("Please log in to continue")
+        return null
+      }
+
+      // 1. Create the project in draft status
+      const { data: project, error: projectError } = await supabase
+        .from("projects")
+        .insert({
+          user_id: user.id,
+          folder_id: folderId,
+          name: projectName,
+          trade_type: tradeType,
+          status: "draft",
+        })
+        .select()
+        .single()
+
+      if (projectError || !project) {
+        throw new Error("Failed to create project")
+      }
+
+      setEarlyProjectId(project.id)
+
+      // 2. Upload files and create bid_documents records
+      for (const contractor of contractors) {
+        const fileData = files.find((f) => f.id === contractor.fileId)
+        if (!fileData) continue
+
+        const file = fileData.file
+        const fileExt = file.name.split(".").pop()
+        const filePath = `${user.id}/${project.id}/${contractor.fileId}.${fileExt}`
+
+        // Upload to storage
+        const { error: uploadError } = await supabase.storage
+          .from("bid-documents")
+          .upload(filePath, file)
+
+        if (uploadError) {
+          console.error("Upload error:", uploadError)
+          continue
+        }
+
+        // Get public URL
+        const { data: urlData } = supabase.storage
+          .from("bid-documents")
+          .getPublicUrl(filePath)
+
+        // Create bid_document record
+        await supabase.from("bid_documents").insert({
+          project_id: project.id,
+          contractor_name: contractor.contractorName || `Contractor ${contractors.indexOf(contractor) + 1}`,
+          file_name: file.name,
+          file_url: urlData.publicUrl,
+          file_type: file.type,
+          file_size: file.size,
+          upload_status: "uploaded",
+        })
+      }
+
+      // 3. Extract text from documents
+      const extractResponse = await fetch(
+        `/api/projects/${project.id}/extract-text`,
+        { method: "POST" }
+      )
+
+      if (!extractResponse.ok) {
+        console.error("Text extraction failed")
+      } else {
+        setTextExtractionComplete(true)
+      }
+
+      return project.id
+    } catch (error) {
+      console.error("Early project creation error:", error)
+      toast.error("Failed to prepare documents. Please try again.")
+      return null
+    } finally {
+      setIsExtractingText(false)
+    }
+  }
+
+  const handleNext = async () => {
+    // When moving from step 3 (Upload) to step 4 (Breakdown), create project and extract text
+    if (currentStep === 3 && !earlyProjectId) {
+      const projectId = await createProjectAndExtractText()
+      if (!projectId) return // Failed to create project
+    }
+
     const nextStep = Math.min(currentStep + 1, STEPS.length)
     setCurrentStep(nextStep)
 
@@ -226,78 +350,122 @@ export default function NewComparisonPage() {
         return
       }
 
-      // 1. Create the project with folder_id
-      const { data: project, error: projectError } = await supabase
-        .from("projects")
-        .insert({
-          user_id: user.id,
-          folder_id: folderId,
-          name: projectName,
-          trade_type: tradeType,
-          status: "uploading",
-        })
-        .select()
-        .single()
+      let projectId: string
 
-      if (projectError || !project) {
-        throw new Error("Failed to create project")
-      }
+      // Check if project was already created early (for AI breakdown selection)
+      if (earlyProjectId) {
+        projectId = earlyProjectId
 
-      // 2. Upload files to storage and create bid_documents records
-      for (const contractor of contractors) {
-        const fileData = files.find((f) => f.id === contractor.fileId)
-        if (!fileData) continue
+        // Update contractor names in existing bid_documents
+        const { data: existingDocs } = await supabase
+          .from("bid_documents")
+          .select("id, file_name")
+          .eq("project_id", projectId)
 
-        const file = fileData.file
-        const fileExt = file.name.split(".").pop()
-        const filePath = `${user.id}/${project.id}/${contractor.fileId}.${fileExt}`
-
-        // Upload to storage
-        const { error: uploadError } = await supabase.storage
-          .from("bid-documents")
-          .upload(filePath, file)
-
-        if (uploadError) {
-          console.error("Upload error:", uploadError)
-          // Continue with other files
+        if (existingDocs) {
+          for (const doc of existingDocs) {
+            // Find the contractor by matching file name
+            const contractor = contractors.find(
+              (c) => files.find((f) => f.id === c.fileId)?.file.name === doc.file_name
+            )
+            if (contractor) {
+              await supabase
+                .from("bid_documents")
+                .update({ contractor_name: contractor.contractorName })
+                .eq("id", doc.id)
+            }
+          }
         }
 
-        // Get public URL
-        const { data: urlData } = supabase.storage
-          .from("bid-documents")
-          .getPublicUrl(filePath)
+        // Update project with breakdown settings and status
+        await supabase
+          .from("projects")
+          .update({
+            status: "processing",
+            breakdown_type: breakdownStructure?.type || null,
+            breakdown_structure: breakdownStructure || null,
+            breakdown_source: breakdownSource,
+          })
+          .eq("id", projectId)
+      } else {
+        // Create project the traditional way (fallback)
+        const { data: project, error: projectError } = await supabase
+          .from("projects")
+          .insert({
+            user_id: user.id,
+            folder_id: folderId,
+            name: projectName,
+            trade_type: tradeType,
+            status: "uploading",
+            breakdown_type: breakdownStructure?.type || null,
+            breakdown_structure: breakdownStructure || null,
+            breakdown_source: breakdownSource,
+          })
+          .select()
+          .single()
 
-        // Create bid_document record
-        await supabase.from("bid_documents").insert({
-          project_id: project.id,
-          contractor_name: contractor.contractorName,
-          file_name: file.name,
-          file_url: urlData.publicUrl,
-          file_type: file.type,
-          file_size: file.size,
-          upload_status: "uploaded",
-        })
+        if (projectError || !project) {
+          throw new Error("Failed to create project")
+        }
+
+        projectId = project.id
+
+        // Upload files to storage and create bid_documents records
+        for (const contractor of contractors) {
+          const fileData = files.find((f) => f.id === contractor.fileId)
+          if (!fileData) continue
+
+          const file = fileData.file
+          const fileExt = file.name.split(".").pop()
+          const filePath = `${user.id}/${projectId}/${contractor.fileId}.${fileExt}`
+
+          // Upload to storage
+          const { error: uploadError } = await supabase.storage
+            .from("bid-documents")
+            .upload(filePath, file)
+
+          if (uploadError) {
+            console.error("Upload error:", uploadError)
+            continue
+          }
+
+          // Get public URL
+          const { data: urlData } = supabase.storage
+            .from("bid-documents")
+            .getPublicUrl(filePath)
+
+          // Create bid_document record
+          await supabase.from("bid_documents").insert({
+            project_id: projectId,
+            contractor_name: contractor.contractorName,
+            file_name: file.name,
+            file_url: urlData.publicUrl,
+            file_type: file.type,
+            file_size: file.size,
+            upload_status: "uploaded",
+          })
+        }
+
+        // Update project status to processing
+        await supabase
+          .from("projects")
+          .update({ status: "processing" })
+          .eq("id", projectId)
       }
 
-      // 3. Update project status to processing
-      await supabase
-        .from("projects")
-        .update({ status: "processing" })
-        .eq("id", project.id)
-
-      // 4. Trigger analysis (fire and forget)
-      fetch(`/api/projects/${project.id}/analyze`, {
+      // Trigger analysis (fire and forget)
+      fetch(`/api/projects/${projectId}/analyze`, {
         method: "POST",
       }).catch(console.error)
 
       // Track processing started
       trackProcessingStarted({
-        comparison_id: project.id,
+        comparison_id: projectId,
         document_count: contractors.length,
       })
 
       toast.success("Comparison created! Analysis is starting...")
-      router.push(`/compare/${project.id}`)
+      router.push(`/compare/${projectId}`)
     } catch (error) {
       console.error("Submit error:", error)
       toast.error("Failed to create comparison. Please try again.")
@@ -324,6 +492,8 @@ export default function NewComparisonPage() {
       case 4:
         return isStep4Valid
       case 5:
+        return isStep5Valid
+      case 6:
         return true
       default:
         return false
@@ -413,8 +583,9 @@ export default function NewComparisonPage() {
             {currentStep === 1 && "Select a project folder and enter comparison details"}
             {currentStep === 2 && "Select the trade or scope type for this comparison"}
             {currentStep === 3 && "Upload the bid documents you want to compare"}
-            {currentStep === 4 && "Name each contractor for easy identification"}
-            {currentStep === 5 && "Review your comparison details before submitting"}
+            {currentStep === 4 && "Choose how to organize scope items for comparison"}
+            {currentStep === 5 && "Name each contractor for easy identification"}
+            {currentStep === 6 && "Review your comparison details before submitting"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -431,7 +602,45 @@ export default function NewComparisonPage() {
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Loading folders...
                   </div>
+                ) : folders.length === 0 ? (
+                  /* Empty state - no folders yet */
+                  <div className="rounded-lg border-2 border-dashed border-muted-foreground/25 p-6">
+                    <div className="text-center">
+                      <FolderPlus className="mx-auto h-10 w-10 text-muted-foreground/50" />
+                      <h3 className="mt-3 font-medium">Create your first project folder</h3>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Folders help you organize comparisons by construction project
+                      </p>
+                    </div>
+                    <div className="mt-4 flex items-center gap-2">
+                      <Input
+                        placeholder="Enter folder name (e.g., Downtown Office Tower)"
+                        value={newFolderName}
+                        onChange={(e) => setNewFolderName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault()
+                            handleCreateFolder()
+                          }
+                        }}
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        onClick={handleCreateFolder}
+                        disabled={!newFolderName.trim() || isCreatingFolder}
+                      >
+                        {isCreatingFolder ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <FolderPlus className="mr-2 h-4 w-4" />
+                        )}
+                        Create Folder
+                      </Button>
+                    </div>
+                  </div>
                 ) : (
+                  /* Has folders - show dropdown with option to create more */
                   <>
                     <Select value={folderId} onValueChange={setFolderId}>
                       <SelectTrigger>
@@ -544,8 +753,19 @@ export default function NewComparisonPage() {
             />
           )}
 
-          {/* Step 4: Name Contractors */}
-          {currentStep === 4 && (
+          {/* Step 4: Breakdown Selection */}
+          {currentStep === 4 && tradeType && (
+            <BreakdownSelectionStep
+              tradeType={tradeType}
+              projectId={earlyProjectId || undefined}
+              onSelectionChange={handleBreakdownChange}
+              selectedBreakdown={breakdownStructure}
+              selectedSource={breakdownSource}
+            />
+          )}
+
+          {/* Step 5: Name Contractors */}
+          {currentStep === 5 && (
             <div className="space-y-4">
               {contractors.map((contractor, index) => (
                 <div key={contractor.fileId} className="space-y-2">
@@ -566,8 +786,8 @@ export default function NewComparisonPage() {
             </div>
           )}
 
-          {/* Step 5: Review */}
-          {currentStep === 5 && (
+          {/* Step 6: Review */}
+          {currentStep === 6 && (
             <div className="space-y-6">
               <div className="rounded-lg bg-muted/50 p-4">
                 <h4 className="font-medium">Project Details</h4>
@@ -606,6 +826,26 @@ export default function NewComparisonPage() {
               </div>
 
               <div className="rounded-lg bg-muted/50 p-4">
+                <h4 className="font-medium">Breakdown Strategy</h4>
+                <dl className="mt-2 space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <dt className="text-muted-foreground">Mode</dt>
+                    <dd className="font-medium">
+                      {breakdownSource === "ai" && "AI-Powered (analyze documents)"}
+                      {breakdownSource === "template" && "Saved Template"}
+                      {breakdownSource === null && "No breakdown (flat extraction)"}
+                    </dd>
+                  </div>
+                  {breakdownStructure && (
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">Categories</dt>
+                      <dd className="font-medium">{breakdownStructure.nodes.length} top-level</dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
+
+              <div className="rounded-lg bg-muted/50 p-4">
                 <h4 className="font-medium">Bids to Compare ({contractors.length})</h4>
                 <ul className="mt-2 space-y-2 text-sm">
                   {contractors.map((c) => (
@@ -632,9 +872,18 @@ export default function NewComparisonPage() {
         </Button>
 
         {currentStep < STEPS.length ? (
-          <Button onClick={handleNext} disabled={!canProceed()}>
-            Next
-            <ArrowRight className="ml-2 h-4 w-4" />
+          <Button onClick={handleNext} disabled={!canProceed() || isExtractingText}>
+            {isExtractingText ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Preparing Documents...
+              </>
+            ) : (
+              <>
+                Next
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </>
+            )}
           </Button>
         ) : (
           <Button onClick={handleSubmit} disabled={isSubmitting}>

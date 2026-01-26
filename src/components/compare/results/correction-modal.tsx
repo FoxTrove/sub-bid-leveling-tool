@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Select,
   SelectContent,
@@ -20,9 +21,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Shield, ArrowRight, Loader2 } from "lucide-react"
+import { Shield, ArrowRight, Loader2, Calculator, Lock } from "lucide-react"
 import { formatCurrency } from "@/lib/utils/format"
+import { ItemHistoryPanel } from "./item-history-panel"
 import type { ExtractedItem } from "@/types"
 import type { CorrectionInput } from "./editable-cell"
 
@@ -63,6 +66,13 @@ export function CorrectionModal({
 }: CorrectionModalProps) {
   const [isSaving, setIsSaving] = useState(false)
   const [contributeToTraining, setContributeToTraining] = useState(userOptedIn)
+  const [changeReason, setChangeReason] = useState("")
+
+  // Auto-calculation mode: "auto" calculates total = qty × unit_price, "manual" allows direct editing
+  const [calculationMode, setCalculationMode] = useState<"auto" | "manual">(
+    // Default to manual if we have a total but can't derive it from qty × unit_price
+    item.quantity && item.unit_price ? "auto" : "manual"
+  )
 
   // Form state
   const [formData, setFormData] = useState({
@@ -74,6 +84,28 @@ export function CorrectionModal({
     unit: item.unit || "",
     isExclusion: item.is_exclusion,
   })
+
+  // Auto-calculate total when quantity or unit price changes (in auto mode)
+  useEffect(() => {
+    if (calculationMode === "auto") {
+      const qty = parseFloat(formData.quantity) || 0
+      const unitP = parseFloat(formData.unitPrice) || 0
+      if (qty > 0 && unitP > 0) {
+        const calculatedTotal = (qty * unitP).toFixed(2)
+        setFormData(prev => ({ ...prev, totalPrice: calculatedTotal }))
+      }
+    }
+  }, [formData.quantity, formData.unitPrice, calculationMode])
+
+  // Helper to format the calculation formula
+  const getCalculationFormula = useCallback(() => {
+    const qty = parseFloat(formData.quantity) || 0
+    const unitP = parseFloat(formData.unitPrice) || 0
+    if (qty > 0 && unitP > 0) {
+      return `= ${qty.toLocaleString()} × $${unitP.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    }
+    return null
+  }, [formData.quantity, formData.unitPrice])
 
   // Track what changed
   const hasDescriptionChange = formData.description !== item.description
@@ -239,6 +271,7 @@ export function CorrectionModal({
           unit: formData.unit || null,
           is_exclusion: formData.isExclusion,
           user_modified: true,
+          change_reason: changeReason || undefined,
         }),
       })
 
@@ -284,7 +317,14 @@ export function CorrectionModal({
     <Dialog open onOpenChange={() => onClose()}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Edit Extracted Item</DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle>Edit Extracted Item</DialogTitle>
+            <ItemHistoryPanel
+              itemId={item.id}
+              itemDescription={item.description}
+              onRevert={onClose}
+            />
+          </div>
           <DialogDescription>
             Correct any errors in the AI extraction. Your changes will be saved
             to this comparison.
@@ -340,42 +380,7 @@ export function CorrectionModal({
             </Select>
           </div>
 
-          {/* Price fields */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="totalPrice">Total Price</Label>
-              <Input
-                id="totalPrice"
-                type="number"
-                step="0.01"
-                value={formData.totalPrice}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, totalPrice: e.target.value }))
-                }
-                placeholder="0.00"
-              />
-              {hasPriceChange && item.total_price && (
-                <span className="text-xs text-muted-foreground">
-                  Was: {formatCurrency(item.total_price)}
-                </span>
-              )}
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="unitPrice">Unit Price</Label>
-              <Input
-                id="unitPrice"
-                type="number"
-                step="0.01"
-                value={formData.unitPrice}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, unitPrice: e.target.value }))
-                }
-                placeholder="0.00"
-              />
-            </div>
-          </div>
-
-          {/* Quantity and Unit */}
+          {/* Quantity and Unit (moved before price for logical flow) */}
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="quantity">Quantity</Label>
@@ -403,6 +408,82 @@ export function CorrectionModal({
             </div>
           </div>
 
+          {/* Price fields with auto-calculation */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="unitPrice">Unit Price</Label>
+              <Input
+                id="unitPrice"
+                type="number"
+                step="0.01"
+                value={formData.unitPrice}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, unitPrice: e.target.value }))
+                }
+                placeholder="0.00"
+              />
+            </div>
+            <div className="grid gap-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="totalPrice" className="flex items-center gap-1.5">
+                  Total Price
+                  {calculationMode === "auto" && (
+                    <Calculator className="h-3.5 w-3.5 text-muted-foreground" />
+                  )}
+                </Label>
+              </div>
+              <div className="relative">
+                <Input
+                  id="totalPrice"
+                  type="number"
+                  step="0.01"
+                  value={formData.totalPrice}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, totalPrice: e.target.value }))
+                  }
+                  placeholder="0.00"
+                  disabled={calculationMode === "auto"}
+                  className={calculationMode === "auto" ? "bg-muted pr-8" : ""}
+                />
+                {calculationMode === "auto" && (
+                  <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                )}
+              </div>
+              {/* Show formula when auto-calculating */}
+              {calculationMode === "auto" && getCalculationFormula() && (
+                <span className="text-xs text-muted-foreground font-mono">
+                  {getCalculationFormula()}
+                </span>
+              )}
+              {hasPriceChange && item.total_price && (
+                <span className="text-xs text-muted-foreground">
+                  Was: {formatCurrency(item.total_price)}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Auto-calculation toggle */}
+          <div className="flex items-center justify-between rounded-lg border p-3 bg-muted/30">
+            <div className="space-y-0.5">
+              <Label htmlFor="calc-mode" className="text-sm font-medium">
+                Auto-calculate total
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                {calculationMode === "auto"
+                  ? "Total = Quantity × Unit Price"
+                  : "Enter total price manually"}
+              </p>
+            </div>
+            <Switch
+              id="calc-mode"
+              checked={calculationMode === "auto"}
+              onCheckedChange={(checked) =>
+                setCalculationMode(checked ? "auto" : "manual")
+              }
+            />
+          </div>
+
           {/* Exclusion toggle */}
           <div className="flex items-center space-x-2">
             <Checkbox
@@ -419,6 +500,22 @@ export function CorrectionModal({
               Mark as exclusion (not included in bid)
             </Label>
           </div>
+
+          {/* Change reason (optional) */}
+          {hasAnyChange && (
+            <div className="grid gap-2">
+              <Label htmlFor="changeReason">
+                Reason for change <span className="text-muted-foreground">(optional)</span>
+              </Label>
+              <Textarea
+                id="changeReason"
+                value={changeReason}
+                onChange={(e) => setChangeReason(e.target.value)}
+                placeholder="e.g., Corrected price from bid document page 3"
+                className="h-20 resize-none"
+              />
+            </div>
+          )}
 
           {/* Training contribution opt-in */}
           {userOptedIn && hasAnyChange && (

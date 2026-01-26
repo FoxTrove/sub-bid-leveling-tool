@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { Pencil, CheckCircle2, XCircle, HelpCircle } from "lucide-react"
+import { useState, useCallback } from "react"
+import { Pencil, CheckCircle2, XCircle, HelpCircle, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Tooltip,
@@ -11,7 +11,8 @@ import {
 } from "@/components/ui/tooltip"
 import { formatCurrency } from "@/lib/utils/format"
 import { CorrectionModal } from "./correction-modal"
-import type { ExtractedItem } from "@/types"
+import { useDocumentViewer } from "@/contexts/document-viewer-context"
+import type { ExtractedItem, TextPosition, BidDocument } from "@/types"
 
 export interface CellData {
   price: number | null
@@ -47,6 +48,8 @@ interface EditableCellProps {
   onCorrection?: (correction: CorrectionInput) => void
   // Full item for correction modal
   fullItem?: ExtractedItem
+  // Document for document viewer
+  document?: BidDocument
 }
 
 export function EditableCell({
@@ -60,9 +63,39 @@ export function EditableCell({
   userOptedIn,
   onCorrection,
   fullItem,
+  document,
 }: EditableCellProps) {
   const [showEditModal, setShowEditModal] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+
+  // Document viewer integration
+  const {
+    isOpen: isViewerOpen,
+    openPanel,
+    setActiveDocument,
+    highlightItemInDocument,
+  } = useDocumentViewer()
+
+  // Handle viewing item in document
+  const handleViewInDocument = useCallback(() => {
+    if (!fullItem || !document) return
+
+    // Open the document viewer if not already open
+    if (!isViewerOpen) {
+      openPanel()
+    }
+
+    // Set the active document
+    setActiveDocument(document)
+
+    // Highlight the item in the document
+    if (fullItem.text_position) {
+      highlightItemInDocument(fullItem, documentId)
+    }
+  }, [fullItem, document, isViewerOpen, openPanel, setActiveDocument, highlightItemInDocument, documentId])
+
+  // Check if this item has position data for document viewing
+  const hasPositionData = fullItem?.text_position != null
 
   // Not mentioned state
   if (!data) {
@@ -84,6 +117,12 @@ export function EditableCell({
       >
         <XCircle className="h-4 w-4" />
         <span className="text-sm">Excluded</span>
+        {hasPositionData && document && (
+          <ViewDocumentButton
+            visible={isHovered}
+            onClick={handleViewInDocument}
+          />
+        )}
         {fullItem && (
           <EditButton
             visible={isHovered}
@@ -139,6 +178,12 @@ export function EditableCell({
         </TooltipProvider>
       )}
 
+      {hasPositionData && document && (
+        <ViewDocumentButton
+          visible={isHovered}
+          onClick={handleViewInDocument}
+        />
+      )}
       {fullItem && (
         <EditButton
           visible={isHovered}
@@ -189,5 +234,39 @@ function EditButton({
       <Pencil className="h-3 w-3" />
       <span className="sr-only">Edit</span>
     </Button>
+  )
+}
+
+function ViewDocumentButton({
+  visible,
+  onClick,
+}: {
+  visible: boolean
+  onClick: () => void
+}) {
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`absolute -left-1 -top-1 h-6 w-6 rounded-full bg-background shadow-sm transition-opacity ${
+              visible ? "opacity-100" : "opacity-0"
+            }`}
+            onClick={(e) => {
+              e.stopPropagation()
+              onClick()
+            }}
+          >
+            <FileText className="h-3 w-3" />
+            <span className="sr-only">View in document</span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>View in document</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   )
 }
