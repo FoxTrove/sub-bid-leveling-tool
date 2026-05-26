@@ -210,11 +210,9 @@ export function BillingSection({
                 </Button>
               </Link>
             </div>
-            {freeRemaining > 0 && (
-              <p className="text-xs text-muted-foreground">
-                Plus {freeRemaining} free comparison{freeRemaining !== 1 ? 's' : ''} remaining
-              </p>
-            )}
+            <p className="text-xs text-muted-foreground">
+              Each comparison uses 1 credit.
+            </p>
           </div>
         )}
 
@@ -248,7 +246,9 @@ export function BillingSection({
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Comparisons</span>
-              <span className="font-medium text-primary">Unlimited</span>
+              <span className="font-medium text-primary">
+                {plan === "basic" ? "25 per billing period" : "Unlimited"}
+              </span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Billing cycle</span>

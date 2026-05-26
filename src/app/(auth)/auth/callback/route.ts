@@ -6,6 +6,33 @@ export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const origin = requestUrl.origin
 
+  const getSafeRedirectPath = (value: string | null) => {
+    if (!value || !value.startsWith("/") || value.startsWith("//")) {
+      return null
+    }
+
+    return value
+  }
+
+  const redirectToLoginError = (error: string, description?: string) => {
+    const loginUrl = new URL("/login", origin)
+    loginUrl.searchParams.set("error", error)
+    if (description) {
+      loginUrl.searchParams.set("error_description", description)
+    }
+    return NextResponse.redirect(loginUrl)
+  }
+
+  const providerError = requestUrl.searchParams.get("error")
+  const providerErrorDescription = requestUrl.searchParams.get("error_description")
+  if (providerError) {
+    console.error("[Auth Callback] provider returned error:", {
+      error: providerError,
+      description: providerErrorDescription,
+    })
+    return redirectToLoginError(providerError, providerErrorDescription || undefined)
+  }
+
   // Handle token_hash flow (from email templates)
   const token_hash = requestUrl.searchParams.get("token_hash")
   const type = requestUrl.searchParams.get("type") as EmailOtpType | null
@@ -25,6 +52,7 @@ export async function GET(request: Request) {
   let promoCode = requestUrl.searchParams.get("promo")
   let checkoutPlan = requestUrl.searchParams.get("plan")
   let checkoutInterval = requestUrl.searchParams.get("interval") || "monthly"
+  let redirectPath = getSafeRedirectPath(requestUrl.searchParams.get("redirect"))
 
   // If params not directly in URL, check the 'next' param (from email template's RedirectTo)
   const nextUrl = requestUrl.searchParams.get("next")
@@ -37,6 +65,9 @@ export async function GET(request: Request) {
       if (!checkoutPlan) {
         checkoutPlan = parsedNext.searchParams.get("plan")
         checkoutInterval = parsedNext.searchParams.get("interval") || "monthly"
+      }
+      if (!redirectPath) {
+        redirectPath = getSafeRedirectPath(parsedNext.searchParams.get("redirect"))
       }
     } catch {
       // Invalid URL, ignore
@@ -65,6 +96,19 @@ export async function GET(request: Request) {
     return null
   }
 
+  const getPostAuthRedirectUrl = () => {
+    const checkoutUrl = getCheckoutRedirectUrl()
+    if (checkoutUrl) {
+      return checkoutUrl
+    }
+
+    if (redirectPath) {
+      return new URL(redirectPath, origin).toString()
+    }
+
+    return buildRedirectUrl("/dashboard")
+  }
+
   // Try token_hash flow first (from custom email templates)
   if (token_hash && type) {
     const { error } = await supabase.auth.verifyOtp({
@@ -81,9 +125,7 @@ export async function GET(request: Request) {
       if (type === "recovery") {
         return NextResponse.redirect(`${origin}/settings?reset_password=true`)
       }
-      // Check if user was trying to checkout a plan
-      const checkoutUrl = getCheckoutRedirectUrl()
-      return NextResponse.redirect(checkoutUrl || buildRedirectUrl("/dashboard"))
+      return NextResponse.redirect(getPostAuthRedirectUrl())
     }
   }
 
@@ -101,9 +143,7 @@ export async function GET(request: Request) {
       if (recoveryType === "recovery") {
         return NextResponse.redirect(`${origin}/settings?reset_password=true`)
       }
-      // Check if user was trying to checkout a plan
-      const checkoutUrl = getCheckoutRedirectUrl()
-      return NextResponse.redirect(checkoutUrl || buildRedirectUrl("/dashboard"))
+      return NextResponse.redirect(getPostAuthRedirectUrl())
     }
   }
 
@@ -112,11 +152,12 @@ export async function GET(request: Request) {
   // but Supabase already authenticated the user
   const { data: { user } } = await supabase.auth.getUser()
   if (user) {
-    // Check if user was trying to checkout a plan
-    const checkoutUrl = getCheckoutRedirectUrl()
-    return NextResponse.redirect(checkoutUrl || buildRedirectUrl("/dashboard"))
+    return NextResponse.redirect(getPostAuthRedirectUrl())
   }
 
   // If there's no valid auth params or an error, redirect to login with error
-  return NextResponse.redirect(`${origin}/login?error=auth_failed`)
+  return redirectToLoginError(
+    "auth_failed",
+    "The sign-in link did not include the required authentication token."
+  )
 }

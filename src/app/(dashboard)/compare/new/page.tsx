@@ -32,7 +32,6 @@ import {
   trackComparisonStarted,
   trackComparisonStep,
   trackProcessingStarted,
-  trackComparisonAbandoned,
   trackSubmissionError,
 } from "@/lib/analytics"
 import { ProcoreImportModal } from "@/components/compare/procore/procore-import-modal"
@@ -211,6 +210,8 @@ export default function NewComparisonPage() {
 
   const handleSubmit = async () => {
     setIsSubmitting(true)
+    let createdProjectId: string | null = null
+    const uploadedPaths: string[] = []
 
     try {
       const supabase = createClient()
@@ -242,6 +243,7 @@ export default function NewComparisonPage() {
       if (projectError || !project) {
         throw new Error("Failed to create project")
       }
+      createdProjectId = project.id
 
       // 2. Upload files to storage and create bid_documents records
       for (const contractor of contractors) {
@@ -259,8 +261,9 @@ export default function NewComparisonPage() {
 
         if (uploadError) {
           console.error("Upload error:", uploadError)
-          // Continue with other files
+          throw new Error(`Failed to upload ${file.name}`)
         }
+        uploadedPaths.push(filePath)
 
         // Get public URL
         const { data: urlData } = supabase.storage
@@ -268,7 +271,7 @@ export default function NewComparisonPage() {
           .getPublicUrl(filePath)
 
         // Create bid_document record
-        await supabase.from("bid_documents").insert({
+        const { error: documentError } = await supabase.from("bid_documents").insert({
           project_id: project.id,
           contractor_name: contractor.contractorName,
           file_name: file.name,
@@ -277,6 +280,10 @@ export default function NewComparisonPage() {
           file_size: file.size,
           upload_status: "uploaded",
         })
+
+        if (documentError) {
+          throw new Error(`Failed to save document record for ${file.name}`)
+        }
       }
 
       // 3. Update project status to processing
@@ -285,10 +292,15 @@ export default function NewComparisonPage() {
         .update({ status: "processing" })
         .eq("id", project.id)
 
-      // 4. Trigger analysis (fire and forget)
-      fetch(`/api/projects/${project.id}/analyze`, {
+      // 4. Trigger analysis before redirecting so startup failures are visible.
+      const analyzeResponse = await fetch(`/api/projects/${project.id}/analyze`, {
         method: "POST",
-      }).catch(console.error)
+      })
+
+      if (!analyzeResponse.ok) {
+        const data = await analyzeResponse.json().catch(() => null)
+        throw new Error(data?.error || "Failed to start analysis")
+      }
 
       // Track processing started
       trackProcessingStarted({
@@ -300,7 +312,24 @@ export default function NewComparisonPage() {
       router.push(`/compare/${project.id}`)
     } catch (error) {
       console.error("Submit error:", error)
-      toast.error("Failed to create comparison. Please try again.")
+      const supabase = createClient()
+
+      if (uploadedPaths.length > 0) {
+        await supabase.storage.from("bid-documents").remove(uploadedPaths).catch(console.error)
+      }
+
+      if (createdProjectId) {
+        const { error: cleanupError } = await supabase
+          .from("projects")
+          .delete()
+          .eq("id", createdProjectId)
+
+        if (cleanupError) {
+          console.error("Project cleanup failed:", cleanupError)
+        }
+      }
+
+      toast.error(error instanceof Error ? error.message : "Failed to create comparison. Please try again.")
 
       // Track submission error
       trackSubmissionError({

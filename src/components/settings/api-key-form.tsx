@@ -140,7 +140,7 @@ export function ApiKeyForm({
     }
     return hasExistingKey
       ? "You have an API key configured. You can update or remove it below."
-      : "Add your own OpenAI API key to continue using BidVet after your trial ends."
+      : "Add your own OpenAI API key to keep using legacy BYOK access."
   }
 
   return (
@@ -175,8 +175,8 @@ export function ApiKeyForm({
             <p className="font-medium mb-2">How to get your OpenAI API key:</p>
             <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
               <li>Go to <a href="https://platform.openai.com/signup" target="_blank" rel="noopener noreferrer" className="text-primary underline">platform.openai.com</a> and create an account</li>
-              <li>Add a payment method (you'll only pay for what you use)</li>
-              <li>Go to <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-primary underline">API Keys</a> and click "Create new secret key"</li>
+              <li>Add a payment method (you&apos;ll only pay for what you use)</li>
+              <li>Go to <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-primary underline">API Keys</a> and click &quot;Create new secret key&quot;</li>
               <li>Copy the key and paste it below</li>
             </ol>
             <p className="mt-2 text-xs text-muted-foreground">

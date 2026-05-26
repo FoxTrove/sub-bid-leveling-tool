@@ -10,16 +10,46 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Turnstile, useTurnstile } from "@/components/ui/turnstile"
-import { Loader2, Mail, CheckCircle2, Lock } from "lucide-react"
+import { AlertCircle, Loader2, Mail, CheckCircle2, Lock } from "lucide-react"
 import { toast } from "sonner"
 
 interface LoginFormProps {
   promoCode?: string
   plan?: "pro" | "team"
   interval?: "monthly" | "annual"
+  redirectPath?: string
+  authError?: string
 }
 
-export function LoginForm({ promoCode, plan, interval }: LoginFormProps) {
+function getSafeRedirectPath(redirectPath?: string) {
+  if (!redirectPath || !redirectPath.startsWith("/") || redirectPath.startsWith("//")) {
+    return undefined
+  }
+
+  return redirectPath
+}
+
+function getReadableAuthError(error?: string) {
+  if (!error) return null
+
+  const normalized = error.toLowerCase()
+
+  if (normalized.includes("expired")) {
+    return "That sign-in link has expired. Send yourself a new magic link and use the most recent email."
+  }
+
+  if (
+    normalized.includes("auth_failed") ||
+    normalized.includes("invalid") ||
+    normalized.includes("code")
+  ) {
+    return "We could not complete that magic-link sign in. Send yourself a new link, then open the latest email in the same browser."
+  }
+
+  return error
+}
+
+export function LoginForm({ promoCode, plan, interval, redirectPath, authError }: LoginFormProps) {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -73,12 +103,17 @@ export function LoginForm({ promoCode, plan, interval }: LoginFormProps) {
         redirectParams.set("plan", plan)
         redirectParams.set("interval", interval || "monthly")
       }
+      const safeRedirectPath = getSafeRedirectPath(redirectPath)
+      if (safeRedirectPath) {
+        redirectParams.set("redirect", safeRedirectPath)
+      }
       const redirectUrl = `${window.location.origin}/auth/callback${redirectParams.toString() ? `?${redirectParams.toString()}` : ""}`
 
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: redirectUrl,
+          shouldCreateUser: true,
           // Store promo code in user metadata - this survives across tabs/browsers
           data: promoCode ? { promo_code: promoCode } : undefined,
           // Only include captchaToken if CAPTCHA is enabled and token exists
@@ -160,7 +195,7 @@ export function LoginForm({ promoCode, plan, interval }: LoginFormProps) {
         }
       }
 
-      router.push("/dashboard")
+      router.push(getSafeRedirectPath(redirectPath) || "/dashboard")
       router.refresh()
     } catch (error) {
       toast.error(
@@ -187,6 +222,9 @@ export function LoginForm({ promoCode, plan, interval }: LoginFormProps) {
           <p className="text-sm text-muted-foreground">
             Click the link in the email to sign in.
           </p>
+          <p className="text-sm text-muted-foreground">
+            If you request more than one link, only use the newest email.
+          </p>
         </div>
         <Button
           variant="outline"
@@ -205,8 +243,18 @@ export function LoginForm({ promoCode, plan, interval }: LoginFormProps) {
     setCaptchaToken(null)
   }
 
+  const readableAuthError = getReadableAuthError(authError)
+
   return (
-    <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+    <div className="space-y-4">
+      {readableAuthError && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{readableAuthError}</AlertDescription>
+        </Alert>
+      )}
+
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
       <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="magic">Magic Link</TabsTrigger>
         <TabsTrigger value="password">Password</TabsTrigger>
@@ -329,6 +377,7 @@ export function LoginForm({ promoCode, plan, interval }: LoginFormProps) {
           </div>
         </form>
       </TabsContent>
-    </Tabs>
+      </Tabs>
+    </div>
   )
 }

@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { encrypt } from "@/lib/utils/encryption"
 import { sendApiKeySuccessEmail, sendAdminApiKeyAddedEmail } from "@/lib/email"
+import { canUseBYOK } from "@/lib/utils/subscription"
+import type { Profile } from "@/types"
 
 export async function POST(request: Request) {
   try {
@@ -30,6 +32,13 @@ export async function POST(request: Request) {
       .select("email, full_name, company_name, promo_code, promo_applied_at, openai_api_key_encrypted, api_key_success_sent_at")
       .eq("id", user.id)
       .single()
+
+    if (!profile || !canUseBYOK(profile as Profile)) {
+      return NextResponse.json(
+        { error: "BYOK access is not available for this account." },
+        { status: 403 }
+      )
+    }
 
     const isFirstKeySave = !profile?.openai_api_key_encrypted
 

@@ -1,7 +1,7 @@
 import { createClient, createAdminClient } from "@/lib/supabase/server"
-import { NextResponse } from "next/server"
+import { after, NextResponse } from "next/server"
 import { decrypt } from "@/lib/utils/encryption"
-import { getUsageStatus } from "@/lib/utils/subscription"
+import { BASIC_PLAN_MONTHLY_COMPARISON_LIMIT, getUsageStatus } from "@/lib/utils/subscription"
 import { rateLimiters } from "@/lib/utils/rate-limit"
 import type { Profile } from "@/types"
 
@@ -59,6 +59,42 @@ export async function POST(
       return NextResponse.json({ error: "Profile not found" }, { status: 404 })
     }
 
+    if (profile.plan === "basic" && profile.subscription_status === "active") {
+      const periodEnd = profile.subscription_period_end
+        ? new Date(profile.subscription_period_end)
+        : null
+      const periodStart = periodEnd ? new Date(periodEnd) : null
+      if (periodStart) {
+        if (profile.billing_cycle === "annual") {
+          periodStart.setFullYear(periodStart.getFullYear() - 1)
+        } else {
+          periodStart.setMonth(periodStart.getMonth() - 1)
+        }
+
+        const { count: basicUsageCount, error: usageCountError } = await adminSupabase
+          .from("projects")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .gte("created_at", periodStart.toISOString())
+          .neq("status", "draft")
+
+        if (usageCountError) {
+          console.error("Basic plan usage count failed:", usageCountError)
+          return NextResponse.json(
+            { error: "Could not verify plan usage. Please try again." },
+            { status: 500 }
+          )
+        }
+
+        if ((basicUsageCount || 0) > BASIC_PLAN_MONTHLY_COMPARISON_LIMIT) {
+          return NextResponse.json(
+            { error: "You've reached your 25 comparisons for this billing period. Upgrade or buy credits to continue." },
+            { status: 403 }
+          )
+        }
+      }
+    }
+
     // Check usage limits
     const usageStatus = getUsageStatus(profile as Profile)
 
@@ -86,6 +122,8 @@ export async function POST(
     }
 
     // Deduct credit if using credit-based access
+    let deductedCredit = false
+
     if (usageStatus.accessType === "credits") {
       const { data: deductResult, error: deductError } = await adminSupabase.rpc("deduct_credits", {
         p_user_id: user.id,
@@ -101,6 +139,7 @@ export async function POST(
           { status: 500 }
         )
       }
+      deductedCredit = true
     }
 
     // Increment comparisons_used for tracking purposes
@@ -130,20 +169,53 @@ export async function POST(
       .update({ upload_status: "uploaded", error_message: null })
       .eq("project_id", projectId)
 
-    // Fire off the orchestrator Edge Function (don't await - let it run)
+    // Fire off the orchestrator Edge Function after the response, but still
+    // inspect startup failures and move the project out of a stuck processing state.
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 
-    fetch(`${supabaseUrl}/functions/v1/orchestrate-analysis`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        projectId,
-        openaiApiKey,
-        tradeType: project.trade_type,
-        documentIds,
-      }),
-    }).catch((error) => {
-      console.error("Orchestrator call failed:", error)
+    after(async () => {
+      try {
+        const response = await fetch(`${supabaseUrl}/functions/v1/orchestrate-analysis`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            projectId,
+            openaiApiKey,
+            tradeType: project.trade_type,
+            documentIds,
+          }),
+        })
+
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => "")
+          throw new Error(errorText || `Orchestrator returned ${response.status}`)
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Analysis worker failed to start"
+        console.error("Orchestrator call failed:", message)
+
+        await adminSupabase
+          .from("projects")
+          .update({
+            status: "error",
+            error_message: "Analysis failed to start. Please try again.",
+          })
+          .eq("id", projectId)
+
+        if (deductedCredit) {
+          const { error: refundError } = await adminSupabase.rpc("add_credits", {
+            p_user_id: user.id,
+            p_amount: 1,
+            p_type: "refund",
+            p_description: "Refund for analysis startup failure",
+            p_stripe_session_id: null,
+          })
+
+          if (refundError) {
+            console.error("Credit refund failed:", refundError)
+          }
+        }
+      }
     })
 
     return NextResponse.json({ success: true, message: "Analysis started" })

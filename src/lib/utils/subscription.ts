@@ -1,5 +1,5 @@
 import type { Profile, PlanType } from "@/types"
-import { SIGNUP_BONUS_CREDITS, HANDSHAKE_FREE_PERIOD_DAYS } from "./constants"
+import { HANDSHAKE_FREE_PERIOD_DAYS } from "./constants"
 
 export interface UsageStatus {
   canCreateComparison: boolean
@@ -15,6 +15,8 @@ export interface UsageStatus {
   handshakeFreePeriodExpired?: boolean
   handshakeDaysRemaining?: number
 }
+
+export const BASIC_PLAN_MONTHLY_COMPARISON_LIMIT = 25
 
 /**
  * Check if a user is a HANDSHAKE promo user
@@ -185,6 +187,8 @@ export function getPlanDisplayName(plan: PlanType): string {
   switch (plan) {
     case "free":
       return "Free"
+    case "basic":
+      return "Basic"
     case "pro":
       return "Pro"
     case "team":
@@ -198,6 +202,8 @@ export function getPlanDisplayName(plan: PlanType): string {
 
 export function getPlanBadgeColor(plan: PlanType): string {
   switch (plan) {
+    case "basic":
+      return "bg-slate-100 text-slate-800"
     case "pro":
       return "bg-blue-100 text-blue-800"
     case "team":

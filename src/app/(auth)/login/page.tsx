@@ -12,7 +12,14 @@ import { Badge } from "@/components/ui/badge"
 import { PROMO_CODES } from "@/lib/utils/constants"
 
 interface LoginPageProps {
-  searchParams: Promise<{ code?: string; redirect?: string; plan?: string; interval?: string }>
+  searchParams: Promise<{
+    code?: string
+    redirect?: string
+    plan?: string
+    interval?: string
+    error?: string
+    error_description?: string
+  }>
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
@@ -21,6 +28,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const isValidPromo = promoCode && promoCode in PROMO_CODES
   const plan = params.plan as "pro" | "team" | undefined
   const interval = (params.interval || "monthly") as "monthly" | "annual"
+  const redirectPath = params.redirect
+  const authError = params.error
+    ? params.error_description || params.error
+    : undefined
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-muted/30 p-4">
@@ -53,6 +64,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             promoCode={isValidPromo ? promoCode : undefined}
             plan={plan}
             interval={interval}
+            redirectPath={redirectPath}
+            authError={authError}
           />
         </CardContent>
       </Card>

@@ -1,6 +1,6 @@
 export type ProjectStatus = 'draft' | 'uploading' | 'processing' | 'complete' | 'error'
 export type DocumentStatus = 'uploading' | 'uploaded' | 'processing' | 'processed' | 'error'
-export type PlanType = 'free' | 'pro' | 'team' | 'enterprise'
+export type PlanType = 'free' | 'basic' | 'pro' | 'team' | 'enterprise'
 export type SubscriptionStatus = 'inactive' | 'active' | 'past_due' | 'canceled' | 'trialing'
 export type BillingCycle = 'monthly' | 'annual'
 export type OrganizationRole = 'owner' | 'admin' | 'member'

@@ -206,11 +206,9 @@ export function UsageBanner({
               <p className="text-2xl font-bold text-accent">
                 {creditBalance} comparison{creditBalance !== 1 ? 's' : ''} remaining
               </p>
-              {freeRemaining > 0 && (
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Plus {freeRemaining} free comparison{freeRemaining !== 1 ? 's' : ''}
-                </p>
-              )}
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Each comparison uses 1 credit.
+              </p>
             </div>
           </div>
           <div className="flex gap-2">
