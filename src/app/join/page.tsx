@@ -329,7 +329,7 @@ function JoinPageContent() {
                   <div className="inline-flex items-center justify-center h-14 w-14 rounded-full bg-green-100 dark:bg-green-900/50 mb-4">
                     <FileText className="h-7 w-7 text-green-600 dark:text-green-400" />
                   </div>
-                  <h2 className="text-2xl md:text-3xl font-bold mb-2">Here's the Deal</h2>
+                  <h2 className="text-2xl md:text-3xl font-bold mb-2">Here&apos;s the Deal</h2>
                   <p className="text-muted-foreground">We believe in being upfront. No surprises.</p>
                 </div>
 
@@ -421,8 +421,8 @@ function JoinPageContent() {
 
                 <div className="text-center">
                   <p className="text-muted-foreground mb-4">
-                    Start with your free 30-day trial. If your team finds it useful, upgrade anytime
-                    from your dashboard.
+                    Start with 30 days of fully covered partner access. If your team finds it
+                    useful, upgrade anytime from your dashboard.
                   </p>
                   <Link
                     href="/pricing"
@@ -478,7 +478,7 @@ function JoinPageContent() {
             <div className="rounded-2xl bg-gradient-to-br from-green-500 to-green-600 p-10 md:p-12 text-center text-white shadow-xl shadow-green-500/25">
               <h2 className="mb-3 text-2xl md:text-3xl font-bold">Ready to Level Your Bids?</h2>
               <p className="mb-8 text-green-100 text-lg">
-                30 days free. Then ~$1-3 per comparison. No subscription ever.
+                30 days of covered partner access. Then ~$1-3 per comparison with your own OpenAI key.
               </p>
               <Button
                 size="lg"

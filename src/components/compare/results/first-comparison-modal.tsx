@@ -85,7 +85,7 @@ export function FirstComparisonModal({
           </DialogTitle>
           <DialogDescription className="text-base">
             {isHandshake
-              ? "You're using BidVet for free as a HANDSHAKE partner. Here's how to keep using it after your trial."
+              ? "You're using BidVet for free as a HANDSHAKE partner. Here's how to keep using it after your partner access period."
               : `You have ${freeRemaining} free comparison${freeRemaining !== 1 ? "s" : ""} remaining. Here's how to get unlimited access.`}
           </DialogDescription>
         </DialogHeader>

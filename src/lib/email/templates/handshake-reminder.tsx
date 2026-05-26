@@ -49,7 +49,7 @@ export function HandshakeReminderEmail({
           {reminderType === 'day7' && (
             <>
               <Text style={text}>
-                If you haven't tried it yet, now's the perfect time—we're covering all the AI costs for the next {daysRemaining} days.
+                If you haven&apos;t tried it yet, now&apos;s the perfect time—we&apos;re covering all the AI costs for the next {daysRemaining} days.
               </Text>
 
               <Section style={statsBox}>
@@ -63,7 +63,7 @@ export function HandshakeReminderEmail({
           {reminderType === 'day21' && (
             <>
               <Section style={warningBox}>
-                <Text style={warningTitle}>Here's the deal</Text>
+                <Text style={warningTitle}>Here&apos;s the deal</Text>
                 <Text style={warningText}>
                   Other GCs pay $99-299/month for tools like this. As a HANDSHAKE partner, <strong>BidVet is free for you forever</strong>—you only cover your own OpenAI API costs (~$1-3 per comparison, paid directly to OpenAI).
                 </Text>
@@ -78,7 +78,7 @@ export function HandshakeReminderEmail({
               <Text style={listItem}>4. Paste it in your BidVet settings</Text>
 
               <Text style={text}>
-                That's it. No subscription to us. No monthly fees. Just pay-as-you-go directly to OpenAI for what you use.
+                That&apos;s it. No subscription to us. No monthly fees. Just pay-as-you-go directly to OpenAI for what you use.
               </Text>
             </>
           )}
@@ -86,14 +86,14 @@ export function HandshakeReminderEmail({
           {reminderType === 'day27' && (
             <>
               <Section style={urgentBox}>
-                <Text style={urgentTitle}>{daysRemaining} days to keep your free access</Text>
+                <Text style={urgentTitle}>{daysRemaining} days to keep running comparisons</Text>
                 <Text style={urgentText}>
-                  Your HANDSHAKE partner access doesn't expire—but you need to add your OpenAI key to keep running comparisons. This takes 2 minutes.
+                  Your HANDSHAKE partner access doesn&apos;t expire—but you need to add your OpenAI key to keep running comparisons. This takes 2 minutes.
                 </Text>
               </Section>
 
               <Text style={text}>
-                <strong>Remember:</strong> BidVet is free for you. No subscription, ever. You only pay OpenAI directly for the AI costs (~$1-3 per comparison). That's the partner deal.
+                <strong>Remember:</strong> BidVet is free for you. No subscription, ever. You only pay OpenAI directly for the AI costs (~$1-3 per comparison). That&apos;s the partner deal.
               </Text>
             </>
           )}
@@ -113,9 +113,9 @@ export function HandshakeReminderEmail({
               <Text style={helpText}>
                 Check out{' '}
                 <Link href="https://platform.openai.com/api-keys" style={link}>
-                  OpenAI's API key page
+                  OpenAI&apos;s API key page
                 </Link>{' '}
-                or reply to this email and we'll walk you through it.
+                or reply to this email and we&apos;ll walk you through it.
               </Text>
             </Section>
           )}
@@ -149,7 +149,7 @@ function getContent(reminderType: 'day7' | 'day21' | 'day27', daysRemaining: num
       return {
         preview: `${daysRemaining} days left - Keep your free partner access`,
         headline: `Don't lose your free partner access`,
-        intro: `Your fully-covered trial ends in ${daysRemaining} days. Take 2 minutes to add your OpenAI key and keep using BidVet—still free, no subscription ever.`,
+        intro: `Your fully-covered partner period ends in ${daysRemaining} days. Take 2 minutes to add your OpenAI key and keep using BidVet—still free, no subscription ever.`,
       }
   }
 }

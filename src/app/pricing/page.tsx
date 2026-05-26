@@ -889,8 +889,8 @@ export default function PricingPage() {
           <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-800">
             <h3 className="font-semibold text-white mb-2">What happens to my 5 free comparisons?</h3>
             <p className="text-slate-400 text-sm">
-              Free comparisons are used first before your purchased credits.
-              Once you&apos;ve used your free comparisons, credits will be deducted.
+              New accounts start with 5 signup credits. Each completed comparison uses
+              1 credit, and purchased credits add to the same balance.
             </p>
           </div>
           <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-800">

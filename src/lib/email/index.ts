@@ -378,7 +378,7 @@ export async function sendAdminApiKeyAddedEmail(params: {
   userEmail: string
   companyName: string
   isHandshakeUser: boolean
-  daysIntoTrial?: number
+  daysIntoPartnerPeriod?: number
 }): Promise<EmailResult> {
   return sendWithRetry(() =>
     resend.emails.send({
@@ -390,7 +390,7 @@ export async function sendAdminApiKeyAddedEmail(params: {
         userEmail: params.userEmail,
         companyName: params.companyName,
         isHandshakeUser: params.isHandshakeUser,
-        daysIntoTrial: params.daysIntoTrial,
+        daysIntoPartnerPeriod: params.daysIntoPartnerPeriod,
         addedDate: new Date().toLocaleDateString('en-US', {
           weekday: 'long',
           year: 'numeric',

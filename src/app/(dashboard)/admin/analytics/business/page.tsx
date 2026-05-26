@@ -39,7 +39,7 @@ interface BusinessData {
     rate: number
     newUsers: number
     converted: number
-    trialing: number
+    freeUsers: number
   }
   churn: {
     rate: number
@@ -157,7 +157,7 @@ function ConversionFunnel({ conversion }: { conversion: BusinessData['conversion
       <CardHeader>
         <CardTitle className="text-lg text-slate-100">Conversion Funnel</CardTitle>
         <CardDescription className="text-slate-400">
-          Trial to paid conversion
+          Free-to-paid conversion
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -170,8 +170,8 @@ function ConversionFunnel({ conversion }: { conversion: BusinessData['conversion
             <TrendingDown className="h-5 w-5 text-slate-600" />
           </div>
           <div className="flex items-center justify-between p-3 rounded-lg bg-slate-800/50">
-            <span className="text-sm text-slate-300">Currently Trialing</span>
-            <span className="text-lg font-bold text-slate-100">{conversion.trialing}</span>
+            <span className="text-sm text-slate-300">Free/Credit Users</span>
+            <span className="text-lg font-bold text-slate-100">{conversion.freeUsers}</span>
           </div>
           <div className="flex justify-center">
             <TrendingDown className="h-5 w-5 text-slate-600" />

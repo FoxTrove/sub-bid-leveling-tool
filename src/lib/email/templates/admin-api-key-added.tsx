@@ -15,7 +15,7 @@ interface AdminApiKeyAddedEmailProps {
   userEmail: string
   companyName: string
   isHandshakeUser: boolean
-  daysIntoTrial?: number
+  daysIntoPartnerPeriod?: number
   addedDate: string
 }
 
@@ -24,7 +24,7 @@ export function AdminApiKeyAddedEmail({
   userEmail,
   companyName,
   isHandshakeUser,
-  daysIntoTrial,
+  daysIntoPartnerPeriod,
   addedDate,
 }: AdminApiKeyAddedEmailProps) {
   return (
@@ -57,10 +57,10 @@ export function AdminApiKeyAddedEmail({
             <Text style={value}>{isHandshakeUser ? "HANDSHAKE Partner" : "Standard User"}</Text>
           </Section>
 
-          {isHandshakeUser && daysIntoTrial !== undefined && (
+          {isHandshakeUser && daysIntoPartnerPeriod !== undefined && (
             <Section style={section}>
-              <Text style={label}>Days Into Trial</Text>
-              <Text style={value}>{daysIntoTrial} days</Text>
+              <Text style={label}>Days Into Partner Period</Text>
+              <Text style={value}>{daysIntoPartnerPeriod} days</Text>
             </Section>
           )}
 

@@ -1,6 +1,3 @@
-// Trial period duration in days
-export const TRIAL_DURATION_DAYS = 30
-
 // Maximum file size for uploads (25MB)
 export const MAX_FILE_SIZE = 25 * 1024 * 1024
 

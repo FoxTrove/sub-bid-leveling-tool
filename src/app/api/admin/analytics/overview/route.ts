@@ -24,7 +24,7 @@ export async function GET() {
       activeSubscriptionsResult,
       projectsResult,
       pendingModerationResult,
-      activeTrialsResult,
+      recentFreeUsersResult,
       aiMetricsResult,
     ] = await Promise.all([
       // Total users
@@ -51,7 +51,7 @@ export async function GET() {
         .select('id', { count: 'exact', head: true })
         .eq('moderation_status', 'pending'),
 
-      // Active trials (users created in last 30 days without active subscription)
+      // Recent free users (created in last 30 days without active subscription)
       adminClient
         .from('profiles')
         .select('id', { count: 'exact', head: true })
@@ -104,7 +104,7 @@ export async function GET() {
       activeSubscriptions: activeSubscriptionsResult.count || 0,
       totalProjects: projectsResult.count || 0,
       pendingModeration: pendingModerationResult.count || 0,
-      activeTrials: activeTrialsResult.count || 0,
+      recentFreeUsers: recentFreeUsersResult.count || 0,
       aiSuccessRate,
       avgConfidence,
       mrr,

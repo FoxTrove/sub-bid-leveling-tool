@@ -102,7 +102,7 @@ export function UserFilters() {
           <SelectItem value="all" className="text-slate-100">All Status</SelectItem>
           <SelectItem value="active" className="text-slate-100">Active</SelectItem>
           <SelectItem value="inactive" className="text-slate-100">Inactive</SelectItem>
-          <SelectItem value="trialing" className="text-slate-100">Trialing</SelectItem>
+          <SelectItem value="trialing" className="text-slate-100">Stripe Trialing (legacy)</SelectItem>
         </SelectContent>
       </Select>
 

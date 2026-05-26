@@ -1,5 +1,3 @@
-import { TRIAL_DURATION_DAYS } from './constants'
-
 export function formatCurrency(amount: number | null | undefined): string {
   if (amount == null) return '-'
   return new Intl.NumberFormat('en-US', {
@@ -68,20 +66,4 @@ export function formatFileSize(bytes: number): string {
 
 export function formatConfidence(score: number): string {
   return `${Math.round(score * 100)}%`
-}
-
-export function getTrialDaysRemaining(trialStartedAt: string): number {
-  const startDate = new Date(trialStartedAt)
-  const endDate = new Date(startDate)
-  endDate.setDate(endDate.getDate() + TRIAL_DURATION_DAYS)
-
-  const now = new Date()
-  const diffInMs = endDate.getTime() - now.getTime()
-  const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24))
-
-  return Math.max(0, diffInDays)
-}
-
-export function isTrialExpired(trialStartedAt: string): boolean {
-  return getTrialDaysRemaining(trialStartedAt) === 0
 }

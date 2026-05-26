@@ -10,7 +10,6 @@ import { extractTextFromPdf } from "./processors/pdf"
 import { extractTextFromExcel } from "./processors/excel"
 import { extractTextFromWord } from "./processors/word"
 import { decrypt } from "@/lib/utils/encryption"
-import { isTrialExpired } from "@/lib/utils/format"
 import { MetricsCollector, categorizeError } from "@/lib/metrics/collector"
 import type { BidDocument, ExtractedItem } from "@/types"
 
@@ -107,10 +106,11 @@ export async function analyzeProject(
       sizeBytes: totalDocumentSize,
     })
 
-    // 2. Get user's API key or check trial
+    // 2. Get user's API key or fall back to the app key.
+    // Credit/subscription entitlement is enforced by the analyze API route before this worker runs.
     const { data: profile } = await supabase
       .from("profiles")
-      .select("openai_api_key_encrypted, trial_started_at")
+      .select("openai_api_key_encrypted")
       .eq("id", project.user_id)
       .single()
 
@@ -118,10 +118,8 @@ export async function analyzeProject(
 
     if (profile?.openai_api_key_encrypted) {
       apiKey = decrypt(profile.openai_api_key_encrypted)
-    } else if (profile?.trial_started_at && !isTrialExpired(profile.trial_started_at)) {
-      apiKey = getApiKey(null)
     } else {
-      throw new Error("Trial expired and no API key configured")
+      apiKey = getApiKey(null)
     }
 
     const openai = createOpenAIClient(apiKey)

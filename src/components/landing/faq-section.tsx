@@ -40,7 +40,7 @@ const faqs = [
       "Our AI is trained on thousands of bid formats and can handle most variations. If something looks unclear, it will be flagged with a lower confidence score for your review. You can also manually edit any extracted data if needed.",
   },
   {
-    question: "Do you offer a free trial?",
+    question: "Can I try BidVet for free?",
     answer:
       "Yes! Every new account gets 5 free bid comparisons—no credit card required. This lets you experience the full power of BidVet on real projects before committing to a subscription or credit pack.",
   },

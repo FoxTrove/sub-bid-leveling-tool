@@ -126,7 +126,7 @@ export function UserEditForm({
             <SelectContent className="bg-slate-900 border-slate-700">
               <SelectItem value="inactive" className="text-slate-100">Inactive</SelectItem>
               <SelectItem value="active" className="text-slate-100">Active</SelectItem>
-              <SelectItem value="trialing" className="text-slate-100">Trialing</SelectItem>
+              <SelectItem value="trialing" className="text-slate-100">Stripe Trialing (legacy)</SelectItem>
               <SelectItem value="past_due" className="text-slate-100">Past Due</SelectItem>
               <SelectItem value="canceled" className="text-slate-100">Canceled</SelectItem>
             </SelectContent>

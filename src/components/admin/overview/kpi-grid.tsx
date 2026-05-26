@@ -22,7 +22,7 @@ interface KPIData {
   activeSubscriptions: number
   totalProjects: number
   pendingModeration: number
-  activeTrials: number
+  recentFreeUsers: number
   aiSuccessRate: number
   avgConfidence: number
   mrr: number
@@ -186,9 +186,9 @@ export function KPIGrid() {
         badgeVariant="destructive"
       />
       <KPICard
-        title="Active Trials"
-        value={data.activeTrials}
-        description="Users in 30-day trial period"
+        title="Recent Free Users"
+        value={data.recentFreeUsers}
+        description="Created in last 30 days, not subscribed"
         icon={Clock}
       />
     </div>

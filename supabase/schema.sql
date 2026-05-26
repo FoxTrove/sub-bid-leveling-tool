@@ -4,16 +4,39 @@
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+CREATE TYPE plan_type AS ENUM ('free', 'basic', 'pro', 'team', 'enterprise');
+CREATE TYPE subscription_status AS ENUM ('inactive', 'active', 'past_due', 'canceled', 'trialing');
+CREATE TYPE billing_cycle AS ENUM ('monthly', 'annual');
+CREATE TYPE credit_transaction_type AS ENUM ('purchase', 'usage', 'refund', 'bonus', 'signup');
+
 -- ============================================
 -- PROFILES TABLE (extends Supabase auth.users)
 -- ============================================
 CREATE TABLE public.profiles (
     id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
     email TEXT NOT NULL,
+    first_name TEXT,
     full_name TEXT,
     company_name TEXT,
+    gc_name TEXT,
+    -- Legacy timestamp retained for older rows. Standard signup access is credit-based.
     trial_started_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     openai_api_key_encrypted TEXT,
+    onboarding_completed BOOLEAN DEFAULT FALSE NOT NULL,
+    password_set BOOLEAN DEFAULT FALSE NOT NULL,
+    plan plan_type DEFAULT 'free' NOT NULL,
+    stripe_customer_id TEXT,
+    stripe_subscription_id TEXT,
+    subscription_status subscription_status DEFAULT 'inactive' NOT NULL,
+    subscription_period_end TIMESTAMPTZ,
+    billing_cycle billing_cycle,
+    comparisons_used INTEGER DEFAULT 0 NOT NULL,
+    credit_balance INTEGER DEFAULT 5 NOT NULL,
+    credits INTEGER DEFAULT 5,
+    credits_purchased_total INTEGER DEFAULT 0 NOT NULL,
+    last_credit_purchase_at TIMESTAMPTZ,
+    promo_code TEXT,
+    promo_applied_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
@@ -32,8 +55,12 @@ CREATE POLICY "Users can update own profile" ON public.profiles
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO public.profiles (id, email)
-    VALUES (NEW.id, NEW.email);
+    INSERT INTO public.profiles (id, email, credit_balance, credits)
+    VALUES (NEW.id, NEW.email, 5, 5);
+
+    INSERT INTO public.credit_transactions (user_id, type, amount, balance_after, description)
+    VALUES (NEW.id, 'signup', 5, 5, 'Signup bonus credits');
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -43,6 +70,37 @@ CREATE TRIGGER on_auth_user_created
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ============================================
+-- PROJECT FOLDERS TABLE
+-- ============================================
+CREATE TABLE public.project_folders (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    name TEXT NOT NULL,
+    location TEXT,
+    client_name TEXT,
+    project_size TEXT,
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+ALTER TABLE public.project_folders ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own folders" ON public.project_folders
+    FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can create own folders" ON public.project_folders
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own folders" ON public.project_folders
+    FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own folders" ON public.project_folders
+    FOR DELETE USING (auth.uid() = user_id);
+
+CREATE INDEX idx_project_folders_user_id ON public.project_folders(user_id);
+
+-- ============================================
 -- PROJECTS TABLE
 -- ============================================
 CREATE TYPE project_status AS ENUM ('draft', 'uploading', 'processing', 'complete', 'error');
@@ -50,6 +108,7 @@ CREATE TYPE project_status AS ENUM ('draft', 'uploading', 'processing', 'complet
 CREATE TABLE public.projects (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    folder_id UUID REFERENCES public.project_folders(id) ON DELETE SET NULL,
     name TEXT NOT NULL,
     trade_type TEXT NOT NULL,
     location TEXT,
@@ -58,6 +117,9 @@ CREATE TABLE public.projects (
     notes TEXT,
     status project_status DEFAULT 'draft' NOT NULL,
     error_message TEXT,
+    procore_project_id TEXT,
+    procore_project_name TEXT,
+    source_system TEXT DEFAULT 'manual' NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
@@ -80,6 +142,7 @@ CREATE POLICY "Users can delete own projects" ON public.projects
 
 -- Index for faster queries
 CREATE INDEX idx_projects_user_id ON public.projects(user_id);
+CREATE INDEX idx_projects_folder_id ON public.projects(folder_id);
 CREATE INDEX idx_projects_status ON public.projects(status);
 CREATE INDEX idx_projects_created_at ON public.projects(created_at DESC);
 
@@ -99,6 +162,9 @@ CREATE TABLE public.bid_documents (
     upload_status document_status DEFAULT 'uploading' NOT NULL,
     raw_text TEXT,
     error_message TEXT,
+    procore_bid_id TEXT,
+    procore_vendor_id TEXT,
+    source_system TEXT DEFAULT 'upload' NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
@@ -253,6 +319,101 @@ CREATE POLICY "Users can update own comparison results" ON public.comparison_res
 CREATE INDEX idx_comparison_results_project_id ON public.comparison_results(project_id);
 
 -- ============================================
+-- CREDIT TRANSACTIONS TABLE
+-- ============================================
+CREATE TABLE public.credit_transactions (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    type credit_transaction_type NOT NULL,
+    amount INTEGER NOT NULL,
+    balance_after INTEGER NOT NULL,
+    description TEXT,
+    stripe_payment_intent_id TEXT,
+    stripe_checkout_session_id TEXT,
+    project_id UUID REFERENCES public.projects(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+ALTER TABLE public.credit_transactions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own credit transactions" ON public.credit_transactions
+    FOR SELECT USING (auth.uid() = user_id);
+
+CREATE INDEX idx_credit_transactions_user_id ON public.credit_transactions(user_id);
+CREATE INDEX idx_credit_transactions_created_at ON public.credit_transactions(created_at DESC);
+
+CREATE OR REPLACE FUNCTION public.add_credits(
+    p_user_id UUID,
+    p_amount INTEGER,
+    p_type credit_transaction_type DEFAULT 'bonus',
+    p_description TEXT DEFAULT NULL,
+    p_stripe_session_id TEXT DEFAULT NULL
+) RETURNS JSONB AS $$
+DECLARE
+    v_balance INTEGER;
+BEGIN
+    UPDATE public.profiles
+    SET credit_balance = COALESCE(credit_balance, 0) + p_amount,
+        credits = COALESCE(credit_balance, 0) + p_amount,
+        credits_purchased_total = CASE
+            WHEN p_type = 'purchase' THEN COALESCE(credits_purchased_total, 0) + p_amount
+            ELSE credits_purchased_total
+        END,
+        last_credit_purchase_at = CASE
+            WHEN p_type = 'purchase' THEN NOW()
+            ELSE last_credit_purchase_at
+        END
+    WHERE id = p_user_id
+    RETURNING credit_balance INTO v_balance;
+
+    IF v_balance IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'reason', 'user_not_found');
+    END IF;
+
+    INSERT INTO public.credit_transactions(user_id, type, amount, balance_after, description, stripe_checkout_session_id)
+    VALUES (p_user_id, p_type, p_amount, v_balance, p_description, p_stripe_session_id);
+
+    RETURN jsonb_build_object('success', true, 'balance', v_balance);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION public.deduct_credits(
+    p_user_id UUID,
+    p_amount INTEGER DEFAULT 1,
+    p_project_id UUID DEFAULT NULL,
+    p_description TEXT DEFAULT NULL
+) RETURNS JSONB AS $$
+DECLARE
+    v_balance INTEGER;
+BEGIN
+    SELECT credit_balance
+    INTO v_balance
+    FROM public.profiles
+    WHERE id = p_user_id
+    FOR UPDATE;
+
+    IF v_balance IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'reason', 'user_not_found');
+    END IF;
+
+    IF COALESCE(v_balance, 0) < p_amount THEN
+        RETURN jsonb_build_object('success', false, 'reason', 'insufficient_credits', 'balance', COALESCE(v_balance, 0));
+    END IF;
+
+    UPDATE public.profiles
+    SET credit_balance = credit_balance - p_amount,
+        credits = credit_balance - p_amount
+    WHERE id = p_user_id
+    RETURNING credit_balance INTO v_balance;
+
+    INSERT INTO public.credit_transactions(user_id, type, amount, balance_after, description, project_id)
+    VALUES (p_user_id, 'usage', -p_amount, v_balance, p_description, p_project_id);
+
+    RETURN jsonb_build_object('success', true, 'balance', v_balance);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ============================================
 -- UPDATED_AT TRIGGER FUNCTION
 -- ============================================
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -266,6 +427,10 @@ $$ LANGUAGE plpgsql;
 -- Apply to all tables with updated_at
 CREATE TRIGGER update_profiles_updated_at
     BEFORE UPDATE ON public.profiles
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_project_folders_updated_at
+    BEFORE UPDATE ON public.project_folders
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_projects_updated_at

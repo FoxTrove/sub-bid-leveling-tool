@@ -57,8 +57,8 @@ export async function GET(request: NextRequest) {
       .eq('subscription_status', 'active')
       .gte('created_at', startDate)
 
-    // Get trial users (new users in period without active subscription)
-    const { data: trialUsers, count: trialCount } = await adminClient
+    // Get free users (new users in period without active subscription)
+    const { count: freeUserCount } = await adminClient
       .from('profiles')
       .select('id', { count: 'exact' })
       .gte('created_at', startDate)
@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
         rate: conversionRate,
         newUsers: totalNewUsers || 0,
         converted: newSubsCount,
-        trialing: trialCount || 0,
+        freeUsers: freeUserCount || 0,
       },
       churn: {
         rate: churnRate,

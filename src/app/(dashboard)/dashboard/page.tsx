@@ -21,7 +21,7 @@ export default async function DashboardPage() {
     redirect("/login")
   }
 
-  // Fetch user profile for trial info
+  // Fetch user profile for usage, credits, and promo info
   const { data: profile } = await supabase
     .from("profiles")
     .select("*")

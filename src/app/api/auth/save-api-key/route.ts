@@ -81,12 +81,12 @@ export async function POST(request: Request) {
         })
         .catch(console.error)
 
-      // Calculate days into trial for HANDSHAKE users
-      let daysIntoTrial: number | undefined
+      // Calculate days into the HANDSHAKE free period for partner users
+      let daysIntoPartnerPeriod: number | undefined
       if (isHandshakeUser && profile.promo_applied_at) {
         const appliedDate = new Date(profile.promo_applied_at)
         const now = new Date()
-        daysIntoTrial = Math.floor((now.getTime() - appliedDate.getTime()) / (1000 * 60 * 60 * 24))
+        daysIntoPartnerPeriod = Math.floor((now.getTime() - appliedDate.getTime()) / (1000 * 60 * 60 * 24))
       }
 
       // Send admin notification (fire and forget)
@@ -95,7 +95,7 @@ export async function POST(request: Request) {
         userEmail: profile.email,
         companyName: profile.company_name || "Unknown",
         isHandshakeUser,
-        daysIntoTrial,
+        daysIntoPartnerPeriod,
       }).catch(console.error)
     }
 
