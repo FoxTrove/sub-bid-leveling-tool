@@ -54,9 +54,11 @@ export function LoginForm({ promoCode, plan, interval, redirectPath, authError }
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [isVerifyingCode, setIsVerifyingCode] = useState(false)
   const [isSent, setIsSent] = useState(false)
   const [activeTab, setActiveTab] = useState<"magic" | "password">("magic")
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [otpCode, setOtpCode] = useState("")
   const { isCaptchaEnabled, shouldAllowSubmit } = useTurnstile()
 
   // Pre-fill email from landing page and store promo code/plan
@@ -134,6 +136,82 @@ export function LoginForm({ promoCode, plan, interval, redirectPath, authError }
     }
   }
 
+  const redirectAfterAuth = async () => {
+    const checkoutPlan = sessionStorage.getItem("bidvet_checkout_plan")
+    const checkoutInterval = sessionStorage.getItem("bidvet_checkout_interval") || "monthly"
+
+    if (checkoutPlan) {
+      sessionStorage.removeItem("bidvet_checkout_plan")
+      sessionStorage.removeItem("bidvet_checkout_interval")
+
+      try {
+        const response = await fetch("/api/stripe/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ plan: checkoutPlan, interval: checkoutInterval }),
+        })
+
+        if (response.ok) {
+          const { url } = await response.json()
+          if (url) {
+            window.location.href = url
+            return
+          }
+        }
+      } catch (e) {
+        console.error("Checkout redirect failed:", e)
+      }
+    }
+
+    router.push(getSafeRedirectPath(redirectPath) || "/dashboard")
+    router.refresh()
+  }
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    const token = otpCode.replace(/\D/g, "")
+    if (token.length < 6) {
+      toast.error("Enter the 6-digit code from the newest email.")
+      return
+    }
+
+    setIsVerifyingCode(true)
+
+    try {
+      const supabase = createClient()
+      let verifyError: Error | null = null
+
+      for (const otpType of ["magiclink", "email"] as const) {
+        const { error } = await supabase.auth.verifyOtp({
+          email,
+          token,
+          type: otpType,
+        })
+
+        if (!error) {
+          verifyError = null
+          break
+        }
+
+        verifyError = error
+      }
+
+      if (verifyError) throw verifyError
+
+      toast.success("Signed in successfully!")
+      await redirectAfterAuth()
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "That code did not work. Request a new magic link and use the newest email."
+      )
+    } finally {
+      setIsVerifyingCode(false)
+    }
+  }
+
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -165,38 +243,7 @@ export function LoginForm({ promoCode, plan, interval, redirectPath, authError }
       }
 
       toast.success("Signed in successfully!")
-
-      // Check if user was trying to checkout a plan
-      const checkoutPlan = sessionStorage.getItem("bidvet_checkout_plan")
-      const checkoutInterval = sessionStorage.getItem("bidvet_checkout_interval") || "monthly"
-
-      if (checkoutPlan) {
-        // Clear stored checkout info
-        sessionStorage.removeItem("bidvet_checkout_plan")
-        sessionStorage.removeItem("bidvet_checkout_interval")
-
-        // Redirect to checkout API
-        try {
-          const response = await fetch("/api/stripe/checkout", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ plan: checkoutPlan, interval: checkoutInterval }),
-          })
-
-          if (response.ok) {
-            const { url } = await response.json()
-            if (url) {
-              window.location.href = url
-              return
-            }
-          }
-        } catch (e) {
-          console.error("Checkout redirect failed:", e)
-        }
-      }
-
-      router.push(getSafeRedirectPath(redirectPath) || "/dashboard")
-      router.refresh()
+      await redirectAfterAuth()
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to sign in"
@@ -208,13 +255,13 @@ export function LoginForm({ promoCode, plan, interval, redirectPath, authError }
 
   if (isSent) {
     return (
-      <div className="space-y-6 text-center">
+      <div className="space-y-6">
         <div className="flex justify-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
             <CheckCircle2 className="h-8 w-8 text-primary" />
           </div>
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2 text-center">
           <h2 className="text-xl font-semibold">Check your email</h2>
           <p className="text-muted-foreground">
             We sent a magic link to <strong>{email}</strong>
@@ -226,6 +273,39 @@ export function LoginForm({ promoCode, plan, interval, redirectPath, authError }
             If you request more than one link, only use the newest email.
           </p>
         </div>
+        <form onSubmit={handleVerifyCode} className="space-y-3 text-left">
+          <div className="space-y-2">
+            <Label htmlFor="otp-code">Sign-in code</Label>
+            <Input
+              id="otp-code"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              pattern="[0-9]*"
+              maxLength={8}
+              placeholder="123456"
+              value={otpCode}
+              onChange={(e) => setOtpCode(e.target.value)}
+              disabled={isVerifyingCode}
+            />
+          </div>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={isVerifyingCode || otpCode.replace(/\D/g, "").length < 6}
+          >
+            {isVerifyingCode ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Verifying...
+              </>
+            ) : (
+              "Sign in with code"
+            )}
+          </Button>
+          <p className="text-center text-xs text-muted-foreground">
+            If your email app hides the sign-in button, enter the 6-digit code from the email.
+          </p>
+        </form>
         <Button
           variant="outline"
           onClick={() => setIsSent(false)}

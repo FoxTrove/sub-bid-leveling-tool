@@ -23,6 +23,53 @@ export async function GET(request: Request) {
     return NextResponse.redirect(loginUrl)
   }
 
+  const redirectToLoginErrorUrl = (error: string, description?: string) => {
+    const loginUrl = new URL("/login", origin)
+    loginUrl.searchParams.set("error", error)
+    if (description) {
+      loginUrl.searchParams.set("error_description", description)
+    }
+    return loginUrl.toString()
+  }
+
+  const forwardFragmentSession = (fallbackUrl: string) => {
+    const html = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Completing sign in...</title>
+  </head>
+  <body>
+    <p>Completing sign in...</p>
+    <script>
+      (function () {
+        var hash = window.location.hash || "";
+        if (hash && (hash.indexOf("access_token=") !== -1 || hash.indexOf("refresh_token=") !== -1)) {
+          var target = new URL("/auth/session", window.location.origin);
+          target.search = window.location.search;
+          target.hash = hash;
+          window.location.replace(target.toString());
+          return;
+        }
+
+        window.location.replace(${JSON.stringify(fallbackUrl)});
+      })();
+    </script>
+    <noscript>
+      JavaScript is required to complete this sign-in link. Please enable JavaScript and request a new magic link.
+    </noscript>
+  </body>
+</html>`
+
+    return new NextResponse(html, {
+      headers: {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-store",
+      },
+    })
+  }
+
   const providerError = requestUrl.searchParams.get("error")
   const providerErrorDescription = requestUrl.searchParams.get("error_description")
   if (providerError) {
@@ -156,8 +203,10 @@ export async function GET(request: Request) {
   }
 
   // If there's no valid auth params or an error, redirect to login with error
-  return redirectToLoginError(
-    "auth_failed",
-    "The sign-in link did not include the required authentication token."
+  return forwardFragmentSession(
+    redirectToLoginErrorUrl(
+      "auth_failed",
+      "The sign-in link did not include the required authentication token."
+    )
   )
 }
